@@ -15,7 +15,7 @@ public class ProjectTest {
           .when().get("/project")
           .then()
              .statusCode(200)
-             .body(is("hello"));
+             .body("hello", is("world"));
     }
 
 }
