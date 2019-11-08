@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: omp-backend
+objects:
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      app: omp-backend
+    name: omp-backend
+  spec:
+    failedBuildsHistoryLimit: 5
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: omp-backend:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      git:
+        uri: "${GIT_URL}"
+      type: Git
+    strategy:
+      sourceStrategy:
+        from:
+          kind: DockerImage
+          name: quay.io/quarkus/ubi-quarkus-native-s2i:19.2.1
+      type: Source
+    successfulBuildsHistoryLimit: 5
+    triggers:
+    - type: ConfigChange
+parameters:
+- name: GIT_URL
+  description: The Git URL of the project containing the OMP API
+  required: true
