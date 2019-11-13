@@ -1,15 +1,24 @@
+build_vars:
+  NAME: omp-backend
+  GIT_URL: https://github.com/rht-labs/open-management-portal-backend.git
+  GIT_REF: master
+  OUTPUT_IMAGE_NAME: omp-backend
+  OUTPUT_IMAGE_TAG: latest
+  BUILDER_IMAGE_NAME: quay.io/quarkus/ubi-quarkus-native-s2i
+  BUILDER_IMAGE_TAG: 19.2.1
+
+deploy_vars:
+  NAME: omp-backend
+  IMAGE_NAME: omp-backend
+  IMAGE_TAG: latest
+  JWT_PUBLIC_KEY_URL: http://sso-cluster-internal:8080/auth/realms/omp/protocol/openid-connect/certs
+
 openshift_cluster_content:
 - object: omp-backend
   content:
-  - name: imagestream
-    file: '{{ inventory_dir }}/../files/omp-backend-imagestream.yml'
-  - name: buildconfig
-    template: '{{ inventory_dir }}/../templates/omp-backend-buildconfig.yml'
-    params: '{{ inventory_dir }}/../params/omp-backend-buildconfig'
-  - name: deploymentconfig
-    template: '{{ inventory_dir }}/../templates/omp-backend-deploymentconfig.yml'
-    params: '{{ inventory_dir }}/../params/omp-backend-deploymentconfig'
-  - name: service
-    file: '{{ inventory_dir }}/../files/omp-backend-service.yml'
-  - name: route
-    file: '{{ inventory_dir }}/../files/omp-backend-route.yml'
+  - name: build
+    template: '{{ inventory_dir }}/../templates/build.yml'
+    params_from_vars: '{{ build_vars }}'
+  - name: deployment
+    template: '{{ inventory_dir }}/../templates/deploy.yml'
+    params_from_vars: '{{ deploy_vars }}'
