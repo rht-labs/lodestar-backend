@@ -10,6 +10,18 @@ The following environment variables are available:
 |------|---------------|----------|
 | MP_JWT_VERIFY_PUBLICKEY_LOCATION | http://[your-cluster-internal-sso-service-name]:8080/auth/realms/[your-realm-id]/protocol/openid-connect/certs | True |
 
+## Deployment
+
+This project includes an `openshift-applier` inventory. To use it, make sure that you are logged in to the cluster and that you customize the variables in `.applier/inventory/group_vars/all.yml`. Once these are configured, you can deploy the project with:
+
+```bash
+$ cd .applier/
+
+$ ansible-galaxy install -r requirements.yml --roles-path=roles --force
+
+$ ansible-playbook apply.yml -i inventory/
+```
+
 ## Components
 
 This project was built using Quarkus.
