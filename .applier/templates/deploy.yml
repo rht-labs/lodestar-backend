@@ -35,6 +35,10 @@ objects:
         - env:
           - name: MP_JWT_VERIFY_PUBLICKEY_LOCATION
             value: "${JWT_PUBLIC_KEY_URL}"
+          - name: GIT_REPO_URL
+            value: "${GIT_REPO_URL}"
+          - name: GIT_PRIVATE_KEY_PATH
+            value: "/identity/ssh-privatekey"
           image: "${IMAGE_NAME}:${IMAGE_TAG}"
           imagePullPolicy: Always
           name: "${NAME}"
@@ -44,11 +48,19 @@ objects:
           resources: {}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /identity
+            name: git-key
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         schedulerName: default-scheduler
         securityContext: {}
         terminationGracePeriodSeconds: 30
+        volumes:
+        - name: git-key
+          secret:
+            defaultMode: 420
+            secretName: "${GIT_SECRET_NAME}"
     test: false
     triggers:
     - type: ConfigChange

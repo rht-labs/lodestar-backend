@@ -13,6 +13,9 @@ deploy_vars:
   IMAGE_NAME: omp-backend
   IMAGE_TAG: latest
   JWT_PUBLIC_KEY_URL: http://sso-cluster-internal:8080/auth/realms/omp/protocol/openid-connect/certs
+  GIT_REPO_URL: git@gitlab.com:my-org/omp-repo.git
+  GIT_PRIVATE_KEY_PATH: /identity/ssh-privatekey
+  GIT_SECRET_NAME: git-key
 
 openshift_cluster_content:
 - object: omp-backend
@@ -20,6 +23,9 @@ openshift_cluster_content:
 # Uncomment this if you would like to define your image pull secret here, and then DO NOT push this back to a public repository.
 #  - name: image-pull-secret
 #    file: '{{ inventory_dir }}/../files/image-pull-secret.yml'
+# Uncomment this if you would like to define your SSH secret here, and then DO NOT push this back to a public repository.
+#  - name: ssh-secret
+#    file: '{{ inventory_dir }}/../files/ssh-secret.yml'
   - name: build
     template: '{{ inventory_dir }}/../templates/build.yml'
     params_from_vars: '{{ build_vars }}'
