@@ -1,8 +1,10 @@
 package com.rht_labs;
 
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
+import org.eclipse.jgit.lib.Ref;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import javax.annotation.security.PermitAll;
@@ -69,6 +71,12 @@ public class Project {
                 .setURI(System.getenv("GIT_REPO_URL"))
                 .call();
 
+        // Create a branch
+        git.branchCreate().setName("omp-new-branch").call();
+
+        // Switch to it
+        Ref newBranch = git.checkout().setName("omp-new-branch").call();
+
         // Make a change
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         FileWriter file = new FileWriter(workingDir.getAbsolutePath() + "/current-timestamp");
@@ -79,10 +87,21 @@ public class Project {
         git.add().addFilepattern(".").call();
         git.commit().setMessage("Update timestamp").call();
 
-        // Push
-        PushCommand pushCommand = git.push();
-        pushCommand.setTransportConfigCallback(transportConfigCallback);
-        pushCommand.call();
+        // Switch back to master
+        git.checkout().setName("master").call();
+
+        // Merge from our other branch
+        MergeResult mergeResult = git.merge().include(newBranch).call();
+
+        if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
+            System.out.println(mergeResult.getConflicts().toString());
+            // uh oh ¯\_(ツ)_/¯
+        } else {
+            // Push
+            PushCommand pushCommand = git.push();
+            pushCommand.setTransportConfigCallback(transportConfigCallback);
+            pushCommand.call();
+        }
 
         // Return _something_ to the user.
         return "File updated with " + timestamp.toString();
