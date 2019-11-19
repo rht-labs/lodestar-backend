@@ -5,6 +5,7 @@ import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PushCommand;
 import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import javax.annotation.security.PermitAll;
@@ -85,13 +86,13 @@ public class Project {
 
         // Add & Commit
         git.add().addFilepattern(".").call();
-        git.commit().setMessage("Update timestamp").call();
+        RevCommit commit = git.commit().setMessage("Update timestamp").call();
 
         // Switch back to master
         git.checkout().setName("master").call();
 
         // Merge from our other branch
-        MergeResult mergeResult = git.merge().include(newBranch).call();
+        MergeResult mergeResult = git.merge().include(commit).call();
 
         if (mergeResult.getMergeStatus().equals(MergeResult.MergeStatus.CONFLICTING)){
             System.out.println(mergeResult.getConflicts().toString());
@@ -101,6 +102,7 @@ public class Project {
             PushCommand pushCommand = git.push();
             pushCommand.setTransportConfigCallback(transportConfigCallback);
             pushCommand.call();
+            System.out.println("Pushed to remote repo");
         }
 
         // Return _something_ to the user.
