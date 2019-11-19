@@ -28,7 +28,7 @@ Alternatively, you can uncomment the image pull secret in `inventory/group_vars/
 
 #### SSH Private Key
 
-The `DeploymentConfig` in this project requires a secret containing an SSH private key that has read/write access to your git repository. This should have a `type` of `kubernetes.io/ssh-auth`. This SSH key must not have a passphrase, and _must_ be RSA-type in PEM format. You can generate a key of this type using this command:
+The `DeploymentConfig` in this project requires a secret containing an SSH private key that has read/write access to your git repository. By default, it should be called `git-key`. This should have a `type` of `kubernetes.io/ssh-auth`. This SSH key must not have a passphrase, and _must_ be RSA-type in PEM format. You can generate a key of this type using this command:
 
 ```bash
 ssh-keygen -b 4096 -t rsa -m pem -f git-key

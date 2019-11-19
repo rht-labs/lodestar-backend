@@ -57,7 +57,7 @@ public class Project {
     }
 
     @GET
-    @Path("read")
+    @Path("git")
     @Produces(MediaType.TEXT_PLAIN)
     public String readFromRepo(@Context SecurityContext ctx) throws Exception {
         // Clone repo
