@@ -4,8 +4,9 @@ build_vars:
   GIT_REF: master
   OUTPUT_IMAGE_NAME: omp-backend
   OUTPUT_IMAGE_TAG: latest
-  BUILDER_IMAGE_NAME: quay.io/quarkus/ubi-quarkus-native-s2i
-  BUILDER_IMAGE_TAG: 19.2.1
+  BUILDER_IMAGE_NAME: registry.redhat.io/openjdk/openjdk-8-rhel8
+  BUILDER_IMAGE_TAG: 1.1
+  BUILDER_IMAGE_PULL_SECRET: builder-image-pull-secret
 
 deploy_vars:
   NAME: omp-backend
@@ -16,6 +17,9 @@ deploy_vars:
 openshift_cluster_content:
 - object: omp-backend
   content:
+# Uncomment this if you would like to define your image pull secret here, and then DO NOT push this back to a public repository.
+#  - name: image-pull-secret
+#    file: '{{ inventory_dir }}/../files/image-pull-secret.yml'
   - name: build
     template: '{{ inventory_dir }}/../templates/build.yml'
     params_from_vars: '{{ build_vars }}'

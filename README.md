@@ -12,7 +12,17 @@ The following environment variables are available:
 
 ## Deployment
 
-This project includes an `openshift-applier` inventory. To use it, make sure that you are logged in to the cluster and that you customize the variables in `.applier/inventory/group_vars/all.yml`. Once these are configured, you can deploy the project with:
+This project includes an `openshift-applier` inventory. To use it, make sure that you are logged in to the cluster and that you customize the variables in `.applier/inventory/group_vars/all.yml`. 
+
+The `BuildConfig` included in this project also requires an image pull secret with permission to pull from `registry.redhat.io`. By default, the `BuildConfig` expects it to be called `builder-image-pull-secret`. You can create it on the command-line using `oc` like this:
+
+```bash
+oc create secret docker-registry builder-image-pull-secret --docker-server=registry.redhat.io --docker-username=[your-username] --docker-password=[your-password] --docker-email=[anything]
+```
+
+Alternatively, you can uncomment the secret in `inventory/group_vars/all.yml` and define the registry credentials in this inventory. If you do this, _do not push the inventory to a public git repository_.
+
+Once these are configured, you can deploy the project with:
 
 ```bash
 $ cd .applier/

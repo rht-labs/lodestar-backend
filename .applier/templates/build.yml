@@ -36,6 +36,8 @@ objects:
         from:
           kind: DockerImage
           name: "${BUILDER_IMAGE_NAME}:${BUILDER_IMAGE_TAG}"
+        pullSecret:
+          name: "${BUILDER_IMAGE_PULL_SECRET}"
       type: Source
     successfulBuildsHistoryLimit: 5
     triggers:
@@ -55,6 +57,9 @@ parameters:
   required: true
 - name: BUILDER_IMAGE_TAG
   description: The tag of the builder image to use
+  required: true
+- name: BUILDER_IMAGE_PULL_SECRET
+  description: The name of a pull secret which can access registry.redhat.io
   required: true
 - name: GIT_URL
   description: The Git URL of the project containing the OMP API
