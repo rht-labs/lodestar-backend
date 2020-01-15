@@ -61,8 +61,6 @@ objects:
         ref: "${GIT_REF}"
         uri: "${GIT_URL}"
       type: Git
-      sourceSecret:
-        name: "${PIPELINE_SOURCE_SECRET}"
     strategy:
       jenkinsPipelineStrategy:
         jenkinsfilePath: Jenkinsfile

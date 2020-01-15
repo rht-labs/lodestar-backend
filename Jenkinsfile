@@ -21,6 +21,8 @@ pipeline{
 
         DISPLAY = 0
 
+        pom = readMavenPom file: 'pom.xml'
+
         ARTIFACTID = pom.getArtifactId();
         VERSION = pom.getVersion();
 
@@ -92,7 +94,7 @@ pipeline{
                 stage("Apply Inventory using Ansible-Playbook") {
                     steps {
                         echo '### Apply Inventory using Ansible-Playbook ###'
-                        sh "ansible-playbook .openshift-applier/apply.yml -i .openshift-applier/inventory/ -e 'include_tags=build,${NODE_ENV}'"
+                        sh "ansible-playbook .openshift-applier/apply.yml -i .openshift-applier/inventory/"
                     }
                 }
             }
