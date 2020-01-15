@@ -138,13 +138,13 @@ pipeline{
             
                     }
                 }
-                stage("Sonar Quality Gate"){
-                    steps {
-                        timeout(time: 1, unit: 'HOURS') {
-                            waitForQualityGate abortPipeline: false
-                        }
-                    }
-                }
+//                stage("Sonar Quality Gate"){
+//                    steps {
+//                        timeout(time: 1, unit: 'HOURS') {
+//                            waitForQualityGate abortPipeline: false
+//                        }
+//                    }
+//                }
                 stage("Deploy to Nexus"){
                     when {
                         expression { currentBuild.result != 'UNSTABLE' }
