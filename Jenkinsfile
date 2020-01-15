@@ -102,7 +102,7 @@ pipeline{
         stage("Test/Build/Nexus/OpenShift Build"){
             agent {
                 node {
-                    label "jenkins-slave-mvn"
+                    label "jenkins-slave-graal"
                 }
             }
             stages{
