@@ -133,7 +133,7 @@ pipeline{
                     steps{
                         echo '### Maven Static Code Analysis ###'
                         sh 'mvn checkstyle:checkstyle'
-                        sh 'mvn org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true "
+                        sh 'mvn org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true'
                         
             
                     }
