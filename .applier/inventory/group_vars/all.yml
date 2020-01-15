@@ -1,3 +1,6 @@
+---
+ci_cd_namespace: labs-ci-cd
+
 build_vars:
   NAME: omp-backend
   GIT_URL: https://github.com/rht-labs/open-management-portal-backend.git
@@ -6,6 +9,11 @@ build_vars:
   OUTPUT_IMAGE_TAG: latest
   BUILDER_IMAGE_NAME: quay.io/quarkus/ubi-quarkus-native-s2i
   BUILDER_IMAGE_TAG: 19.2.1
+
+pipeline_vars:
+  PIPELINE_SOURCE_REPOSITORY_URL: https://github.com/rht-labs/open-management-portal-backend.git
+  PIPELINE_SOURCE_REPOSITORY_REF: master
+  NAME: omp-backend
 
 deploy_vars:
   NAME: omp-backend
@@ -19,6 +27,10 @@ openshift_cluster_content:
   - name: build
     template: '{{ inventory_dir }}/../templates/build.yml'
     params_from_vars: '{{ build_vars }}'
+    tags:
+      - build
   - name: deployment
     template: '{{ inventory_dir }}/../templates/deploy.yml'
     params_from_vars: '{{ deploy_vars }}'
+    tags:
+      - deploy
