@@ -14,7 +14,7 @@ pipeline{
         GIT_ORG = "rht-labs"
 
         PIPELINES_NAMESPACE = "${NAMESPACE_PREFIX}-ci-cd"
-        APP_NAME = "open-management-portal-backend"
+        APP_NAME = "omp-backend"
 
         JENKINS_TAG = "${JOB_NAME}.${BUILD_NUMBER}".replace("/", "-")
         JOB_NAME = "${JOB_NAME}".replace("/", "-")

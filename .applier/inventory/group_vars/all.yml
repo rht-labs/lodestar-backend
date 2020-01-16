@@ -2,12 +2,13 @@
 ci_cd_namespace: labs-ci-cd
 dev_namespace: labs-dev
 test_namespace: labs-test
+app_name: omp-backend
 
 build_vars:
-  NAME: omp-backend
+  NAME: '{{ app_name }}'
   GIT_URL: https://github.com/rht-labs/open-management-portal-backend.git
   GIT_REF: master
-  OUTPUT_IMAGE_NAME: omp-backend
+  OUTPUT_IMAGE_NAME: '{{ app_name }}'
   OUTPUT_IMAGE_TAG: latest
   BUILDER_IMAGE_NAME: quay.io/quarkus/ubi-quarkus-native-s2i
   BUILDER_IMAGE_TAG: 19.2.1
@@ -15,22 +16,22 @@ build_vars:
 pipeline_vars:
   PIPELINE_SOURCE_REPOSITORY_URL: https://github.com/rht-labs/open-management-portal-backend.git
   PIPELINE_SOURCE_REPOSITORY_REF: master
-  NAME: omp-backend
+  NAME: '{{ app_name }}'
 
 dev_vars:
-  NAME: omp-backend
-  IMAGE_NAME: omp-backend
+  NAME: '{{ app_name }}'
+  IMAGE_NAME: '{{ app_name }}'
   IMAGE_TAG: latest
   JWT_PUBLIC_KEY_URL: http://sso-cluster-internal:8080/auth/realms/omp/protocol/openid-connect/certs
 
 test_vars:
-  NAME: omp-backend
-  IMAGE_NAME: omp-backend
+  NAME: '{{ app_name }}'
+  IMAGE_NAME: '{{ app_name }}'
   IMAGE_TAG: latest
   JWT_PUBLIC_KEY_URL: http://sso-cluster-internal:8080/auth/realms/omp/protocol/openid-connect/certs
 
 openshift_cluster_content:
-- object: omp-backend
+- object: '{{ app_name }}'
   content:
   - name: build
     template: '{{ inventory_dir }}/../templates/build.yml'
@@ -40,12 +41,14 @@ openshift_cluster_content:
   - name: deployment
     template: '{{ inventory_dir }}/../templates/deploy.yml'
     params_from_vars: '{{ dev_vars }}'
+    namespace: '{{ dev_namespace }}'
     tags:
       - deploy
       - dev
   - name: deployment
     template: '{{ inventory_dir }}/../templates/deploy.yml'
     params_from_vars: '{{ test_vars }}'
+    namespace: '{{ test_namespace }}'
     tags:
       - deploy
       - test
