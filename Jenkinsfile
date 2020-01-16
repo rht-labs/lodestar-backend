@@ -8,7 +8,6 @@ pipeline{
     environment {
         // Global Vars
 
-        https://github.com/rht-labs/open-management-portal-backend
         NAMESPACE_PREFIX="labs"
         GIT_DOMAIN = "github.com"
         GIT_ORG = "rht-labs"
@@ -200,7 +199,8 @@ pipeline{
             steps {
                 echo '### Apply Inventory using Ansible-Playbook ###'
                 sh "ansible-galaxy install -r .applier/requirements.yml --roles-path=.applier/roles"
-                sh "ansible-playbook .applier/apply.yml -i .applier/inventory/ -e include_tags=dev -e IMAGE_TAG=${JENKINS_TAG}"
+                sh "ansible-playbook .applier/apply.yml -i .applier/inventory/ -e include_tags=${NODE_ENV} -e test_vars='{\"NAME\":\"${APP_NAME}\",\"IMAGE_NAME\":\"${APP_NAME}\",\"IMAGE_TAG\":\"${JENKINS_TAG}\"}'"
+
 
                 echo '### tag image for namespace ###'
                 sh  '''
