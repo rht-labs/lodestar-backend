@@ -1,5 +1,7 @@
 ---
 ci_cd_namespace: labs-ci-cd
+dev_namespace: labs-dev
+test_namespace: labs-test
 
 build_vars:
   NAME: omp-backend
@@ -15,7 +17,13 @@ pipeline_vars:
   PIPELINE_SOURCE_REPOSITORY_REF: master
   NAME: omp-backend
 
-deploy_vars:
+dev_vars:
+  NAME: omp-backend
+  IMAGE_NAME: omp-backend
+  IMAGE_TAG: latest
+  JWT_PUBLIC_KEY_URL: http://sso-cluster-internal:8080/auth/realms/omp/protocol/openid-connect/certs
+
+test_vars:
   NAME: omp-backend
   IMAGE_NAME: omp-backend
   IMAGE_TAG: latest
@@ -31,6 +39,13 @@ openshift_cluster_content:
       - build
   - name: deployment
     template: '{{ inventory_dir }}/../templates/deploy.yml'
-    params_from_vars: '{{ deploy_vars }}'
+    params_from_vars: '{{ dev_vars }}'
     tags:
       - deploy
+      - dev
+  - name: deployment
+    template: '{{ inventory_dir }}/../templates/deploy.yml'
+    params_from_vars: '{{ test_vars }}'
+    tags:
+      - deploy
+      - test

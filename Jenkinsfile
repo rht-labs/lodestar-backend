@@ -94,7 +94,7 @@ pipeline{
                 stage("Apply Inventory using Ansible-Playbook") {
                     steps {
                         echo '### Apply Inventory using Ansible-Playbook ###'
-                        sh "ansible-playbook .applier/apply.yml -i .applier/inventory/"
+                        sh "ansible-playbook .applier/apply.yml -i .applier/inventory/ -e include_tags=build"
                     }
                 }
             }
@@ -188,7 +188,7 @@ pipeline{
         stage("Openshift Deployment") {
             agent {
                 node {
-                    label "master"
+                    label "jenkins-slave-ansible"
                 }
             }
             when {
@@ -198,6 +198,9 @@ pipeline{
                 }
             }
             steps {
+                echo '### Apply Inventory using Ansible-Playbook ###'
+                sh "ansible-playbook .applier/apply.yml -i .applier/inventory/ -e include_tags=dev"
+
                 echo '### tag image for namespace ###'
                 sh  '''
                     oc project ${PROJECT_NAMESPACE}
