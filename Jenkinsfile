@@ -200,7 +200,7 @@ pipeline{
             steps {
                 echo '### Apply Inventory using Ansible-Playbook ###'
                 sh "ansible-galaxy install -r .applier/requirements.yml --roles-path=.applier/roles"
-                sh "ansible-playbook .applier/apply.yml -i .applier/inventory/ -e include_tags=dev"
+                sh "ansible-playbook .applier/apply.yml -i .applier/inventory/ -e include_tags=dev -e IMAGE_TAG=${JENKINS_TAG}
 
                 echo '### tag image for namespace ###'
                 sh  '''
@@ -210,7 +210,7 @@ pipeline{
                 echo '### set env vars and image for deployment ###'
                 sh '''
                     oc set env dc ${APP_NAME} NODE_ENV=${NODE_ENV}
-                    oc set image dc/${APP_NAME} ${APP_NAME}=docker-registry.default.svc:5000/${PROJECT_NAMESPACE}/${APP_NAME}:${JENKINS_TAG}
+                    oc set image dc/${APP_NAME} ${APP_NAME}=${PROJECT_NAMESPACE}/${APP_NAME}:${JENKINS_TAG}
                     oc label --overwrite dc ${APP_NAME} stage=${NODE_ENV}
                     oc patch dc ${APP_NAME} -p "{\\"spec\\":{\\"template\\":{\\"metadata\\":{\\"labels\\":{\\"version\\":\\"${VERSION}\\",\\"release\\":\\"${RELEASE}\\",\\"stage\\":\\"${NODE_ENV}\\",\\"git-commit\\":\\"${GIT_COMMIT}\\",\\"jenkins-build\\":\\"${JENKINS_TAG}\\"}}}}}"
                     oc rollout latest dc/${APP_NAME}
