@@ -33,6 +33,11 @@ test_vars:
 openshift_cluster_content:
 - object: '{{ app_name }}'
   content:
+  - name: pipeline
+    template: 'https://raw.githubusercontent.com/redhat-cop/openshift-templates/v1.4.15/jenkins-pipelines/jenkins-pipeline-template-with-ocp-triggers.yml'
+    params_from_vars: '{{ pipeline_vars }}'
+    tags: 
+    - pipeline
   - name: build
     template: '{{ inventory_dir }}/../templates/build.yml'
     params_from_vars: '{{ build_vars }}'

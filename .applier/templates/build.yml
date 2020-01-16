@@ -40,45 +40,6 @@ objects:
     successfulBuildsHistoryLimit: 5
     triggers:
     - type: ConfigChange
-- apiVersion: v1
-  kind: BuildConfig
-  metadata:
-    labels:
-      build: "${NAME}"
-      name: "${NAME}-pipeline"
-      type: pipeline
-      app: "${NAME}"
-    name: "${NAME}-pipeline"
-  spec:
-    nodeSelector: {}
-    output: {}
-    postCommit: {}
-    resources: {}
-    runPolicy: Serial
-    source:
-      contextDir: "${PIPELINE_CONTEXT_DIR}"
-      git:
-        ref: "${GIT_REF}"
-        uri: "${GIT_URL}"
-      type: Git
-    strategy:
-      jenkinsPipelineStrategy:
-        jenkinsfilePath: Jenkinsfile
-      type: JenkinsPipeline
-    triggers:
-    - type: ConfigChange
-    - type: Bitbucket
-      bitbucket:
-        secret: "${BITBUCKET_WEBHOOK}"
-    - type: Generic
-      generic:
-        secret: "${GENERIC_WEBHOOK}"
-    - type: GitHub
-      github:
-        secret: "${GITHUB_WEBHOOK}"
-    - type: GitLab
-      gitlab:
-        secret: "${GITLAB_WEBHOOK}"
 parameters:
 - name: NAME
   description: The name of the resources to be created
