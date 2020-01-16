@@ -200,7 +200,7 @@ pipeline{
             steps {
                 echo '### Apply Inventory using Ansible-Playbook ###'
                 sh "ansible-galaxy install -r .applier/requirements.yml --roles-path=.applier/roles"
-                sh "ansible-playbook .applier/apply.yml -i .applier/inventory/ -e include_tags=dev -e IMAGE_TAG=${JENKINS_TAG}
+                sh "ansible-playbook .applier/apply.yml -i .applier/inventory/ -e include_tags=dev -e IMAGE_TAG=${JENKINS_TAG}"
 
                 echo '### tag image for namespace ###'
                 sh  '''
