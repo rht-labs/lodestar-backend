@@ -8,6 +8,8 @@ pipeline{
     environment {
         // Global Vars
 
+        JWT_PUBLIC_KEY_URL="http://sso-cluster-internal:8080/auth/realms/omp/protocol/openid-connect/certs"
+
         NAMESPACE_PREFIX="labs"
         GIT_DOMAIN = "github.com"
         GIT_ORG = "rht-labs"
@@ -51,7 +53,7 @@ pipeline{
                     // Arbitrary Groovy Script executions can do in script tags
                     env.PROJECT_NAMESPACE = "${NAMESPACE_PREFIX}-test"
                     env.NODE_ENV = "test"
-                    env.SPRING_PROFILES_ACTIVE = "openshift-test"
+                    env.QUARKUS_PROFILE = "openshift-test"
                     env.RELEASE = true
                 }
             }
@@ -70,7 +72,7 @@ pipeline{
                     // Arbitrary Groovy Script executions can do in script tags
                     env.PROJECT_NAMESPACE = "${NAMESPACE_PREFIX}-dev"
                     env.NODE_ENV = "dev"
-                    env.SPRING_PROFILES_ACTIVE = "openshift-dev"
+                    env.QUARKUS_PROFILE = "openshift-dev"
                 }
             }
         }
@@ -199,7 +201,7 @@ pipeline{
             steps {
                 echo '### Apply Inventory using Ansible-Playbook ###'
                 sh "ansible-galaxy install -r .applier/requirements.yml --roles-path=.applier/roles"
-                sh "ansible-playbook .applier/apply.yml -i .applier/inventory/ -e include_tags=${NODE_ENV} -e ${NODE_ENV}_vars='{\"NAME\":\"${APP_NAME}\",\"IMAGE_NAME\":\"${APP_NAME}\",\"IMAGE_TAG\":\"${JENKINS_TAG}\"}'"
+                sh "ansible-playbook .applier/apply.yml -i .applier/inventory/ -e include_tags=${NODE_ENV} -e ${NODE_ENV}_vars='{\"NAME\":\"${APP_NAME}\",\"IMAGE_NAME\":\"${APP_NAME}\",\"IMAGE_TAG\":\"${JENKINS_TAG}\",\"JWT_PUBLIC_KEY_URL\":\"${JWT_PUBLIC_KEY_URL}\"}'"
 
 
                 echo '### tag image for namespace ###'
