@@ -8,15 +8,14 @@ import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-
 @Path("/residency")
 @RequestScoped
 public class ResidencyResource {
 
 	@POST
-    @Consumes(MediaType.APPLICATION_JSON)
-    @PermitAll
-    public Response saveResidency() {
-        return Response.ok().build(); 
-    }
+	@Consumes(MediaType.APPLICATION_JSON)
+	@PermitAll
+	public Response saveResidency() {
+		return Response.ok().build();
+	}
 }

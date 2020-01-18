@@ -13,10 +13,10 @@ import javax.ws.rs.core.Response;
 public class ResidencyConfigResource {
 
 	@GET
-    @Produces(MediaType.APPLICATION_JSON)
-    @PermitAll
-    public Response getResidency() {
-		//TODO implement get
-        return Response.ok("{ \"config\": \"dyi\"}").build(); 
-    }
+	@Produces(MediaType.APPLICATION_JSON)
+	@PermitAll
+	public Response getResidency() {
+		// TODO implement get
+		return Response.ok("{ \"config\": \"dyi\"}").build();
+	}
 }

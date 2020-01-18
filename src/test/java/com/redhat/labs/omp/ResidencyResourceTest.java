@@ -12,11 +12,7 @@ import io.quarkus.test.junit.QuarkusTest;
 public class ResidencyResourceTest {
 
 	@Test
-    public void saveResidency() {
-        given()
-          .contentType(MediaType.APPLICATION_JSON)
-        .when().post("/residency")
-        .then()
-          .statusCode(200);
-    }
+	public void saveResidency() {
+		given().contentType(MediaType.APPLICATION_JSON).when().post("/residency").then().statusCode(200);
+	}
 }

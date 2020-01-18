@@ -11,11 +11,7 @@ import io.quarkus.test.junit.QuarkusTest;
 public class ResidencyConfigResourceTest {
 
 	@Test
-    public void getResidencyConfigTest() {
-        given()
-          .when().get("/residency/config")
-          .then()
-             .statusCode(200)
-             .body("config", is("dyi"));
-    }
+	public void getResidencyConfigTest() {
+		given().when().get("/residency/config").then().statusCode(200).body("config", is("dyi"));
+	}
 }
