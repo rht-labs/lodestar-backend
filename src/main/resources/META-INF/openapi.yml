@@ -106,48 +106,33 @@ components:
           type: string
         archive_date:
           type: string
-        contacts:
-          type: object
-          properties:
-            engagement_lead:
-              type: object
-              properties:
-                name:
-                  type: string
-                email:
-                  type: string
-            technical_lead:
-              type: object
-              properties:
-                name:
-                  type: string
-                email:
-                  type: string
-            customer_contact:
-              type: object
-              properties:
-                name:
-                  type: string
-                email:
-                  type: string
-        openshift_cluster:
-          type: object
-          properties:
-            cloud_provider:
-              type: object
-              properties:
-                name:
-                  type: string
-                region:
-                  type: string
-            version:
-              type: string
-            sub_domain:
-              type: string
-            persistent_storage_size:
-              type: string
-            cluster_size:
-              type: string
+        engagement_lead_name:
+          type: string
+        engagement_lead_email:
+          type: string
+
+        technical_lead_name:
+          type: string
+        technical_lead_email:
+          type: string
+
+        customer_contact_name:
+          type: string
+        customer_contact_email:
+          type: string
+
+        ocp_cloud_provider_name:
+          type: string
+        ocp_cloud_provider_region:
+          type: string
+
+        ocp_sub_domain:
+          type: string
+        ocp_persistent_storage_size:
+          type: string
+        ocp_cluster_size:
+          type: string
+
       example:
         id: 1
         customer_name: ""
@@ -157,24 +142,32 @@ components:
         start_date: ""
         end_date: ""
         archive_date: ""
-        contacts:
-          engagement_lead:
-            name: ""
-            email: ""
-          technical_lead:
-            name: ""
-            email: ""
-          customer_contact:
-            name: ""
-            email: ""
-        openshift_cluster:
-          cloud_provider:
-            name: OSP
-            region: us-east-1
-          version: v4.2
-          sub_domain: ""
-          persistent_storage_size: 50GB
-          cluster_size: medium
+        engagement_lead_name: ""
+
+        engagement_lead_email: ""
+
+
+        technical_lead_name: ""
+
+        technical_lead_email: ""
+
+
+        customer_contact_name: ""
+
+        customer_contact_email: ""
+
+
+        ocp_cloud_provider_name: ""
+
+        ocp_cloud_provider_region: ""
+        ocp_version: "v4.2"
+        ocp_sub_domain: ""
+
+        ocp_persistent_storage_size: "50GB"
+        ocp_cluster_size: "medium"
+
+
+
     residency_stub:
       title: Root Type for residency_stub
       description: ""
