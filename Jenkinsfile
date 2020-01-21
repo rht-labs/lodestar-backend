@@ -210,7 +210,7 @@ pipeline{
                     oc tag ${PIPELINES_NAMESPACE}/${APP_NAME}:${JENKINS_TAG} ${PROJECT_NAMESPACE}/${APP_NAME}:${JENKINS_TAG}
                     '''
                 echo '### Create a Configmap ###'
-                sh "oc create configmap ${APP_NAME}-config --from-file=src/main/resources/application.properties"
+                sh "oc create configmap ${APP_NAME}-config --from-file=src/main/resources/application.properties --dry-run -o yaml | oc apply -f -"
                 echo '### set env vars and image for deployment ###'
                 sh '''
                     oc set env dc ${APP_NAME} NODE_ENV=${NODE_ENV} QUARKUS_PROFILE=${QUARKUS_PROFILE}
