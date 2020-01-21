@@ -127,14 +127,14 @@ pipeline{
                 stage("Build Project"){
                     steps{
                         echo '### Running install ###'
-                        sh 'mvn clean install'
+                        sh 'mvn clean install -DskipTests'
                     }
                 }
                 stage("Static Analysis"){
                     steps{
                         echo '### Maven Static Code Analysis ###'
-                        sh 'mvn checkstyle:checkstyle'
-                        sh 'mvn org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true'
+                        sh 'mvn checkstyle:checkstyle -DskipTests'
+                        sh 'mvn org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true -DskipTests'
                         
             
                     }
