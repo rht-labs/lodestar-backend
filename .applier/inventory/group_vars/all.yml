@@ -10,8 +10,8 @@ build_vars:
   GIT_REF: master
   OUTPUT_IMAGE_NAME: '{{ app_name }}'
   OUTPUT_IMAGE_TAG: latest
-  BUILDER_IMAGE_NAME: quay.io/quarkus/ubi-quarkus-native-s2i
-  BUILDER_IMAGE_TAG: 19.2.1
+  BUILDER_IMAGE_NAME: registry.access.redhat.com/fuse7/fuse-java-openshift
+  BUILDER_IMAGE_TAG: 1.5
 
 pipeline_vars:
   PIPELINE_SOURCE_REPOSITORY_URL: https://github.com/rht-labs/open-management-portal-backend.git

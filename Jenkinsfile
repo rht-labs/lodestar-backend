@@ -180,7 +180,7 @@ pipeline{
                         sh  '''
                                 oc project ${PIPELINES_NAMESPACE} # probs not needed
                                 oc patch bc ${APP_NAME} -p "{\\"spec\\":{\\"output\\":{\\"to\\":{\\"kind\\":\\"ImageStreamTag\\",\\"name\\":\\"${APP_NAME}:${JENKINS_TAG}\\"}}}}"
-                                oc start-build ${APP_NAME} --follow
+                                oc start-build ${APP_NAME} --from-file=target/${ARTIFACTID}-${VERSION}-runner.jar --follow
                             '''
                     }
                 }
@@ -204,6 +204,8 @@ pipeline{
                 sh "ansible-playbook .applier/apply.yml -i .applier/inventory/ -e include_tags=${NODE_ENV} -e ${NODE_ENV}_vars='{\"NAME\":\"${APP_NAME}\",\"IMAGE_NAME\":\"${APP_NAME}\",\"IMAGE_TAG\":\"${JENKINS_TAG}\",\"JWT_PUBLIC_KEY_URL\":\"${JWT_PUBLIC_KEY_URL}\"}'"
 
 
+                echo '### Create a Configmap ###'
+                sh "oc create configmap ${APP_NAME}-config --from-file=src/main/resources/application.properties"
                 echo '### tag image for namespace ###'
                 sh  '''
                     oc project ${PROJECT_NAMESPACE}
