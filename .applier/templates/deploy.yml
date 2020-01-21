@@ -55,16 +55,7 @@ objects:
         securityContext: {}
         terminationGracePeriodSeconds: 30
     test: false
-    triggers:
-    - type: ConfigChange
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - "${NAME}"
-        from:
-          kind: ImageStreamTag
-          name: "${IMAGE_NAME}:${IMAGE_TAG}"
-      type: ImageChange
+    triggers: []
 - apiVersion: v1
   kind: Service
   metadata:
