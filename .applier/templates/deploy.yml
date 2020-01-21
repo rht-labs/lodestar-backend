@@ -35,11 +35,6 @@ objects:
         - env:
           - name: MP_JWT_VERIFY_PUBLICKEY_LOCATION
             value: "${JWT_PUBLIC_KEY_URL}"
-            name: GITLAB_PERSONAL_ACCESS_TOKEN
-              valueFrom:
-                secretKeyRef:
-                  name: gitlab-token-secret
-                  key: GITLAB_PERSONAL_ACCESS_TOKEN
           image: "${IMAGE_NAME}:${IMAGE_TAG}"
           imagePullPolicy: Always
           name: "${NAME}"
