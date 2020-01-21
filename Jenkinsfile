@@ -211,7 +211,7 @@ pipeline{
                     '''
                 echo '### set env vars and image for deployment ###'
                 sh '''
-                    oc set env dc ${APP_NAME} NODE_ENV=${NODE_ENV}
+                    oc set env dc ${APP_NAME} NODE_ENV=${NODE_ENV} QUARKUS_PROFILE=${QUARKUS_PROFILE}
                     oc set image dc/${APP_NAME} ${APP_NAME}=docker-registry.default.svc:5000/${PROJECT_NAMESPACE}/${APP_NAME}:${JENKINS_TAG}
                     oc label --overwrite dc ${APP_NAME} stage=${NODE_ENV}
                     oc patch dc ${APP_NAME} -p "{\\"spec\\":{\\"template\\":{\\"metadata\\":{\\"labels\\":{\\"version\\":\\"${VERSION}\\",\\"release\\":\\"${RELEASE}\\",\\"stage\\":\\"${NODE_ENV}\\",\\"git-commit\\":\\"${GIT_COMMIT}\\",\\"jenkins-build\\":\\"${JENKINS_TAG}\\"}}}}}"
