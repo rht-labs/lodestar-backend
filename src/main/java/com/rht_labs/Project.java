@@ -25,7 +25,7 @@ public class Project {
     @Produces(MediaType.TEXT_PLAIN)
     @PermitAll
     public String defaultEndpoint(@Context SecurityContext ctx) {
-        Principal caller =  ctx.getUserPrincipal();
+        Principal caller = ctx.getUserPrincipal();
         String name = caller == null ? "anonymous" : caller.getName();
         String helloReply = String.format("hello + %s, isSecure: %s, authScheme: %s", name, ctx.isSecure(), ctx.getAuthenticationScheme());
         return helloReply;
@@ -45,4 +45,17 @@ public class Project {
     public String securedEndpoint(@Context SecurityContext ctx) {
         return jwt.getName();
     }
+
+    @GET
+    @Path("config")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String fetchConfigDataFromCache(@Context SecurityContext ctx) {
+
+        return residencyDataCache.fetchConfigFile();
+    }
+
+    @Inject
+    ResidencyDataCache residencyDataCache;
+
+
 }
