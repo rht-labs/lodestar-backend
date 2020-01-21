@@ -1,5 +1,7 @@
 package com.rht_labs;
 
+import org.eclipse.microprofile.health.Liveness;
+import org.eclipse.microprofile.health.Readiness;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import javax.annotation.security.PermitAll;
@@ -16,6 +18,8 @@ import java.security.Principal;
 
 @Path("/project")
 @RequestScoped
+@Liveness
+@Readiness
 public class Project {
 
     @Inject
