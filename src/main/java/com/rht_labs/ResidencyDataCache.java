@@ -67,6 +67,10 @@ public class ResidencyDataCache  {
         return cache.get(key);
     }
 
+    public void store(String key, String value){
+        cache.put(key, value);
+    }
+
 
 
 
