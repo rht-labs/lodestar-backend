@@ -49,6 +49,16 @@ objects:
           resources: {}
           terminationMessagePath: /dev/termination-log
           terminationMessagePolicy: File
+          volumeMounts:
+          - name: config-volume
+            mountPath: /deployments/config
+        volumes:
+        - name: config-volume
+          configMap:
+            name: ${NAME}-config
+            items:
+            - key: application.properties
+              path: application.properties
         dnsPolicy: ClusterFirst
         restartPolicy: Always
         schedulerName: default-scheduler
