@@ -121,20 +121,20 @@ pipeline{
                         sh 'printenv'
 
                         echo '### Running tests ###'
-                        //sh 'mvn clean test -DskipTests'
+                        sh 'mvn clean test'
                     }
                 }
                 stage("Build Project"){
                     steps{
                         echo '### Running install ###'
-                        sh 'mvn clean install -DskipTests'
+                        sh 'mvn clean install'
                     }
                 }
                 stage("Static Analysis"){
                     steps{
                         echo '### Maven Static Code Analysis ###'
-                        sh 'mvn checkstyle:checkstyle -DskipTests'
-                        sh 'mvn org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true -DskipTests'
+                        sh 'mvn checkstyle:checkstyle'
+                        sh 'mvn org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true'
                         
             
                     }
