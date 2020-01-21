@@ -32,7 +32,9 @@ public class ResidencyDataCache {
                 .jmxDomain("org.infinispan")
                 .addServer()
                 .host(cacheServerName)
-                .port(11222);
+                .port(11222)
+        .security()
+        .authentication().username("omp").password("omp");
 
         this.remoteCacheManager = new RemoteCacheManager(cb.build());
         LOGGER.info("Trying to get the cache");
