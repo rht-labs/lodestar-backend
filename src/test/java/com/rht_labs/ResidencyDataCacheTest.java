@@ -57,6 +57,7 @@ class ResidencyDataCacheTest {
 
         hs = HotRodTestingUtil.startHotRodServer(ecm, 11222);
 
+
 //        hs.setMarshaller(new org.infinispan.commons.marshall.JavaSerializationMarshaller());
 
 
