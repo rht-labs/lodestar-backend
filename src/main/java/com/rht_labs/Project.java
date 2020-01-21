@@ -21,7 +21,6 @@ import java.security.Principal;
 @Liveness
 @Readiness
 public class Project {
-
     @Inject
     JsonWebToken jwt;
 
@@ -47,7 +46,10 @@ public class Project {
     @Path("secure")
     @Produces(MediaType.TEXT_PLAIN)
     public String securedEndpoint(@Context SecurityContext ctx) {
-        return jwt.getName();
+        if (jwt != null) {
+            return jwt.getName();
+        }
+        return null;
     }
 
     @GET

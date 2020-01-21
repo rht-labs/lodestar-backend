@@ -10,6 +10,7 @@ import org.infinispan.server.hotrod.configuration.HotRodServerConfigurationBuild
 import org.infinispan.server.hotrod.test.HotRodTestingUtil;
 import org.infinispan.test.fwk.TestCacheManagerFactory;
 import org.infinispan.test.fwk.TestResourceTracker;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -18,9 +19,9 @@ import javax.inject.Inject;
 import static org.junit.jupiter.api.Assertions.*;
 
 
-
 @QuarkusTest
 class ResidencyDataCacheTest {
+    private static HotRodServer hs;
 
 //    @RegisterExtension
 //    static InfinispanServerExtension server = new InfinispanServerExtension();
@@ -54,13 +55,19 @@ class ResidencyDataCacheTest {
 
         HotRodServerConfigurationBuilder hcb = new HotRodServerConfigurationBuilder();
 
-        HotRodServer hs =  HotRodTestingUtil.startHotRodServer(ecm, 11222);
+        hs = HotRodTestingUtil.startHotRodServer(ecm, 11222);
 
 //        hs.setMarshaller(new org.infinispan.commons.marshall.JavaSerializationMarshaller());
 
 
     }
 
+    @AfterAll
+    public static void teardown() {
+        if (hs != null) {
+            hs.stop();
+        }
+    }
 
 
     @Inject
