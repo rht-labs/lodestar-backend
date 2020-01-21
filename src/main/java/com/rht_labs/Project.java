@@ -46,10 +46,7 @@ public class Project {
     @Path("secure")
     @Produces(MediaType.TEXT_PLAIN)
     public String securedEndpoint(@Context SecurityContext ctx) {
-        if (jwt != null) {
-            return jwt.getName();
-        }
-        return null;
+        return jwt.getName();
     }
 
     @GET
