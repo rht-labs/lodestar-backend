@@ -34,7 +34,9 @@ public class ResidencyDataCache {
                 .host(cacheServerName)
                 .port(11222)
         .security()
-        .authentication().username("omp").password("omp");
+        .authentication()
+                .saslMechanism("PLAINTEXT")
+                .username("omp").password("omp");
 
         this.remoteCacheManager = new RemoteCacheManager(cb.build());
         LOGGER.info("Trying to get the cache");
@@ -58,6 +60,6 @@ public class ResidencyDataCache {
         cache.put(key, value);
     }
 
-    private static final String CONFIG_FILE_CACHE_KEY = "configFile";
+    public static final String CONFIG_FILE_CACHE_KEY = "configFile";
 }
 
