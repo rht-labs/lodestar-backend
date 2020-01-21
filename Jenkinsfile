@@ -121,7 +121,7 @@ pipeline{
                         sh 'printenv'
 
                         echo '### Running tests ###'
-                        sh 'mvn clean test'
+                        //sh 'mvn clean test -DskipTests'
                     }
                 }
                 stage("Build Project"){
