@@ -10,7 +10,7 @@ pipeline{
 
         JWT_PUBLIC_KEY_URL="http://sso-cluster-internal:8080/auth/realms/omp/protocol/openid-connect/certs"
 
-        NAMESPACE_PREFIX="labs"
+        NAMESPACE_PREFIX="omp"
 
         PIPELINES_NAMESPACE = "${NAMESPACE_PREFIX}-ci-cd"
         APP_NAME = "omp-backend"
