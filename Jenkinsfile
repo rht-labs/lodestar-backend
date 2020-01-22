@@ -10,9 +10,7 @@ pipeline{
 
         JWT_PUBLIC_KEY_URL="http://sso-cluster-internal:8080/auth/realms/omp/protocol/openid-connect/certs"
 
-        NAMESPACE_PREFIX="labs"
-        GIT_DOMAIN = "github.com"
-        GIT_ORG = "rht-labs"
+        NAMESPACE_PREFIX="omp"
 
         PIPELINES_NAMESPACE = "${NAMESPACE_PREFIX}-ci-cd"
         APP_NAME = "omp-backend"
@@ -103,7 +101,7 @@ pipeline{
         stage("Test/Build/Nexus/OpenShift Build"){
             agent {
                 node {
-                    label "jenkins-slave-graal"
+                    label "jenkins-slave-mvn"
                 }
             }
             stages{
