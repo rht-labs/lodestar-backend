@@ -62,11 +62,9 @@ public class Project {
 
 
     @POST
-    @Path("secure")
-    @Produces(MediaType.TEXT_PLAIN)
-    public String createNewResidency(@Context SecurityContext ctx) {
-
-        return "";
+    @Path("create")
+    public String createNewResidency(@Context SecurityContext ctx, Object request) {
+        return ompGitLabAPIService.createNewResidency(request).readEntity(String.class);
     }
 
 // TODO - Add this in when needed #YOLO
