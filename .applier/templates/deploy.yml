@@ -35,6 +35,11 @@ objects:
         - env:
           - name: MP_JWT_VERIFY_PUBLICKEY_LOCATION
             value: "${JWT_PUBLIC_KEY_URL}"
+          - name: CONFIG_REPOSITORY_ID
+            valueFrom:
+              secretKeyRef:
+                name: omp-gitlab-configuration
+                key: CONFIG_REPOSITORY_ID
           image: "${IMAGE_NAME}:${IMAGE_TAG}"
           imagePullPolicy: Always
           name: "${NAME}"
@@ -78,6 +83,22 @@ objects:
       deploymentconfig: "${NAME}"
     sessionAffinity: None
     type: ClusterIP
+- apiVersion: route.openshift.io/v1
+  kind: Route
+  metadata:
+    labels:
+      app: "${NAME}"
+    name: "${NAME}"
+  spec:
+    port:
+      targetPort: 8080-tcp
+    tls:
+      termination: edge
+    to:
+      kind: Service
+      name: "${NAME}"
+      weight: 100
+    wildcardPolicy: None
 parameters:
 - name: NAME
   description: The name of the app to deploy
