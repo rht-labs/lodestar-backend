@@ -35,6 +35,11 @@ objects:
         - env:
           - name: MP_JWT_VERIFY_PUBLICKEY_LOCATION
             value: "${JWT_PUBLIC_KEY_URL}"
+          - name: TRUSTED_CLIENT_KEY
+            valueFrom:
+              secretKeyRef:
+                name: omp-gitlab-configuration
+                key: TRUSTED_CLIENT_KEY
           - name: CONFIG_REPOSITORY_ID
             valueFrom:
               secretKeyRef:
