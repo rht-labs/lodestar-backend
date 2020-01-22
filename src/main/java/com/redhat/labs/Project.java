@@ -1,4 +1,4 @@
-package com.rht_labs;
+package com.redhat.labs;
 
 import org.eclipse.microprofile.health.Liveness;
 import org.eclipse.microprofile.health.Readiness;

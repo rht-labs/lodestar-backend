@@ -1,4 +1,4 @@
-package com.rht_labs;
+package com.redhat.labs;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.infinispan.client.hotrod.RemoteCache;
