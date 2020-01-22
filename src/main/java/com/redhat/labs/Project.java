@@ -60,11 +60,12 @@ public class Project {
     @PermitAll
     public String fetchConfigDataFromCache(@Context SecurityContext ctx) {
     //TODO - 🤠 Make this call to cache and not to the GitLab Api thingy to get file directly
-        return ompGitLabAPIService.getFile("schema%2Fconfig.yml", configRepositoryId).readEntity(String.class);
+        return ompGitLabAPIService.getFile("schema/config.yml", configRepositoryId).readEntity(String.class);
     }
 
-    @Inject
-    ResidencyDataCache residencyDataCache;
+// TODO - Add this in when needed #YOLO
+//    @Inject
+//    ResidencyDataCache residencyDataCache;
 
 
 }
