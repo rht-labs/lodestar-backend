@@ -69,7 +69,7 @@ public class Project {
     public String createNewResidency(@Context SecurityContext ctx, Object request,@HeaderParam("X-APPLICATION-NONSENSE") String header ) {
         String skullyResponse = Json.createObjectBuilder().add("OK", "☠️ \uD83D\uDD25 \uD83D\uDE92 \uD83D\uDE92 \uD83D\uDD25 ☠️").add("clickMe", "https://www.myinstants.com/media/instants_images/ahahahreal.gif").build().toString();
         // TODO - tidy this up to remove the 200 status code and do a real check with a token etc....
-        if (!header.equals("©sure-you-can-access-stuff®")){
+        if (!header.equals("sure-you-can-access-stuff-#yolo")){
             return Response.status(Response.Status.UNAUTHORIZED).entity(skullyResponse).build().readEntity(String.class);
 
         } else
