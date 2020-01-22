@@ -12,7 +12,6 @@ import org.infinispan.test.fwk.TestCacheManagerFactory;
 import org.infinispan.test.fwk.TestResourceTracker;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
@@ -21,6 +20,16 @@ import static org.hamcrest.CoreMatchers.is;
 @QuarkusTest
 public class ProjectTest {
     private static HotRodServer hs;
+
+
+    @Test
+    public void getFileFromRepo() {
+        given()
+                .when().get("/project/config")
+                .then()
+                .statusCode(200)
+                .body("emoji", is("\uD83E\uDD8A"));
+    }
 
     @Test
     public void testOpenEndpoint() {
@@ -32,7 +41,6 @@ public class ProjectTest {
     }
 
     @Test
-    @Disabled("checking why jwt toekn is null")
     public void testSecureEndpoint() {
         given()
                 .when().get("/project/secure")

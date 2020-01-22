@@ -53,7 +53,6 @@ public class Project {
 
     @GET
     @Path("config")
-    @Produces(MediaType.TEXT_PLAIN)
     @PermitAll
     public String fetchConfigDataFromCache(@Context SecurityContext ctx) {
     //TODO - 🤠 Make this call to cache and not to the GitLab Api thingy to get file directly

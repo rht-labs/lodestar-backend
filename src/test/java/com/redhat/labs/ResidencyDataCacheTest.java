@@ -1,4 +1,4 @@
-package com.rht_labs;
+package com.redhat.labs;
 
 import io.quarkus.test.junit.QuarkusTest;
 import org.infinispan.configuration.cache.ConfigurationBuilder;

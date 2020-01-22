@@ -1,7 +1,7 @@
-package com.rht_labs.mocks;
+package com.redhat.labs.mocks;
 
 
-import com.rht_labs.ResidencyDataCache;
+import com.redhat.labs.ResidencyDataCache;
 import io.quarkus.test.Mock;
 
 import javax.annotation.PostConstruct;
