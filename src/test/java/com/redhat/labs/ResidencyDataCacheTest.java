@@ -1,5 +1,6 @@
 package com.redhat.labs;
 
+import com.redhat.labs.mocks.MockResidencyDataCache;
 import io.quarkus.test.junit.QuarkusTest;
 import org.infinispan.configuration.cache.ConfigurationBuilder;
 import org.infinispan.configuration.global.GlobalConfigurationBuilder;
@@ -21,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
 class ResidencyDataCacheTest {
-    private static HotRodServer hs;
+    /*private static HotRodServer hs;
 
 //    @RegisterExtension
 //    static InfinispanServerExtension server = new InfinispanServerExtension();
@@ -70,9 +71,9 @@ class ResidencyDataCacheTest {
         }
     }
 
-
+*/
     @Inject
-    ResidencyDataCache residencyDataCache;
+    MockResidencyDataCache residencyDataCache;
 
     @Test
     public void testPut() {
