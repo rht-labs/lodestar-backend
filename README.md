@@ -45,6 +45,19 @@ $ mvn quarkus:build
 
 ```
 
+### Openshift Applier
+
+This project includes an `openshift-applier` inventory. To use it, make sure that you are logged in to the cluster and that you customize the variables in `.applier/inventory/group_vars/all.yml` - namely make sure that `deploy_vars` uses the correct endpoints. Once these are configured, you can deploy the project with:
+
+```bash
+$ cd .applier/
+
+$ ansible-galaxy install -r requirements.yml --roles-path=roles --force
+
+$ ansible-playbook apply.yml -i inventory/
+```
+
+
 ## Pipeline
 
 The deployment pipeline is running through a Jenkinsfile located in the root folder of the project. This Jenksinfile is written in groovy.
