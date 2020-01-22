@@ -7,10 +7,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import javax.annotation.security.PermitAll;
 import javax.inject.Inject;
 import javax.json.Json;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
@@ -61,6 +58,15 @@ public class Project {
     public String fetchConfigDataFromCache(@Context SecurityContext ctx) {
     //TODO - 🤠 Make this call to cache and not to the GitLab Api thingy to get file directly
         return ompGitLabAPIService.getFile("schema/config.yml", configRepositoryId).readEntity(String.class);
+    }
+
+
+    @POST
+    @Path("secure")
+    @Produces(MediaType.TEXT_PLAIN)
+    public String createNewResidency(@Context SecurityContext ctx) {
+
+        return "";
     }
 
 // TODO - Add this in when needed #YOLO
