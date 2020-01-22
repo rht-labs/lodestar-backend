@@ -25,7 +25,7 @@ public class ProjectTest {
     @Test
     public void getFileFromRepo() {
         given()
-                .when().get("/project/config")
+                .when().get("/engagements/config")
                 .then()
                 .statusCode(200)
                 .body("emoji", is("\uD83E\uDD8A"));
@@ -34,7 +34,7 @@ public class ProjectTest {
     @Test
     public void testOpenEndpoint() {
         given()
-          .when().get("/project/open")
+          .when().get("/engagements/open")
           .then()
              .statusCode(200)
              .body("hello", is("world"));
@@ -43,7 +43,7 @@ public class ProjectTest {
     @Test
     public void testSecureEndpoint() {
         given()
-                .when().get("/project/secure")
+                .when().get("/engagements/secure")
                 .then()
                 .statusCode(204);
         // since we are not actually logged in as a user,
