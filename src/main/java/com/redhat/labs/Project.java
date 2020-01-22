@@ -8,7 +8,6 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import javax.annotation.security.PermitAll;
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.json.Json;
 import javax.ws.rs.Consumes;
