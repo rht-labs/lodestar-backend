@@ -1,13 +1,10 @@
 package com.redhat.labs;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.health.Liveness;
-import org.eclipse.microprofile.health.Readiness;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import javax.annotation.security.PermitAll;
-import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.json.Json;
 import javax.ws.rs.Consumes;
@@ -20,11 +17,8 @@ import javax.ws.rs.core.SecurityContext;
 import java.security.Principal;
 
 @Path("/project")
-@Liveness
-@Readiness
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@ApplicationScoped
 public class Project {
     @Inject
     JsonWebToken jwt;
