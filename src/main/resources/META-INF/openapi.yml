@@ -4,8 +4,8 @@ info:
   title: open-management-portal
   version: 1.0.0
 paths:
-  /residencies:
-    summary: Path used to manage the list of residencies.
+  /engagements:
+    summary: Path used to manage the list of engagements. A resdiency can be an engagement.
     description: The REST endpoint/path used to list and create zero or more `residency`
       entities.  This path contains a `GET` and `POST` operation to perform the list
       and create tasks, respectively. When used to list all residencies, a truncated

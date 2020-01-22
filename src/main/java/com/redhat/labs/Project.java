@@ -13,7 +13,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.SecurityContext;
 import java.security.Principal;
 
-@Path("/project")
+@Path("/engagements")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class Project {
@@ -61,7 +61,6 @@ public class Project {
 
 
     @POST
-    @Path("create")
     public String createNewResidency(@Context SecurityContext ctx, Object request) {
         return ompGitLabAPIService.createNewResidency(request).readEntity(String.class);
     }
