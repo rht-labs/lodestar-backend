@@ -5,11 +5,11 @@ info:
   version: 1.0.0
 paths:
   /engagements:
-    summary: Path used to manage the list of engagements. A resdiency can be an engagement.
-    description: The REST endpoint/path used to list and create zero or more `residency`
+    summary: Path used to manage the list of engagements (i.e. A residency can be an engagement).
+    description: The REST endpoint/path used to list and create zero or more `engagements`
       entities.  This path contains a `GET` and `POST` operation to perform the list
-      and create tasks, respectively. When used to list all residencies, a truncated
-      form of each residency called a "stub" is returned.
+      and create tasks, respectively. When used to list all engagements, a truncated
+      form of each engagement called a "stub" is returned.
     get:
       responses:
         "200":
@@ -18,30 +18,30 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/residency_stub'
-          description: Successful response - returns an array of `residency_stub`
+                  $ref: '#/components/schemas/engagement_stub'
+          description: Successful response - returns an array of `engagement_stub`
             entities.
-      operationId: getresidencies
-      summary: List All residencies in "stub" form
-      description: Gets a list of all `residency_stub` entities.
+      operationId: getengagements
+      summary: List all engagements in "stub" form
+      description: Gets a list of all `engagement_stub` entities.
     post:
       requestBody:
-        description: A new `residency` to be created.
+        description: A new `engagement` to be created.
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/residency'
+              $ref: '#/components/schemas/engagement'
         required: true
       responses:
         "201":
           description: Successful response.
-      operationId: createresidency
-      summary: Create a residency
-      description: Creates a new instance of a `residency`.
-  /residencies/{residencyId}:
-    summary: Path used to manage a single residency.
+      operationId: createengagement
+      summary: Create an engagement
+      description: Creates a new instance of a `engagement`.
+  /engagements/{engagementId}:
+    summary: Path used to manage a single engagement.
     description: The REST endpoint/path used to get, update, and delete single instances
-      of an `residency`.  This path contains `GET`, `PUT`, and `DELETE` operations
+      of an `engagement`.  This path contains `GET`, `PUT`, and `DELETE` operations
       used to perform the get, update, and delete tasks, respectively.
     get:
       responses:
@@ -49,127 +49,149 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/residency'
-          description: Successful response - returns a single `residency`.
-      operationId: getresidency
-      summary: Get a residency
-      description: Gets the details of a single instance of a `residency`.
+                $ref: '#/components/schemas/engagement'
+          description: Successful response - returns a single `engagement`.
+      operationId: getengagement
+      summary: Get an engagement
+      description: Gets the details of a single instance of a `engagement`.
     put:
       requestBody:
-        description: Updated `residency` information.
+        description: Updated `engagement` information.
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/residency'
+              $ref: '#/components/schemas/engagement'
         required: true
       responses:
         "202":
           description: Successful response.
-      operationId: updateresidency
-      summary: Update a residency
-      description: Updates an existing `residency`.
+      operationId: updateengagement
+      summary: Update an engagement
+      description: Updates an existing `engagement`.
     delete:
       responses:
         "204":
           description: Successful response.
-      operationId: deleteresidency
-      summary: Delete a residency
-      description: Deletes an existing `residency`.
+      operationId: deleteengagement
+      summary: Delete an engagement
+      description: Deletes an existing `engagement`.
     parameters:
-      - name: residencyId
-        description: A unique identifier for a `residency`.
+      - name: engagementId
+        description: A unique identifier for a `engagement`.
         schema:
           type: string
         in: path
         required: true
+/engagements/config:
+  summary: Path used to fetch the engaments config data from the cache.
+  description: The REST endpoint/path used to get
+  get:
+    responses:
+      "200":
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/engagement/config'
+        description: Successful response - returns the config data from the cache `engagement`.
+    operationId: getengagementsconfig
+    summary: Get engagement's config
+    description: Gets the engagement's config data from cache.       
+
 components:
   schemas:
-    residency:
-      title: Root Type for residency
+    engagement:
+      title: Root Type for engagement
       description: ""
       type: object
       properties:
         id:
           format: int32
           type: integer
+          description: "Engagement's unique ID"
         customer_name:
           type: string
-        project_name:
+          description: "To be used as a the Customer's name parameter value"
+        engagement_name:
           type: string
+          description: "To be used as a the Engagement's name parameter value"
         description:
           type: string
+          description: "To be used as a the Engagement's description parameter value"
         location:
           type: string
+          description: "To be used as a the Engagement's location parameter value"
         start_date:
           type: string
+          description: "To be used as a the Engagement's start date parameter value"
         end_date:
           type: string
+          description: "To be used as a the Engagement's end date parameter value"
         archive_date:
           type: string
+          description: "To be used as a the Engagement's archive date parameter value"
         engagement_lead_name:
           type: string
+          description: "To be used as a the Engagement Lead's name from the engagement parameter value"
         engagement_lead_email:
           type: string
+          description: "To be used as a the Engagement Lead's email from the engagement parameter value"
 
         technical_lead_name:
           type: string
+          description: "To be used as a the name from the Technical Lead's name from the engagement parameter value"
         technical_lead_email:
           type: string
+          description: "To be used as a the Technical Lead's email from the engagement parameter value"
 
         customer_contact_name:
           type: string
+          description: "To be used as a the customer contact's name from the engagement description parameter value"
         customer_contact_email:
           type: string
+          description: "To be used as a the customer contact's email from the engagement description parameter value"
 
         ocp_cloud_provider_name:
           type: string
+          description: "To be used as a the Engagement's OCP Cloud Provider name parameter value"
         ocp_cloud_provider_region:
           type: string
-
+          description: "To be used as a the Engagement's OCP Cloud Provider region parameter value"
         ocp_sub_domain:
           type: string
+          description: "To be used as a the Engagement's OCP Sub Domain parameter value"
         ocp_persistent_storage_size:
           type: string
+          description: "To be used as a the Engagement's OCP Persistent Storage size parameter value"
         ocp_cluster_size:
           type: string
+          description: "To be used as a the Engagement's OCP Cluster size parameter value"
 
       example:
         id: 1
-        customer_name: ""
-        project_name: ""
-        description: ""
-        location: ""
-        start_date: ""
-        end_date: ""
-        archive_date: ""
-        engagement_lead_name: ""
-
-        engagement_lead_email: ""
-
-
-        technical_lead_name: ""
-
-        technical_lead_email: ""
-
-
-        customer_contact_name: ""
-
-        customer_contact_email: ""
-
-
-        ocp_cloud_provider_name: ""
-
-        ocp_cloud_provider_region: ""
+        customer_name: "SOCPM"
+        engagement_name: "SOCPM Residency 1"
+        description: "This is the first Open Innovation Labs residency with SOCPM. The purpose of this residency is to accelerate 
+        the development and delivery of best practices around RAgent, a React Native mobile app that helps green agents establish 
+         with prospective customers of its Medicare products."
+        location: "San Francisco, California"
+        start_date: "11-01-2020"
+        end_date: "11-23-2020"
+        archive_date: "12-23-2020"
+        engagement_lead_name: "Engagement Lead"
+        engagement_lead_email: "engagement-lead@mail.com"
+        technical_lead_name: "Technical Lead"
+        technical_lead_email: "tech-lead@mail.com"
+        customer_contact_name: "Customer Contact"
+        customer_contact_email: "customer-contact@mail.com"
+        ocp_cloud_provider_name: "AWS"
+        ocp_cloud_provider_region: "us-east-2"
         ocp_version: "v4.2"
-        ocp_sub_domain: ""
-
+        ocp_sub_domain: "socpm.na-1.rht-labs.com"
         ocp_persistent_storage_size: "50GB"
         ocp_cluster_size: "medium"
 
-
-
-    residency_stub:
-      title: Root Type for residency_stub
+    engagement_stub:
+      title: Root Type for engagement_stub
       description: ""
       type: object
       properties:
@@ -178,9 +200,9 @@ components:
           type: integer
         customer_name:
           type: string
-        project_name:
+        engagement_name:
           type: string
       example:
         id: 1
-        customer_name: ""
-        project_name: ""
+        customer_name: "SOCPM"
+        engagement_name: "SOCPM Residency 1"
