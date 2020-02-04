@@ -119,20 +119,20 @@ pipeline{
                         sh 'printenv'
 
                         echo '### Running tests ###'
-                        sh 'mvn clean test'
+                        sh './mvnw clean test'
                     }
                 }
                 stage("Build Project"){
                     steps{
                         echo '### Running install ###'
-                        sh 'mvn clean install'
+                        sh './mvnw clean install'
                     }
                 }
                 stage("Static Analysis"){
                     steps{
                         echo '### Maven Static Code Analysis ###'
-                        sh 'mvn checkstyle:checkstyle'
-                        sh 'mvn org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true'
+                        sh './mvnw checkstyle:checkstyle'
+                        sh './mvnw org.jacoco:jacoco-maven-plugin:prepare-agent install -Dmaven.test.failure.ignore=true'
                         
             
                     }
@@ -150,7 +150,7 @@ pipeline{
                     }
                     steps{
                         echo '### Running deploy ###'
-//                        sh 'mvn deploy'
+//                        sh './mvnw deploy'
 //
                     }
                     // Post can be used both on individual stages and for the entire build.
