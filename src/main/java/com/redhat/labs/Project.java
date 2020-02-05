@@ -16,6 +16,11 @@ import javax.ws.rs.core.SecurityContext;
 import java.security.Principal;
 
 @Path("/engagements")
+@Operation(summary = "Path used to manage the list of engagements. A resdiency can be an engagement.",
+           description = "The REST endpoint/path used to list and create zero or more `residency`"+
+           "entities.  This path contains a `GET` and `POST` operation to perform the list"+
+           "and create tasks, respectively. When used to list all residencies, a truncated"+
+           "form of each residency called a \"stub\" is returned.")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RequestScoped
@@ -31,6 +36,11 @@ public class Project {
     String configRepositoryId;
 
     @GET
+    @Operation(summary = "List all residencies in \"stub\" form",
+           description = "Gets a list of all `residency_stub` entities")
+    @APIResponse(responseCode = "200", description = "Successful response - returns an array of `residency_stub`",
+             content = @Content(mediaType = "application/json",
+                                schema = @Schema(implementation = "residency_stub")))
     @Produces(MediaType.TEXT_PLAIN)
     @PermitAll
     public String defaultEndpoint(@Context SecurityContext ctx) {

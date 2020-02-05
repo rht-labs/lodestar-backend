@@ -22,7 +22,7 @@ paths:
           description: Successful response - returns an array of `residency_stub`
             entities.
       operationId: getresidencies
-      summary: List All residencies in "stub" form
+      summary: List all residencies in "stub" form
       description: Gets a list of all `residency_stub` entities.
     post:
       requestBody:
