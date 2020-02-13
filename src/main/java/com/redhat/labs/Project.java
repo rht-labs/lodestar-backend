@@ -4,6 +4,13 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.media.Content;
+import org.eclipse.microprofile.openapi.annotations.media.Schema;
+import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
+import org.eclipse.microprofile.openapi.annotations.info.Info;
+
 import javax.annotation.security.PermitAll;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -16,11 +23,11 @@ import javax.ws.rs.core.SecurityContext;
 import java.security.Principal;
 
 @Path("/engagements")
-@Operation(summary = "Path used to manage the list of engagements. A resdiency can be an engagement.",
-           description = "The REST endpoint/path used to list and create zero or more `residency`"+
-           "entities.  This path contains a `GET` and `POST` operation to perform the list"+
-           "and create tasks, respectively. When used to list all residencies, a truncated"+
-           "form of each residency called a \"stub\" is returned.")
+// @Info(summary = "Path used to manage the list of engagements. A resdiency can be an engagement.",
+//            description = "The REST endpoint/path used to list and create zero or more `residency`"+
+//            "entities.  This path contains a `GET` and `POST` operation to perform the list"+
+//            "and create tasks, respectively. When used to list all residencies, a truncated"+
+//            "form of each residency called a \"stub\" is returned.")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @RequestScoped
@@ -40,7 +47,7 @@ public class Project {
            description = "Gets a list of all `residency_stub` entities")
     @APIResponse(responseCode = "200", description = "Successful response - returns an array of `residency_stub`",
              content = @Content(mediaType = "application/json",
-                                schema = @Schema(implementation = "residency_stub")))
+                                schema = @Schema(implementation = String.class)))
     @Produces(MediaType.TEXT_PLAIN)
     @PermitAll
     public String defaultEndpoint(@Context SecurityContext ctx) {
@@ -65,6 +72,8 @@ public class Project {
     }
 
     @GET
+    @Operation(summary = "Fetch the config data",
+           description = "Fetch the config data from from cache as a String")
     @Path("config")
     @PermitAll
     public String fetchConfigDataFromCache(@Context SecurityContext ctx) {
@@ -74,6 +83,12 @@ public class Project {
 
 
     @POST
+    @Operation(summary = "Create a new engagement",
+           description = "Creates a new instance of a `engagement`")
+    @APIResponse(responseCode = "201", description = "Successful response",
+             content = @Content(mediaType = "application/json"))
+    @RequestBody(description = "A new `residency` to be created.", required = true,
+                       content = @Content(schema = @Schema(implementation = String.class)))
     @Path("create")
     @HeaderParam("X-APPLICATION-NONSENSE")
     public String createNewResidency(@Context SecurityContext ctx, Object request,@HeaderParam("X-APPLICATION-NONSENSE") String header ) {
