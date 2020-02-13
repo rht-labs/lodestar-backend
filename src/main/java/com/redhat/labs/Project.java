@@ -73,7 +73,7 @@ public class Project {
 
     @GET
     @Operation(summary = "Fetch the config data",
-           description = "Fetch the config data from from cache as a String")
+           description = "Fetch the config data yml file from cache as a String.")
     @Path("config")
     @PermitAll
     public String fetchConfigDataFromCache(@Context SecurityContext ctx) {
