@@ -56,24 +56,6 @@ pipeline{
                 }
             }
         }
-        stage("Prepare environment for develop deploy") {
-            agent {
-                node {
-                    label "master"
-                }
-            }
-            when {
-              expression { GIT_BRANCH ==~ /(.*develop|.*feature.*)/ }
-            }
-            steps {
-                script {
-                    // Arbitrary Groovy Script executions can do in script tags
-                    env.PROJECT_NAMESPACE = "${NAMESPACE_PREFIX}-dev"
-                    env.NODE_ENV = "dev"
-                    env.QUARKUS_PROFILE = "openshift-dev"
-                }
-            }
-        }
         stage("Ansible") {
             agent {
                 node {
@@ -81,7 +63,7 @@ pipeline{
                 }
             }
             when {
-              expression { GIT_BRANCH ==~ /(.*master|.*develop|.*feature.*)/ }
+              expression { GIT_BRANCH ==~ /(.*master)/ }
             }
             stages{
                 stage("Ansible Galaxy") {
@@ -103,6 +85,9 @@ pipeline{
                 node {
                     label "jenkins-slave-mvn"
                 }
+            }
+            when {
+              expression { GIT_BRANCH ==~ /(.*master)/ }
             }
             stages{
                 stage("Print ArtifactID and Version"){
@@ -192,7 +177,7 @@ pipeline{
             }
             when {
                 allOf{
-                    expression { GIT_BRANCH ==~ /(.*master|.*develop|.*feature.*)/ }
+                    expression { GIT_BRANCH ==~ /(.*master)/ }
                     expression { currentBuild.result != 'UNSTABLE' }
                 }
             }
