@@ -19,7 +19,7 @@ jobs:
       run: mvn test
     - uses: jacobsee/action-s2i@master
       with:
-        base: registry.access.redhat.com/fuse7/fuse-java-openshift
+        base: registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift
         image: omp-backend:latest
         image_pull_registry: registry.access.redhat.com
         image_pull_username: ${{ secrets.RHT_REGISTRY_USERNAME }}
