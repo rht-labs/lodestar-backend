@@ -17,3 +17,9 @@ jobs:
         java-version: 13.0.1
     - name: Build with Maven & Quarkus
       run: mvn test
+    - uses: jacobsee/action-s2i@master
+      with:
+        base: registry.access.redhat.com/fuse7/fuse-java-openshift
+        image: omp-backend:latest
+        image_pull_username: ${{ secrets.RHT_REGISTRY_USERNAME }}
+        image_pull_password: ${{ secrets.RHT_REGISTRY_PASSWORD }}
