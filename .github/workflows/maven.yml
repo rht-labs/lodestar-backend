@@ -21,5 +21,6 @@ jobs:
       with:
         base: registry.access.redhat.com/fuse7/fuse-java-openshift
         image: omp-backend:latest
+        image_pull_registry: registry.access.redhat.com
         image_pull_username: ${{ secrets.RHT_REGISTRY_USERNAME }}
         image_pull_password: ${{ secrets.RHT_REGISTRY_PASSWORD }}
