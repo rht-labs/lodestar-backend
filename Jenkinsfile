@@ -43,9 +43,6 @@ pipeline{
                     label "master"
                 }
             }
-            when {
-              expression { GIT_BRANCH ==~ /(.*master)/ }
-            }
             steps {
                 script {
                     // Arbitrary Groovy Script executions can do in script tags
@@ -61,9 +58,6 @@ pipeline{
                 node {
                     label "jenkins-slave-ansible"
                 }
-            }
-            when {
-              expression { GIT_BRANCH ==~ /(.*master)/ }
             }
             stages{
                 stage("Ansible Galaxy") {
@@ -85,9 +79,6 @@ pipeline{
                 node {
                     label "jenkins-slave-mvn"
                 }
-            }
-            when {
-              expression { GIT_BRANCH ==~ /(.*master)/ }
             }
             stages{
                 stage("Print ArtifactID and Version"){
@@ -177,7 +168,6 @@ pipeline{
             }
             when {
                 allOf{
-                    expression { GIT_BRANCH ==~ /(.*master)/ }
                     expression { currentBuild.result != 'UNSTABLE' }
                 }
             }
