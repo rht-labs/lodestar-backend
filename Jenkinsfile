@@ -113,21 +113,21 @@ pipeline{
             
                     }
                 }
-//                stage("Sonar Quality Gate"){
-//                    steps {
-//                        timeout(time: 1, unit: 'HOURS') {
-//                            waitForQualityGate abortPipeline: false
-//                        }
-//                    }
-//                }
+                // stage("Sonar Quality Gate"){
+                  // steps {
+                     //  timeout(time: 1, unit: 'HOURS') {
+                          // waitForQualityGate abortPipeline: false
+                      // }
+                   // }
+                // }
                 stage("Deploy to Nexus"){
                     when {
                         expression { currentBuild.result != 'UNSTABLE' }
                     }
                     steps{
                         echo '### Running deploy ###'
-//                        sh './mvnw deploy'
-//
+                        // sh './mvnw deploy'
+
                     }
                     // Post can be used both on individual stages and for the entire build.
                     post {
@@ -146,58 +146,56 @@ pipeline{
                     }
                 }
             }
-
-            stage("Build a Container Image and Push it to Quay") {
-                agent {
-                    node {
-                        label "master"  
-                    }
-                }
-                when {
-                    expression { GIT_BRANCH ==~ /(.*tags\/release.*)/  }
-                }
-                steps {
-                    
-                    echo '### Create Container Image ###'
-                    sh  '''
-                            oc project ${PIPELINES_NAMESPACE} # probs not needed
-                            oc patch bc ${APP_NAME} -p "{\\"spec\\":{\\"output\\":{\\"to\\":{\\"kind\\":\\"DockerImage\\",\\"name\\":\\"quay.io/open-innovation-labs/${APP_NAME}:${JENKINS_TAG}\\"}}}}"
-                            oc start-build ${APP_NAME} --from-file=target/${ARTIFACTID}-${VERSION}-runner.jar --follow
-                        '''
-                }
-                post {
-                    always {
-                        archive "**"
-                    }
-                }
-            }
-
-            stage("Build a Container Image") {
-                agent {
-                    node {
-                        label "master"  
-                    }
-                }
-                when {
-                    expression { GIT_BRANCH ==~ /(.*master)/  }
-                }
-                steps {
-                    
-                    echo '### Create Container Image ###'
-                    sh  '''
-                            oc project ${PIPELINES_NAMESPACE} # probs not needed
-                            oc patch bc ${APP_NAME} -p "{\\"spec\\":{\\"output\\":{\\"to\\":{\\"kind\\":\\"ImageStreamTag\\",\\"name\\":\\"${APP_NAME}:${JENKINS_TAG}\\"}}}}"
-                            oc start-build ${APP_NAME} --from-file=target/${ARTIFACTID}-${VERSION}-runner.jar --follow
-                        '''
-                }
-                post {
-                    always {
-                        archive "**"
-                    }
-                }
-            }
-
         }
 
+        stage("Build a Container Image and Push it to Quay") {
+            agent {
+                node {
+                    label "master"  
+                }
+            }
+            when {
+                expression { GIT_BRANCH ==~ /(.*tags\/release.*)/  }
+            }
+            steps {
+                
+                echo '### Create Container Image ###'
+                sh  '''
+                        oc project ${PIPELINES_NAMESPACE} # probs not needed
+                        oc patch bc ${APP_NAME} -p "{\\"spec\\":{\\"output\\":{\\"to\\":{\\"kind\\":\\"DockerImage\\",\\"name\\":\\"quay.io/open-innovation-labs/${APP_NAME}:${JENKINS_TAG}\\"}}}}"
+                        oc start-build ${APP_NAME} --from-file=target/${ARTIFACTID}-${VERSION}-runner.jar --follow
+                    '''
+            }
+            post {
+                always {
+                    archive "**"
+                }
+            }
+        }
+
+        stage("Build a Container Image") {
+            agent {
+                node {
+                    label "master"  
+                }
+            }
+            when {
+                expression { GIT_BRANCH ==~ /(.*master)/  }
+            }
+            steps {
+                
+                echo '### Create Container Image ###'
+                sh  '''
+                        oc project ${PIPELINES_NAMESPACE} # probs not needed
+                        oc patch bc ${APP_NAME} -p "{\\"spec\\":{\\"output\\":{\\"to\\":{\\"kind\\":\\"ImageStreamTag\\",\\"name\\":\\"${APP_NAME}:${JENKINS_TAG}\\"}}}}"
+                        oc start-build ${APP_NAME} --from-file=target/${ARTIFACTID}-${VERSION}-runner.jar --follow
+                    '''
+            }
+            post {
+                always {
+                    archive "**"
+                }
+            }
+        }
     }
 }
