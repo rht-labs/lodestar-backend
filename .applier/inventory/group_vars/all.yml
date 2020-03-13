@@ -20,13 +20,13 @@ pipeline_vars:
 
 dev_vars:
   NAME: '{{ app_name }}'
-  IMAGE_NAME: '{{ app_name }}'
+  IMAGE_NAME: 'quay.io/rht-labs/{{ app_name }}'
   IMAGE_TAG: latest
   JWT_PUBLIC_KEY_URL: http://sso-cluster-internal:8080/auth/realms/omp/protocol/openid-connect/certs
 
 test_vars:
   NAME: '{{ app_name }}'
-  IMAGE_NAME: '{{ app_name }}'
+  IMAGE_NAME: 'quay.io/rht-labs/{{ app_name }}'
   IMAGE_TAG: latest
   JWT_PUBLIC_KEY_URL: http://sso-cluster-internal:8080/auth/realms/omp/protocol/openid-connect/certs
 
@@ -57,3 +57,4 @@ openshift_cluster_content:
     tags:
       - deploy
       - test
+      - test-deploy
