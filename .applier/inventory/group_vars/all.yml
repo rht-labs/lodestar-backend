@@ -8,6 +8,7 @@ build_vars:
   NAME: '{{ app_name }}'
   GIT_URL: https://github.com/rht-labs/open-management-portal-backend.git
   GIT_REF: master
+  PUSH_SECRET: quay-registry-secret
   OUTPUT_IMAGE_NAME: '{{ app_name }}'
   OUTPUT_IMAGE_TAG: latest
   BUILDER_IMAGE_NAME: registry.access.redhat.com/fuse7/fuse-java-openshift
