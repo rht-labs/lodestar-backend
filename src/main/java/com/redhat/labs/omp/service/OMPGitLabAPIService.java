@@ -1,4 +1,4 @@
-package com.redhat.labs;
+package com.redhat.labs.omp.service;
 
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 

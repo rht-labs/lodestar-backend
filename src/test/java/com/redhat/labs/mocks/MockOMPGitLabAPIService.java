@@ -1,8 +1,9 @@
 package com.redhat.labs.mocks;
 
-import com.redhat.labs.OMPGitLabAPIService;
 import io.quarkus.test.Mock;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+
+import com.redhat.labs.omp.service.OMPGitLabAPIService;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.json.Json;

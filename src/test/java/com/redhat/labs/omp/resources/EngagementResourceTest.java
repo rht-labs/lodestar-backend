@@ -1,4 +1,4 @@
-package com.redhat.labs;
+package com.redhat.labs.omp.resources;
 
 import io.quarkus.test.junit.QuarkusTest;
 import org.infinispan.configuration.cache.ConfigurationBuilder;
@@ -18,7 +18,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
 
 @QuarkusTest
-public class ProjectTest {
+public class EngagementResourceTest {
     private static HotRodServer hs;
 
 

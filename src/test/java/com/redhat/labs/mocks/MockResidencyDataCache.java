@@ -1,11 +1,13 @@
 package com.redhat.labs.mocks;
 
 
-import com.redhat.labs.ResidencyDataCache;
 import io.quarkus.test.Mock;
 
 import javax.annotation.PostConstruct;
 import javax.inject.Singleton;
+
+import com.redhat.labs.omp.cache.ResidencyDataCache;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
