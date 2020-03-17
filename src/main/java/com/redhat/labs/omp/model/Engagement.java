@@ -2,9 +2,9 @@ package com.redhat.labs.omp.model;
 
 public class Engagement {
 
-	public int id;
-	public String customerName;
-	public String projectName;
+    public int id;
+    public String customerName;
+    public String projectName;
     public String description;
     public String location;
     public String startDate;
@@ -22,13 +22,12 @@ public class Engagement {
     public String openShiftSubDomain;
     public String openShiftPersistentStorageSize;
     public String openShiftClusterSize;
-	
-	public Engagement () {}
-	
-	public String toString() {
-		String residency = "Residency (%d) Customer: %s Project: %s Description: %s Location: %s Start Date: %s";
-		
-		return String.format(residency, id, customerName, projectName, description, location, startDate);
-	}
-	
+
+    public Engagement () {}
+
+    public String toString() {
+        String residency = "Residency (%d) Customer: %s Project: %s Description: %s Location: %s Start Date: %s";
+
+        return String.format(residency, id, customerName, projectName, description, location, startDate);
+    }
 }

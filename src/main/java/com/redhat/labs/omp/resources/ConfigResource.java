@@ -23,9 +23,9 @@ import com.redhat.labs.omp.service.OMPGitLabAPIService;
 @Consumes(MediaType.APPLICATION_JSON)
 @RequestScoped
 public class ConfigResource {
-	private static final Logger LOGGER = LoggerFactory.getLogger(EngagementResource.class);
-	
-	@Inject
+    private static final Logger LOGGER = LoggerFactory.getLogger(EngagementResource.class);
+
+    @Inject
     JsonWebToken jwt;
 
     @Inject
@@ -37,7 +37,7 @@ public class ConfigResource {
     
     @ConfigProperty(name = "configRepositoryId",defaultValue = "9407")
     String configRepositoryId;
-	
+
     @GET
     @PermitAll
     public String fetchConfigData() {
