@@ -2,6 +2,8 @@ package com.redhat.labs.omp.cache;
 
 import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.client.hotrod.RemoteCacheManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.quarkus.infinispan.client.Remote;
 
@@ -15,16 +17,19 @@ import javax.inject.Inject;
  */
 @ApplicationScoped
 public class ResidencyDataCache {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ResidencyDataCache.class);
+
+    public static final String CONFIG_FILE_CACHE_KEY = "schema/config.yml";
 
     @Inject
     protected RemoteCacheManager cacheManager;
 
-    public RemoteCacheManager getCacheManager() {
-		return cacheManager;
-	}
-
     @Inject @Remote("omp")
     protected RemoteCache<String, String> cache;
+
+    public RemoteCacheManager getCacheManager() {
+        return cacheManager;
+    }
 
     public String fetchConfigFile() {
         return fetch(CONFIG_FILE_CACHE_KEY);
@@ -32,6 +37,9 @@ public class ResidencyDataCache {
 
     public String fetch(String key) {
         assert (key != null);
+        if(cache == null) {
+            createCache();
+        }
         return cache.get(key);
     }
 
@@ -39,6 +47,10 @@ public class ResidencyDataCache {
         cache.put(key, value);
     }
 
-    public static final String CONFIG_FILE_CACHE_KEY = "schema/config.yml";
+    private void createCache() {
+        LOGGER.info("Create cache");
+        cache = cacheManager.administration().getOrCreateCache("omp", "default");
+    }
+
 }
 
