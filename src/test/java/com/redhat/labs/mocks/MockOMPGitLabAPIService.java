@@ -3,6 +3,7 @@ package com.redhat.labs.mocks;
 import io.quarkus.test.Mock;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
+import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.service.OMPGitLabAPIService;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -23,7 +24,7 @@ public class MockOMPGitLabAPIService implements OMPGitLabAPIService {
     }
 
     @Override
-    public Response createNewResidency(Object residency) {
+    public Response createEngagement(Engagement engagement) {
         return Response.status(Response.Status.OK).entity(foxyResponse).build();
     }
 }

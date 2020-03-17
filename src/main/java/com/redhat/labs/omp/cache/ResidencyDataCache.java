@@ -1,6 +1,5 @@
 package com.redhat.labs.omp.cache;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.client.hotrod.RemoteCacheManager;
 
@@ -25,10 +24,7 @@ public class ResidencyDataCache {
 	}
 
     @Inject @Remote("omp")
-    private RemoteCache<String, String> cache;
-
-    @ConfigProperty(name = "cacheServerName", defaultValue = "127.0.0.1")
-    protected String cacheServerName;
+    protected RemoteCache<String, String> cache;
 
     public String fetchConfigFile() {
         return fetch(CONFIG_FILE_CACHE_KEY);

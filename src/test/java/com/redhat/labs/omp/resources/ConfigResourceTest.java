@@ -1,26 +1,25 @@
 package com.redhat.labs.omp.resources;
 
-import io.quarkus.test.junit.QuarkusTest;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.is;
+
 import org.infinispan.configuration.cache.ConfigurationBuilder;
 import org.infinispan.configuration.global.GlobalConfigurationBuilder;
 import org.infinispan.manager.EmbeddedCacheManager;
 import org.infinispan.query.remote.client.ProtobufMetadataManagerConstants;
 import org.infinispan.server.hotrod.HotRodServer;
-import org.infinispan.server.hotrod.configuration.HotRodServerConfigurationBuilder;
 import org.infinispan.server.hotrod.test.HotRodTestingUtil;
 import org.infinispan.test.fwk.TestCacheManagerFactory;
 import org.infinispan.test.fwk.TestResourceTracker;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.is;
+import io.quarkus.test.junit.QuarkusTest;
 
 @QuarkusTest
-public class EngagementResourceTest {
-    private static HotRodServer hs;
-
+public class ConfigResourceTest {
+	private static HotRodServer hs;
+	
     @BeforeAll
     public static void init() {
         TestResourceTracker.setThreadTestName("InfinispanServer");
@@ -37,12 +36,11 @@ public class EngagementResourceTest {
 
     }
 
-    @AfterAll
-    public static void teardown() {
-        if (hs != null) {
-            hs.stop();
-        }
-    }
-
-
+	@Test
+	public void getFileFromRepo() {
+		given()
+		.when()
+		.get("/config")
+		.then().statusCode(200).body("emoji", is("\uD83E\uDD8A"));
+	}
 }

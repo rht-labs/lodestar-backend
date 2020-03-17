@@ -2,6 +2,8 @@ package com.redhat.labs.omp.service;
 
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
+import com.redhat.labs.omp.model.Engagement;
+
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
 
@@ -16,5 +18,5 @@ public interface OMPGitLabAPIService {
     @POST
     @Path("/api/residencies")
     @Produces("application/json")
-    Response createNewResidency(Object residency);
+    Response createEngagement(Engagement engagement);
 }
