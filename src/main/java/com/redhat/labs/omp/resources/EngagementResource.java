@@ -7,8 +7,11 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.jwt.JsonWebToken;
@@ -41,12 +44,6 @@ public class EngagementResource {
     @Inject
     ResidencyDataCache engagementCache;
 
-    @ConfigProperty(name = "trustedClientKey")
-    public String trustedClientKey;
-
-    @ConfigProperty(name = "configRepositoryId",defaultValue = "9407")
-    String configRepositoryId;
-
     @APIResponses( value = {
     		@APIResponse( responseCode = "201", 
     				description = "Engagement created. Location in header",
@@ -57,15 +54,23 @@ public class EngagementResource {
     		description = "Engagement creates a new project in Gitlab")
     @POST
     @PermitAll
-    public Response createEngagement(Engagement engagement) {
+    public Response createEngagement(Engagement engagement, @Context UriInfo uriInfo) {
 
         //TODO add security here - ie replaces Permits all
-        LOGGER.info(engagement.toString());
+        LOGGER.debug(engagement.toString());
 
-        Response response = gitApi.createEngagement(engagement);
-        LOGGER.info(response.getEntity().toString());
+        Response gitResponse = gitApi.createEngagement(engagement);
 
-        return Response.status(response.getStatus()).entity(engagement).header("location", "/path/to/engagement/1").build();
+        if(gitResponse.getStatus() == 201) {
+            String location = gitResponse.getHeaderString("Location");
+            String projectId = location.substring(location.lastIndexOf("/"));
+
+            UriBuilder builder = uriInfo.getAbsolutePathBuilder();
+            builder.path(projectId);
+            return Response.created(builder.build()).build();
+        }
+
+        return gitResponse;
 
     }
 }
