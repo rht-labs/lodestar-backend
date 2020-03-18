@@ -26,8 +26,10 @@ public class Engagement {
     public Engagement () {}
 
     public String toString() {
-        String residency = "Residency (%d) Customer: %s Project: %s Description: %s Location: %s Start Date: %s";
+        String engagement = "Engagement (%d) Customer: %s Project: %s Description: %s Location: %s Start Date: %s"
+                + " End Date: %s Archive Date: %s + Engagement Lead %s (%s)";
 
-        return String.format(residency, id, customerName, projectName, description, location, startDate);
+        return String.format(engagement, id, customerName, projectName, description, location, startDate,
+                endDate, archiveDate, engagementLeadName, engagementLeadEmail);
     }
 }
