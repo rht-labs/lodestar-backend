@@ -1,7 +1,9 @@
 name: Java CI
 
 on:
-- push
+  push:
+    branches:
+      - master
 
 jobs:
   build:
@@ -9,17 +11,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@v2
     - name: Set up JDK
       uses: actions/setup-java@v1
       with:
         java-version: 13.0.1
     - name: Build with Maven & Quarkus
       run: mvn test
-    - uses: jacobsee/s2i-github-action@master
+    - uses: redhat-cop/github-actions/s2i@v1
       with:
         base: registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift
-        output_image: quay.io/rht-labs/omp-backend:latest
+        output_image: "quay.io/rht-labs/omp-backend:build-${{ github.run_number }}"
         image_push_registry: quay.io
         image_push_username: ${{ secrets.QUAY_USERNAME }}
         image_push_password: ${{ secrets.QUAY_PASSWORD }}
