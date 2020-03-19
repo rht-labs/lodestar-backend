@@ -1,13 +1,11 @@
 package com.redhat.labs.omp.cache;
 
-import com.redhat.labs.mocks.MockResidencyDataCache;
 import io.quarkus.test.junit.QuarkusTest;
 import org.infinispan.configuration.cache.ConfigurationBuilder;
 import org.infinispan.configuration.global.GlobalConfigurationBuilder;
 import org.infinispan.manager.EmbeddedCacheManager;
 import org.infinispan.query.remote.client.ProtobufMetadataManagerConstants;
 import org.infinispan.server.hotrod.HotRodServer;
-import org.infinispan.server.hotrod.configuration.HotRodServerConfigurationBuilder;
 import org.infinispan.server.hotrod.test.HotRodTestingUtil;
 import org.infinispan.test.fwk.TestCacheManagerFactory;
 import org.infinispan.test.fwk.TestResourceTracker;
@@ -25,7 +23,7 @@ class ResidencyDataCacheTest {
     private static HotRodServer hs;
 
     @Inject
-    MockResidencyDataCache residencyDataCache;
+    ResidencyDataCache residencyDataCache;
 
     @BeforeAll
     public static void init() {
@@ -36,6 +34,7 @@ class ResidencyDataCacheTest {
                 new ConfigurationBuilder());
         ecm.createCache(ProtobufMetadataManagerConstants.PROTOBUF_METADATA_CACHE_NAME, new ConfigurationBuilder().indexing().build());
 
+        ecm.createCache("omp", new ConfigurationBuilder().indexing().build());
         ecm.getCache().put("a", "domedata");
 
         hs =  HotRodTestingUtil.startHotRodServer(ecm, 11222);

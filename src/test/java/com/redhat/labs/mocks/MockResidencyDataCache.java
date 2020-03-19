@@ -1,21 +1,18 @@
 package com.redhat.labs.mocks;
 
 
-import io.quarkus.test.Mock;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
-import javax.inject.Singleton;
+import javax.enterprise.context.ApplicationScoped;
 
 import com.redhat.labs.omp.cache.ResidencyDataCache;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+import io.quarkus.test.Mock;
 
 @Mock
-@Singleton
+@ApplicationScoped
 public class MockResidencyDataCache extends ResidencyDataCache {
     Map<String, String> cache = new HashMap<String, String>();
 
