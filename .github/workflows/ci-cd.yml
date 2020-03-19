@@ -21,7 +21,7 @@ jobs:
     - uses: redhat-cop/github-actions/s2i@v1
       with:
         base: registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift:1.8
-        output_image: "quay.io/rht-labs/omp-backend:build-${{ github.sha }}"
+        output_image: "quay.io/rht-labs/omp-backend:${{ github.sha }}"
         image_push_registry: quay.io
         image_push_username: ${{ secrets.QUAY_USERNAME }}
         image_push_password: ${{ secrets.QUAY_PASSWORD }}
