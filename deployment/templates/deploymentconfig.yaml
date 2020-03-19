@@ -1,0 +1,72 @@
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  labels:
+    app: {{ .Values.name }}
+  name: {{ .Values.name }}
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    app: {{ .Values.name }}
+    deploymentconfig: {{ .Values.name }}
+  strategy:
+    activeDeadlineSeconds: 21600
+    resources: {}
+    rollingParams:
+      intervalSeconds: 1
+      maxSurge: 25%
+      maxUnavailable: 25%
+      timeoutSeconds: 600
+      updatePeriodSeconds: 1
+    type: Rolling
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.name }}
+        deploymentconfig: {{ .Values.name }}
+    spec:
+      containers:
+      - env:
+        - name: MP_JWT_VERIFY_PUBLICKEY_LOCATION
+          valueFrom:
+            secretKeyRef:
+              name: omp-gitlab-configuration
+              key: JWT_PUBLIC_KEY_URL
+        - name: TRUSTED_CLIENT_KEY
+          valueFrom:
+            secretKeyRef:
+              name: omp-gitlab-configuration
+              key: TRUSTED_CLIENT_KEY
+        - name: CONFIG_REPOSITORY_ID
+          valueFrom:
+            secretKeyRef:
+              name: omp-gitlab-configuration
+              key: CONFIG_REPOSITORY_ID
+        image: "{{ .Values.imageName }}:{{ .Values.imageTag }}"
+        imagePullPolicy: Always
+        name: {{ .Values.name }}
+        ports:
+        - containerPort: 8080
+          protocol: TCP
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - name: config-volume
+          mountPath: /deployments/config
+      volumes:
+      - name: config-volume
+        configMap:
+          name: "{{ .Values.name }}-config"
+          items:
+          - key: application.properties
+            path: application.properties
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+  test: false
+  triggers:
+  - type: ConfigChange
