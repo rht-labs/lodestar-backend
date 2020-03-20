@@ -162,7 +162,7 @@ pipeline{
                 echo '### Create Container Image ###'
                 sh  '''
                         oc project ${PIPELINES_NAMESPACE} # probs not needed
-                        oc patch bc ${APP_NAME} -p "{\\"spec\\":{\\"output\\":{\\"to\\":{\\"kind\\":\\"DockerImage\\",\\"name\\":\\"quay.io/open-innovation-labs/${APP_NAME}:${JENKINS_TAG}\\"}}}}"
+                        oc patch bc ${APP_NAME} -p "{\\"spec\\":{\\"output\\":{\\"to\\":{\\"kind\\":\\"DockerImage\\",\\"name\\":\\"quay.io/rht-labs/${APP_NAME}:${JENKINS_TAG}\\"}}}}"
                         oc start-build ${APP_NAME} --from-file=target/${ARTIFACTID}-${VERSION}-runner.jar --follow
                     '''
             }
