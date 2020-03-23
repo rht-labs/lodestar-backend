@@ -27,22 +27,9 @@ spec:
         deploymentconfig: {{ .Values.name }}
     spec:
       containers:
-      - env:
-        - name: MP_JWT_VERIFY_PUBLICKEY_LOCATION
-          valueFrom:
-            secretKeyRef:
-              name: omp-gitlab-configuration
-              key: JWT_PUBLIC_KEY_URL
-        - name: TRUSTED_CLIENT_KEY
-          valueFrom:
-            secretKeyRef:
-              name: omp-gitlab-configuration
-              key: TRUSTED_CLIENT_KEY
-        - name: CONFIG_REPOSITORY_ID
-          valueFrom:
-            secretKeyRef:
-              name: omp-gitlab-configuration
-              key: CONFIG_REPOSITORY_ID
+      - envFrom:
+        - secretRef:
+            name: omp-gitlab-configuration
         image: "{{ .Values.imageName }}:{{ .Values.imageTag }}"
         imagePullPolicy: Always
         name: {{ .Values.name }}
