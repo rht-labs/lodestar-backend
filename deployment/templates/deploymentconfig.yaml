@@ -28,7 +28,7 @@ spec:
     spec:
       containers:
       - envFrom:
-        - configMapRef:
+        - secretRef:
             name: omp-gitlab-configuration
         image: "{{ .Values.imageName }}:{{ .Values.imageTag }}"
         imagePullPolicy: Always
