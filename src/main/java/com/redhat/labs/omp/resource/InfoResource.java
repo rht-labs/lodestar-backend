@@ -1,4 +1,4 @@
-package com.redhat.labs.omp.resources;
+package com.redhat.labs.omp.resource;
 
 import java.security.Principal;
 

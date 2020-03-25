@@ -3,44 +3,56 @@ package com.redhat.labs.omp.resources;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
 
-import org.infinispan.configuration.cache.ConfigurationBuilder;
-import org.infinispan.configuration.global.GlobalConfigurationBuilder;
-import org.infinispan.manager.EmbeddedCacheManager;
-import org.infinispan.query.remote.client.ProtobufMetadataManagerConstants;
-import org.infinispan.server.hotrod.HotRodServer;
-import org.infinispan.server.hotrod.test.HotRodTestingUtil;
-import org.infinispan.test.fwk.TestCacheManagerFactory;
-import org.infinispan.test.fwk.TestResourceTracker;
-import org.junit.jupiter.api.BeforeAll;
+import javax.inject.Inject;
+
 import org.junit.jupiter.api.Test;
+
+import com.redhat.labs.omp.cache.EngagementDataCache;
 
 import io.quarkus.test.junit.QuarkusTest;
 
 @QuarkusTest
 public class ConfigResourceTest {
-	private static HotRodServer hs;
 	
-    @BeforeAll
-    public static void init() {
-        TestResourceTracker.setThreadTestName("InfinispanServer");
+	@Inject
+	private EngagementDataCache cache;
+	
+	// TODO:  Need a way to test the negative scenarios
+	// config not in cache, call git api and config not returned - fail?
+	// config not in cache, call git api and get error response
+	// config not in cache, call git api and get network error
 
-        EmbeddedCacheManager ecm = TestCacheManagerFactory.createCacheManager(
-                new GlobalConfigurationBuilder().nonClusteredDefault().defaultCacheName("default"),
-                new ConfigurationBuilder());
-        ecm.createCache(ProtobufMetadataManagerConstants.PROTOBUF_METADATA_CACHE_NAME, new ConfigurationBuilder().indexing().build());
-
-        ecm.getCache().put("a", "domedata");
-
-        hs =  HotRodTestingUtil.startHotRodServer(ecm, 11222);
-        hs.setMarshaller(new org.infinispan.commons.marshall.JavaSerializationMarshaller());
-
-    }
+	// SUCCESS Scenarios
+	// config not in cache, call git api and config returned - success
+	// config in cache, returns config
 
 	@Test
-	public void getFileFromRepo() {
+	public void testGetConfigNotInCacheIsInGitRepo() {
+
 		given()
-		.when()
-		.get("/config")
-		.then().statusCode(200).body("emoji", is("\uD83E\uDD8A"));
+			.when()
+				.get("/config")
+			.then()
+				.statusCode(200)
+				.body("emoji", is("\uD83E\uDD8A"));
+		
 	}
+
+	@Test
+	public void testGetConfigInCache() {
+
+		// insert into cache
+		cache.store(EngagementDataCache.CONFIG_FILE_CACHE_KEY, "{\"emoji\":\"\uD83E\uDD8A\"}");
+
+		given()
+			.when()
+				.get("/config")
+			.then()
+				.statusCode(200)
+				.body("emoji", is("\uD83E\uDD8A"));
+
+	}
+
+	
+
 }

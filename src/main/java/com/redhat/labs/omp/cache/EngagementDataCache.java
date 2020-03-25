@@ -18,10 +18,11 @@ import javax.inject.Inject;
  * @author faisalmasood
  */
 @ApplicationScoped
-public class ResidencyDataCache {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ResidencyDataCache.class);
+public class EngagementDataCache {
 
-    public static final String CONFIG_FILE_CACHE_KEY = "schema/config.yml";
+    private static final Logger LOGGER = LoggerFactory.getLogger(EngagementDataCache.class);
+
+	public static final String CONFIG_FILE_CACHE_KEY = "schema/config.yml";
 
     void onStart(@Observes StartupEvent ev) {
         if(cache == null) {
