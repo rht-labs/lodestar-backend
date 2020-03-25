@@ -1,0 +1,48 @@
+{
+	"customer_name": "TestCustomer",
+	"project_name": "TestProject",
+	"description": "Test Description",
+	"location": "Raleigh, NC",
+	"start_date": "20170501",
+	"end_date": "20170708",
+	"archive_date": "20170930",
+	"engagement_lead_name": "Mister Lead",
+	"engagement_lead_email": "mister@lead.com",
+	"technical_lead_email": "mister@techlead.com",
+	"technical_lead_name": "Mister Techlead",
+	"customer_contact_email": "customer@contact.com",
+	"customer_contact_name": "Customer Contact",
+
+
+
+
+	"open_shift_cloud_provider_name": "GCP",
+	"open_shift_cloud_provider_region": "West",
+	"open_shift_cluster_size": "medium",
+	"open_shift_persistent_storage_size": "50GB",
+	"open_shift_sub_domain": "jello",
+	"open_shift_version": "v4.2",
+}
+
+
+{
+	"customer_name": "dwtest",
+	"project_name": "Ambassador2",
+	"description": "Internal Test",
+	"location": "Raleigh, NC",
+	"start_date": "20170501",
+	"end_date": "20170708",
+	"archive_date": "20170930",
+	"engagement_lead_name": "Jeff Foxworthy",
+	"engagement_lead_email": "jeff@fox.com",
+	"technical_lead_name": "Emmett Brown",
+	"technical_lead_email": "doc@future.com",
+	"customer_contact_name": "Reg Dunlop",
+	"customer_contact_email": "reg@chiefs.com",
+	"ocp_cloud_provider_name": "GCP",
+	"ocp_cloud_provider_region": "West",
+	"ocp_version": "v4.2",
+	"ocp_sub_domain": "jello",
+	"ocp_persistent_storage_size": "50GB",
+	"ocp_cluster_size": "medium"
+}

@@ -1,6 +1,5 @@
 package com.redhat.labs.omp.resource;
 
-import javax.annotation.security.PermitAll;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -26,7 +25,6 @@ public class ConfigResource {
 	ConfigService configService;
 
 	@GET
-	@PermitAll
 	public String fetchConfigData() {
 		return configService.getConfigData();
 	}

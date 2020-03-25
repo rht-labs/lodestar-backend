@@ -1,11 +1,17 @@
 package com.redhat.labs.omp.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Engagement {
 
-    private int id;
+    private Integer id;
     private String customerName;
     private String projectName;
     private String description;
@@ -25,5 +31,5 @@ public class Engagement {
     private String openShiftSubDomain;
     private String openShiftPersistentStorageSize;
     private String openShiftClusterSize;
-
+    
 }

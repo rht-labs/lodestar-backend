@@ -1,6 +1,5 @@
 package com.redhat.labs.omp.resource;
 
-import javax.annotation.security.PermitAll;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
@@ -33,12 +32,12 @@ public class EngagementResource {
 	@Inject
 	EngagementService engagementService;
 
+	@POST
 	@APIResponses(value = {
 			@APIResponse(responseCode = "201", description = "Engagement created. Location in header", content = @Content(mediaType = "application/json")) })
 	@Operation(summary = "Create an engagement persisted to Gitlab", description = "Engagement creates a new project in Gitlab")
-	@POST
-	@PermitAll
 	public Response createEngagement(Engagement engagement, @Context UriInfo uriInfo) {
 		return engagementService.createEngagement(engagement, uriInfo);
 	}
+
 }
