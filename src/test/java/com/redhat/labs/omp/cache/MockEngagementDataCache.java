@@ -5,14 +5,7 @@ import java.util.Map;
 
 import javax.annotation.PostConstruct;
 import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
 
-import org.infinispan.client.hotrod.RemoteCache;
-import org.infinispan.client.hotrod.RemoteCacheManager;
-
-import com.redhat.labs.omp.cache.EngagementDataCache;
-
-import io.quarkus.infinispan.client.Remote;
 import io.quarkus.runtime.StartupEvent;
 import io.quarkus.test.Mock;
 
