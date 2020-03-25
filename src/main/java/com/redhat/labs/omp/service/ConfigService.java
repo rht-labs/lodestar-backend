@@ -23,12 +23,15 @@ public class ConfigService {
 	@Inject
 	EngagementDataCache engagementCache;
 
+	@ConfigProperty(name = "configFileCacheKey", defaultValue = "schema/config.yml")
+	String configFileCacheKey;
+
 	@ConfigProperty(name = "configRepositoryId", defaultValue = "9407")
 	String configRepositoryId;
 
 	public String getConfigData() {
 
-		String configFile = engagementCache.fetchConfigFile();
+		String configFile = engagementCache.fetch(configFileCacheKey);
 		if (configFile == null) {
 			LOGGER.info("Cache miss for config data");
 			configFile = gitApi.getFile("schema/config.yml", configRepositoryId).readEntity(String.class);

@@ -1,5 +1,9 @@
 package com.redhat.labs.omp.cache;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.enterprise.event.Observes;
+import javax.inject.Inject;
+
 import org.infinispan.client.hotrod.RemoteCache;
 import org.infinispan.client.hotrod.RemoteCacheManager;
 import org.slf4j.Logger;
@@ -7,10 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import io.quarkus.infinispan.client.Remote;
 import io.quarkus.runtime.StartupEvent;
-
-import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
-import javax.inject.Inject;
 
 /**
  * A very simple facade to write the cache data to remote JDG caches.
@@ -21,8 +21,6 @@ import javax.inject.Inject;
 public class EngagementDataCache {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EngagementDataCache.class);
-
-	public static final String CONFIG_FILE_CACHE_KEY = "schema/config.yml";
 
     void onStart(@Observes StartupEvent ev) {
         if(cache == null) {
@@ -38,10 +36,6 @@ public class EngagementDataCache {
 
     public RemoteCacheManager getCacheManager() {
         return cacheManager;
-    }
-
-    public String fetchConfigFile() {
-        return fetch(CONFIG_FILE_CACHE_KEY);
     }
 
     public String fetch(String key) {

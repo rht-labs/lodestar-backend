@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 import javax.inject.Inject;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.junit.jupiter.api.Test;
 
 import com.redhat.labs.omp.cache.EngagementDataCache;
@@ -19,6 +20,9 @@ public class ConfigResourceTest {
 	
 	@Inject
 	EngagementDataCache cache;
+
+	@ConfigProperty(name = "configFileCacheKey", defaultValue = "schema/config.yml")
+	String configFileCacheKey;
 
 	/*
 	 * 
@@ -77,7 +81,7 @@ public class ConfigResourceTest {
         String token = TokenUtils.generateTokenString("/JwtClaimsReader.json", timeClaims);
 
 		// insert into cache
-		cache.store(EngagementDataCache.CONFIG_FILE_CACHE_KEY, "{\"emoji\":\"\uD83E\uDD8A\"}");
+		cache.store(configFileCacheKey, "{\"emoji\":\"\uD83E\uDD8A\"}");
 
 		given()
 			.when()

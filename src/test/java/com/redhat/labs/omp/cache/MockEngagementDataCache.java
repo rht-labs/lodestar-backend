@@ -25,11 +25,6 @@ public class MockEngagementDataCache extends EngagementDataCache {
 	}
 
 	@Override
-	public String fetchConfigFile() {
-		return fetch(CONFIG_FILE_CACHE_KEY);
-	}
-
-	@Override
 	public String fetch(String key) {
 		assert (key != null);
 		return cache.get(key);
