@@ -1,0 +1,24 @@
+name: omp-backend
+
+servicePort: 8080
+
+imageName: "omp-backend"
+imageTag: "latest"
+
+builderImage: registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift
+builderImageTag: 1.8
+
+git:
+  uri: https://github.com/rht-labs/open-management-portal-backend.git
+  ref: master
+
+cacheService: false
+cacheUseAuth: false
+configRepositoryId: false
+deployKey: false
+gitLabApiUrl: false
+gitLabPersonalAccessToken: false
+jwtVerifyPublicKeyLocation: false
+residenciesParentRepositoryId: false
+templateRepositoryId: false
+trustedClientKey: false
