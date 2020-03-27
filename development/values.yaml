@@ -13,12 +13,7 @@ git:
   ref: master
 
 cacheService: false
-cacheUseAuth: false
-configRepositoryId: false
-deployKey: false
-gitLabApiUrl: false
-gitLabPersonalAccessToken: false
-jwtVerifyPublicKeyLocation: false
-residenciesParentRepositoryId: false
-templateRepositoryId: false
-trustedClientKey: false
+ompGitlabApiUrl: https://omp-git-api-omp-dev.apps.s11.core.rht-labs.com
+jwtPublicKeyLocation: https://sso-omp-jasee.apps.s11.core.rht-labs.com/auth/realms/omp/protocol/openid-connect/certs
+jwtIssuer: https://sso-omp-jasee.apps.s11.core.rht-labs.com/auth/realms/omp
+jwtEnable: true
