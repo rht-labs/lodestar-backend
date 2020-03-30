@@ -1,10 +1,18 @@
 # Development on OpenShift
 
+## Getting Started With Helm
+
 This directory contains a Helm chart which can be used to deploy a development version of this app for rapid testing.
 
 Before you use it, you will need to download & install Helm 3.
 
-To use it, move to the `development` directory (i.e. `cd development/`), and deploy using the following Helm command:
+If you are not familiar with Helm - how to configure it and run - you can start with this quickstart:
+
+[https://helm.sh/docs/intro/quickstart](https://helm.sh/docs/intro/quickstart)
+
+## Using This Chart
+
+Move to the `development` directory (i.e. `cd development/`), and deploy using the following Helm command:
 
 ```shell script
 helm template . \
@@ -40,4 +48,4 @@ It accepts the following variables
 | `templateRepositoryId`  | The ID of the GitLab repository which defines a template to use for creating new repos  |
 | `trustedClientKey`  | [Temporary] Used as a placeholder to authenticate client requests, being replaced by validating JWT tokens against the `jwtVerifyPublicKeyLocation` |
 
-This will spin up all of the usual resources that this service needs in production, plus a `BuildConfig` configured to build it from source from the Git repository specified. To trigger this build, use `oc start-build omp-frontend`.
+This will spin up all of the usual resources that this service needs in production, plus a `BuildConfig` configured to build it from source from the Git repository specified. To trigger this build, use `oc start-build omp-backend`.
