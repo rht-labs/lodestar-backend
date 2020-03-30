@@ -12,6 +12,10 @@ The following environment variables are available:
 | CONFIG_REPOSITORY_ID |  1234             |  True        |
 | OMP_GITLAB_API_URL   | https://gitlab.com | True |
 
+## Development
+
+See [the development README](development/README.md) for details on how to spin up a deployment for developing on OpenShift.
+
 ## Deployment
 
 This project includes an `openshift-applier` inventory. To use it, make sure that you are logged in to the cluster and that you customize the variables in `.applier/inventory/group_vars/all.yml`. Once these are configured, you can deploy the project with:

@@ -27,18 +27,18 @@ spec:
         deploymentconfig: {{ .Values.name }}
     spec:
       containers:
-      - envFrom:
-        - secretRef:
-            name: omp-gitlab-configuration
-        image: "{{ .Values.imageName }}:{{ .Values.imageTag }}"
-        imagePullPolicy: Always
-        name: {{ .Values.name }}
-        ports:
-        - containerPort: 8080
-          protocol: TCP
-        resources: {}
-        terminationMessagePath: /dev/termination-log
-        terminationMessagePolicy: File
+        - envFrom:
+            - secretRef:
+                name: omp-gitlab-configuration
+          image: "{{ .Values.imageName }}:{{ .Values.imageTag }}"
+          imagePullPolicy: Always
+          name: {{ .Values.name }}
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
@@ -46,4 +46,12 @@ spec:
       terminationGracePeriodSeconds: 30
   test: false
   triggers:
-  - type: ConfigChange
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        containerNames:
+          - {{ .Values.name }}
+        automatic: true
+        from:
+          kind: "ImageStreamTag"
+          name: "{{ .Values.imageName }}:{{ .Values.imageTag }}"
