@@ -1,7 +1,0 @@
-{
-  "cloud-providers": [
-    { "name": "ETL", "description": "Labs Data Center" },
-    { "name": "AWS", "description": "Amazon" },
-    { "name": "GCP", "description": "Google" }
-  ]
-}
