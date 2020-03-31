@@ -13,7 +13,7 @@ git:
   ref: master
 
 cacheService: false
-ompGitlabApiUrl: false
+ompGitlabApiUrl: http://omp-git-api:8080
 jwtPublicKeyLocation: false
 jwtIssuer: false
 jwtEnable: true
