@@ -26,6 +26,8 @@ ansible-galaxy install -r requirements.yml --roles-path=roles --force
 ansible-playbook apply.yml -i inventory/
 ```
 
+:heavy_exclamation_mark: The applier will not create a route or ingress and if this is required has to be done seperately
+
 ## Components
 
 This project was built using Quarkus.

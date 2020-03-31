@@ -8,7 +8,7 @@ import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.HealthCheckResponseBuilder;
 import org.eclipse.microprofile.health.Readiness;
 
-import com.redhat.labs.omp.cache.ResidencyDataCache;
+import com.redhat.labs.omp.cache.EngagementDataCache;
 
 
 @Readiness
@@ -16,7 +16,7 @@ import com.redhat.labs.omp.cache.ResidencyDataCache;
 public class CacheHealthCheck implements HealthCheck{
 
     @Inject
-    ResidencyDataCache residencyDataCache;
+    EngagementDataCache residencyDataCache;
 
     @Override
     public HealthCheckResponse call() {
