@@ -25,11 +25,11 @@ public class Engagement {
     private String technicalLeadEmail;
     private String customerContactName;
     private String customerContactEmail;
-    private String openShiftCloudProviderName;
-    private String openShiftCloudProviderRegion;
-    private String openShiftVersion;
-    private String openShiftSubDomain;
-    private String openShiftPersistentStorageSize;
-    private String openShiftClusterSize;
+    private String ocpCloudProviderName;
+    private String ocpCloudProviderRegion;
+    private String ocpVersion;
+    private String ocpSubDomain;
+    private String ocpPersistentStorageSize;
+    private String ocpClusterSize;
     
 }

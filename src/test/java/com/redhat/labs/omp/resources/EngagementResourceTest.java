@@ -130,8 +130,8 @@ public class EngagementResourceTest {
 				.archiveDate("20170930").engagementLeadName("Mister Lead").engagementLeadEmail("mister@lead.com")
 				.technicalLeadName("Mister Techlead").technicalLeadEmail("mister@techlead.com")
 				.customerContactName("Customer Contact").customerContactEmail("customer@contact.com")
-				.openShiftCloudProviderName("GCP").openShiftCloudProviderRegion("West").openShiftVersion("v4.2")
-				.openShiftSubDomain("jello").openShiftPersistentStorageSize("50GB").openShiftClusterSize("medium")
+				.ocpCloudProviderName("GCP").ocpCloudProviderRegion("West").ocpVersion("v4.2")
+				.ocpSubDomain("jello").ocpPersistentStorageSize("50GB").ocpClusterSize("medium")
 				.build();
 
 		return engagement;
