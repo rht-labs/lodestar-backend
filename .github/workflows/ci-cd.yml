@@ -18,7 +18,7 @@ jobs:
         java-version: 13.0.1
     - name: Build with Maven & Quarkus
       run: mvn test
-    - uses: redhat-cop/github-actions/s2i@v1
+    - uses: redhat-cop/github-actions/s2i@v2
       with:
         base: registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift:1.8
         output_image: "quay.io/rht-labs/omp-backend:${{ github.sha }}"
