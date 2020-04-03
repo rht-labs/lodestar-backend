@@ -17,7 +17,7 @@ public interface OMPGitLabAPIService {
     Response getFile(@QueryParam("name") String name, @QueryParam("repo_id") String repoId);
 
     @POST
-    @Path("/api/residencies")
+    @Path("/api/v1/engagements")
     @Produces("application/json")
     Response createEngagement(Engagement engagement);
 
