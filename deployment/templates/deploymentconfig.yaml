@@ -58,4 +58,6 @@ spec:
       from:
         kind: ImageStreamTag
         name: {{ .Values.name }}:{{ .Values.imageTag }}
+      containerNames:
+      - {{ .Values.name }}
   {{- end }}
