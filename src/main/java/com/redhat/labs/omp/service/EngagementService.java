@@ -121,6 +121,20 @@ public class EngagementService {
 
     }
 
+    public Optional<Engagement> getById(String id) {
+
+        Optional<Engagement> optional = Optional.empty();
+
+        Engagement persistedEngagement = repository.findById(new ObjectId(id));
+
+        if (null != persistedEngagement) {
+            optional = Optional.of(persistedEngagement);
+        }
+
+        return optional;
+
+    }
+
     /**
      * Returns a {@link List} of all {@link Engagement} in the data store.
      * 
@@ -134,6 +148,7 @@ public class EngagementService {
 
         // check if engagement exists
         Optional<Engagement> optional = get(customerName, projectName);
+
         if (!optional.isPresent()) {
             throw new ResourceNotFoundException("no engagement found.  use POST to create resource.");
         }
@@ -145,6 +160,25 @@ public class EngagementService {
 
     }
 
+    public void deleteById(String id) {
+
+        // check if engagement exists
+        Optional<Engagement> optional = getById(id);
+
+        if (!optional.isPresent()) {
+            throw new ResourceNotFoundException("no engagement found.  use POST to create resource.");
+        }
+
+        // remove from db
+        repository.delete(optional.get());
+
+        // TODO: send request to remove from git lab
+
+    }
+
+    /**
+     * Removes all {@link Engagement} from the data store
+     */
     public void deleteAll() {
         long count = repository.deleteAll();
         LOGGER.info("removed '" + count + "' engagements from the data store.");

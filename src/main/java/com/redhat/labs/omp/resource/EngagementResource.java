@@ -17,6 +17,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.http.HttpStatus;
+import org.bson.types.ObjectId;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import com.redhat.labs.omp.exception.ResourceNotFoundException;
@@ -69,6 +70,20 @@ public class EngagementResource {
     }
 
     @GET
+    @Path("/{id}")
+    public Engagement getById(@PathParam("id") String id) {
+
+        Optional<Engagement> optional = engagementService.getById(id);
+
+        if (optional.isPresent()) {
+            return optional.get();
+        }
+
+        throw new ResourceNotFoundException("no resource found.");
+
+    }
+
+    @GET
     public List<Engagement> getAll() {
         return engagementService.getAll();
     }
@@ -77,8 +92,19 @@ public class EngagementResource {
     @Path("/customers/{customerName}/projects/{projectName}")
     public Response delete(@PathParam("customerName") String customerName,
             @PathParam("projectName") String projectName) {
+
         engagementService.delete(customerName, projectName);
         return Response.status(HttpStatus.SC_NO_CONTENT).build();
+
+    }
+
+    @DELETE
+    @Path("/{id}")
+    public Response deleteById(@PathParam("id") String id) {
+
+        engagementService.deleteById(id);
+        return Response.status(HttpStatus.SC_NO_CONTENT).build();
+
     }
 
     @DELETE
