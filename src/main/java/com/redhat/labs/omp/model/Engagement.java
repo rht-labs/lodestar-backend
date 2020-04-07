@@ -1,18 +1,25 @@
 package com.redhat.labs.omp.model;
 
+import javax.validation.constraints.NotNull;
+
+import io.quarkus.mongodb.panache.PanacheMongoEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Engagement {
+@EqualsAndHashCode(callSuper = true)
+public class Engagement extends PanacheMongoEntity {
 
-    private Integer id;
+    private Integer enagementId;
+    @NotNull
     private String customerName;
+    @NotNull
     private String projectName;
     private String description;
     private String location;
@@ -31,5 +38,5 @@ public class Engagement {
     private String ocpSubDomain;
     private String ocpPersistentStorageSize;
     private String ocpClusterSize;
-    
+
 }

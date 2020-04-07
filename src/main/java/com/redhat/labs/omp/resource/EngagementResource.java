@@ -1,22 +1,25 @@
 package com.redhat.labs.omp.resource;
 
+import java.util.List;
+import java.util.Optional;
+
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
 
+import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.jwt.JsonWebToken;
-import org.eclipse.microprofile.openapi.annotations.Operation;
-import org.eclipse.microprofile.openapi.annotations.media.Content;
-import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
-import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 
+import com.redhat.labs.omp.exception.ResourceNotFoundException;
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.service.EngagementService;
 
@@ -26,18 +29,62 @@ import com.redhat.labs.omp.service.EngagementService;
 @RequestScoped
 public class EngagementResource {
 
-	@Inject
-	JsonWebToken jwt;
+    @Inject
+    JsonWebToken jwt;
 
-	@Inject
-	EngagementService engagementService;
+    @Inject
+    EngagementService engagementService;
 
-	@POST
-	@APIResponses(value = {
-			@APIResponse(responseCode = "201", description = "Engagement created. Location in header", content = @Content(mediaType = "application/json")) })
-	@Operation(summary = "Create an engagement persisted to Gitlab", description = "Engagement creates a new project in Gitlab")
-	public Response createEngagement(Engagement engagement, @Context UriInfo uriInfo) {
-		return engagementService.createEngagement(engagement, uriInfo);
-	}
+//	@POST
+//	@APIResponses(value = {
+//			@APIResponse(responseCode = "201", description = "Engagement created. Location in header", content = @Content(mediaType = "application/json")) })
+//	@Operation(summary = "Create an engagement persisted to Gitlab", description = "Engagement creates a new project in Gitlab")
+//	public Response createEngagement(Engagement engagement, @Context UriInfo uriInfo) {
+//		return engagementService.createEngagement(engagement, uriInfo);
+//	}
+
+    @POST
+    public Response post(Engagement engagement) {
+        return Response.status(HttpStatus.SC_CREATED).entity(engagementService.create(engagement)).build();
+    }
+
+    @PUT
+    public Engagement put(Engagement engagement) {
+        return engagementService.update(engagement);
+    }
+
+    @GET
+    @Path("/customers/{customerName}/projects/{projectName}")
+    public Engagement get(@PathParam("customerName") String customerName,
+            @PathParam("projectName") String projectName) {
+
+        Optional<Engagement> optional = engagementService.get(customerName, projectName);
+
+        if (optional.isPresent()) {
+            return optional.get();
+        }
+
+        throw new ResourceNotFoundException("no resource found.");
+
+    }
+
+    @GET
+    public List<Engagement> getAll() {
+        return engagementService.getAll();
+    }
+
+    @DELETE
+    @Path("/customers/{customerName}/projects/{projectName}")
+    public Response delete(@PathParam("customerName") String customerName,
+            @PathParam("projectName") String projectName) {
+        engagementService.delete(customerName, projectName);
+        return Response.status(HttpStatus.SC_NO_CONTENT).build();
+    }
+
+    @DELETE
+    public Response deleteAll() {
+        engagementService.deleteAll();
+        return Response.status(HttpStatus.SC_NO_CONTENT).build();
+    }
 
 }
