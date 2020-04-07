@@ -30,7 +30,11 @@ spec:
       - envFrom:
         - secretRef:
             name: omp-backend-configuration
-        image: "{{ .Values.imageName }}:{{ .Values.imageTag }}"
+        {{- if eq .Values.imageTag "latest" }}
+        image: {{ .Values.name }}:{{ .Values.imageTag }}
+        {{- else }}
+        image: {{ .Values.imageName }}:{{ .Values.imageTag }}
+        {{- end }}
         imagePullPolicy: Always
         name: {{ .Values.name }}
         ports:
@@ -47,3 +51,11 @@ spec:
   test: false
   triggers:
   - type: ConfigChange
+  {{- if eq .Values.imageTag "latest" }}
+  - type: ImageChange
+    imageChangeParams:
+      automatic: true
+      from:
+        kind: ImageStreamTag
+        name: {{ .Values.name }}:{{ .Values.imageTag }}
+  {{- end }}
