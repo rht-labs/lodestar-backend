@@ -1,27 +1,20 @@
-package com.redhat.labs.omp.model;
+package com.redhat.labs.omp.model.git.api;
 
-import javax.validation.constraints.NotNull;
+import com.redhat.labs.omp.model.Engagement;
 
-import com.redhat.labs.omp.model.git.api.GitApiEngagement;
-
-import io.quarkus.mongodb.panache.PanacheMongoEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class Engagement extends PanacheMongoEntity {
+public class GitApiEngagement {
 
-    @NotNull
+    private Integer id;
     private String customerName;
-    @NotNull
-    private Integer engagementId;
     private String projectName;
     private String description;
     private String location;
@@ -41,10 +34,9 @@ public class Engagement extends PanacheMongoEntity {
     private String ocpPersistentStorageSize;
     private String ocpClusterSize;
 
-    public static Engagement from(GitApiEngagement engagement) {
-
-        return Engagement.builder()
-                .engagementId(engagement.getId())
+    public static GitApiEngagement from(Engagement engagement) {
+        return GitApiEngagement.builder()
+                .id(engagement.getEngagementId())
                 .customerName(engagement.getCustomerName())
                 .projectName(engagement.getProjectName())
                 .description(engagement.getDescription())
@@ -65,7 +57,6 @@ public class Engagement extends PanacheMongoEntity {
                 .ocpPersistentStorageSize(engagement.getOcpPersistentStorageSize())
                 .ocpClusterSize(engagement.getOcpClusterSize())
                 .build();
-
     }
 
 }

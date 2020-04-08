@@ -2,10 +2,12 @@ package com.redhat.labs.omp.service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.json.bind.Jsonb;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 import org.apache.http.HttpStatus;
@@ -17,7 +19,8 @@ import org.slf4j.LoggerFactory;
 import com.redhat.labs.omp.exception.ResourceAlreadyExistsException;
 import com.redhat.labs.omp.exception.ResourceNotFoundException;
 import com.redhat.labs.omp.model.Engagement;
-import com.redhat.labs.omp.model.File;
+import com.redhat.labs.omp.model.git.api.GitApiEngagement;
+import com.redhat.labs.omp.model.git.api.GitApiFile;
 import com.redhat.labs.omp.repository.EngagementRepository;
 import com.redhat.labs.omp.rest.client.OMPGitLabAPIService;
 
@@ -27,9 +30,9 @@ public class EngagementService {
     private static final Logger LOGGER = LoggerFactory.getLogger(EngagementService.class);
 
     // TODO: Should be configurable
-    private String engagementFileName;
-    private String engagementFileBranch;
-    private String engagementFileCommitMessage;
+    private String engagementFileName = "engagement.json";
+    private String engagementFileBranch = "master";
+    private String engagementFileCommitMessage = "my awesome commit";
 
     @Inject
     Jsonb jsonb;
@@ -60,9 +63,10 @@ public class EngagementService {
         // persist to db
         repository.persist(engagement);
 
+        LOGGER.info("sending to git api. " + engagement);
         // send to gitlab for processing
-//        gitApi.createEngagement(engagement)
-//                .whenComplete((response, throwable) -> updateEngagementId(engagement.id, response, throwable));
+        gitApi.createEngagement(GitApiEngagement.from(engagement))
+                .whenComplete((response, throwable) -> updateEngagementId(engagement.id, response, throwable));
 
         return engagement;
 
@@ -73,13 +77,15 @@ public class EngagementService {
      * asynchronously sends a request to update the resource using the Git API
      * service.
      * 
+     * @param customerName
+     * @param projectName
      * @param engagement
      * @return
      */
-    public Engagement update(Engagement engagement) {
+    public Engagement update(String customerName, String projectName, Engagement engagement) {
 
         // check if engagement exists
-        Optional<Engagement> optional = get(engagement.getCustomerName(), engagement.getProjectName());
+        Optional<Engagement> optional = get(customerName, projectName);
         if (!optional.isPresent()) {
             throw new ResourceNotFoundException("no engagement found.  use POST to create resource.");
         }
@@ -89,10 +95,16 @@ public class EngagementService {
         // update in db
         repository.update(engagement);
 
+        // validate project id is available
+        if (null == engagement.getEngagementId()) {
+            throw new IllegalStateException("engagement exists, but engagement id is missing.");
+        }
+
         // commit new version to gitlab
-        File file = createFileFromEngagement(engagement);
-        // TODO: This should be asynchronous
-//        gitApi.updateFile(engagement.getEnagementId(), file);
+        GitApiFile file = createFileFromEngagement(engagement);
+
+        // async update file using git api service
+        CompletableFuture.runAsync(() -> updateFile(file, engagement.getEngagementId()));
 
         return engagement;
 
@@ -185,13 +197,13 @@ public class EngagementService {
     }
 
     /**
-     * Helper function to create {@link File} from an {@link Engagement}.
+     * Helper function to create {@link GitApiFile} from an {@link Engagement}.
      * 
      * @param engagement
      * @return
      */
-    private File createFileFromEngagement(Engagement engagement) {
-        return File.builder().filePath(engagementFileName).branch(engagementFileBranch)
+    private GitApiFile createFileFromEngagement(Engagement engagement) {
+        return GitApiFile.builder().filePath(engagementFileName).branch(engagementFileBranch)
                 .commitMessage(engagementFileCommitMessage).content(jsonb.toJson(engagement)).build();
     }
 
@@ -215,7 +227,7 @@ public class EngagementService {
         }
 
         String location = response.getHeaderString("Location");
-        String engagementId = location.substring(location.lastIndexOf("/"));
+        String engagementId = location.substring(location.lastIndexOf("/") + 1);
 
         // get engagement by object id
         LOGGER.info("looking for engagment with id '" + id + "'");
@@ -223,9 +235,32 @@ public class EngagementService {
 
         // update engagement id
         LOGGER.info("adding id '" + engagementId + "' to engagement '" + engagement);
-        engagement.setEnagementId(Integer.valueOf(engagementId));
+        engagement.setEngagementId(Integer.valueOf(engagementId));
 
         repository.update(engagement);
+
+    }
+
+    private void updateFile(GitApiFile file, Integer engagementId) {
+
+        LOGGER.info("updating file for engagement id {}", engagementId);
+
+        try {
+            // does file exist?
+            gitApi.getFile(engagementId, file.getFilePath());
+        } catch (WebApplicationException e) {
+            // create the file if it was not found
+            if (HttpStatus.SC_NOT_FOUND == e.getResponse().getStatus()) {
+                Response created = gitApi.createFile(engagementId, file);
+                LOGGER.info("create response status {}", created.getStatus());
+            } else {
+                throw e;
+            }
+        }
+
+        // run update
+        Response updated = gitApi.updateFile(engagementId, file);
+        LOGGER.info("update response status {}", updated.getStatus());
 
     }
 

@@ -17,7 +17,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.http.HttpStatus;
-import org.bson.types.ObjectId;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import com.redhat.labs.omp.exception.ResourceNotFoundException;
@@ -50,8 +49,10 @@ public class EngagementResource {
     }
 
     @PUT
-    public Engagement put(Engagement engagement) {
-        return engagementService.update(engagement);
+    @Path("/customers/{customerName}/projects/{projectName}")
+    public Engagement put(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName,
+            Engagement engagement) {
+        return engagementService.update(customerName, projectName, engagement);
     }
 
     @GET

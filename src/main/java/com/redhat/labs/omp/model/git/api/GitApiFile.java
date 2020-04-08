@@ -1,4 +1,4 @@
-package com.redhat.labs.omp.model;
+package com.redhat.labs.omp.model.git.api;
 
 import javax.json.bind.annotation.JsonbProperty;
 import javax.validation.constraints.NotBlank;
@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class File {
+public class GitApiFile {
 
     @NotBlank
     @JsonbProperty("file_path")

@@ -6,6 +6,7 @@ import javax.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
+import com.redhat.labs.omp.model.git.api.GitApiFile;
 import com.redhat.labs.omp.rest.client.OMPGitLabAPIService;
 
 @ApplicationScoped
@@ -15,14 +16,17 @@ public class ConfigService {
     @RestClient
     OMPGitLabAPIService gitApi;
 
-    @ConfigProperty(name = "configFileCacheKey", defaultValue = "schema/config.yml")
-    String configFileCacheKey;
+    @ConfigProperty(name = "configFile", defaultValue = "schema/config.yml")
+    String configFile;
 
     @ConfigProperty(name = "configRepositoryId", defaultValue = "9407")
     String configRepositoryId;
 
     public String getConfigData() {
-        return gitApi.getFile("schema/config.yml", configRepositoryId).readEntity(String.class);
+
+        GitApiFile file = gitApi.getFile(Integer.valueOf(configRepositoryId), configFile);
+        return file.getContent();
+
     }
 
 }
