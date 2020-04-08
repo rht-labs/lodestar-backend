@@ -2,6 +2,7 @@ package com.redhat.labs.omp.rest.client;
 
 import java.util.concurrent.CompletionStage;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.Encoded;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -38,5 +39,9 @@ public interface OMPGitLabAPIService {
     @Path("/api/v1/projects/{projectId}/files/{filePath}")
     @Produces("application/json")
     GitApiFile getFile(@PathParam("projectId") Integer projectId, @PathParam("filePath") @Encoded String filePath);
+
+    @DELETE
+    @Path("/api/v1/projects/{projectId}/files/{filePath}")
+    Response deleteFile(@PathParam("projectId") Integer projectId, @PathParam("filePath") @Encoded String filePath);
 
 }

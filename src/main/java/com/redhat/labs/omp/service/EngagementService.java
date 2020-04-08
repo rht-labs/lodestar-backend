@@ -1,5 +1,6 @@
 package com.redhat.labs.omp.service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
@@ -12,6 +13,7 @@ import javax.ws.rs.core.Response;
 
 import org.apache.http.HttpStatus;
 import org.bson.types.ObjectId;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,10 +31,12 @@ public class EngagementService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EngagementService.class);
 
-    // TODO: Should be configurable
-    private String engagementFileName = "engagement.json";
-    private String engagementFileBranch = "master";
-    private String engagementFileCommitMessage = "my awesome commit";
+    @ConfigProperty(name = "engagement.file.name", defaultValue = "engagement.json")
+    String engagementFileName;
+    @ConfigProperty(name = "engagement.file.branch", defaultValue = "master")
+    String engagementFileBranch;
+    @ConfigProperty(name = "engagement.file.commit.message", defaultValue = "updated by omp backend")
+    String engagementFileCommitMessage;
 
     @Inject
     Jsonb jsonb;
@@ -133,20 +137,6 @@ public class EngagementService {
 
     }
 
-    public Optional<Engagement> getById(String id) {
-
-        Optional<Engagement> optional = Optional.empty();
-
-        Engagement persistedEngagement = repository.findById(new ObjectId(id));
-
-        if (null != persistedEngagement) {
-            optional = Optional.of(persistedEngagement);
-        }
-
-        return optional;
-
-    }
-
     /**
      * Returns a {@link List} of all {@link Engagement} in the data store.
      * 
@@ -156,6 +146,13 @@ public class EngagementService {
         return repository.listAll();
     }
 
+    /**
+     * Removes the {@link Engagement} from the data store and sends a request
+     * asychronously to the git api to remove from gitlab.
+     * 
+     * @param customerName
+     * @param projectName
+     */
     public void delete(String customerName, String projectName) {
 
         // check if engagement exists
@@ -165,26 +162,13 @@ public class EngagementService {
             throw new ResourceNotFoundException("no engagement found.  use POST to create resource.");
         }
 
-        // remove from db
-        repository.delete(optional.get());
+        Engagement engagement = optional.get();
 
-        // TODO: send request to remove from git lab
-
-    }
-
-    public void deleteById(String id) {
-
-        // check if engagement exists
-        Optional<Engagement> optional = getById(id);
-
-        if (!optional.isPresent()) {
-            throw new ResourceNotFoundException("no engagement found.  use POST to create resource.");
-        }
+        // async delete file from gitlab
+        CompletableFuture.runAsync(() -> deleteFile(engagement.getEngagementId(), engagementFileName));
 
         // remove from db
         repository.delete(optional.get());
-
-        // TODO: send request to remove from git lab
 
     }
 
@@ -241,6 +225,13 @@ public class EngagementService {
 
     }
 
+    private void deleteFile(Integer engagementId, String filePath) {
+
+        // call git api to delete file
+        gitApi.deleteFile(engagementId, filePath);
+
+    }
+
     private void updateFile(GitApiFile file, Integer engagementId) {
 
         LOGGER.info("updating file for engagement id {}", engagementId);
@@ -261,6 +252,24 @@ public class EngagementService {
         // run update
         Response updated = gitApi.updateFile(engagementId, file);
         LOGGER.info("update response status {}", updated.getStatus());
+
+    }
+
+    private void insertEngagementListInRepository(List<Engagement> engagementList) {
+        repository.persist(engagementList);
+    }
+
+    public void syncWithGitLab() {
+
+        // get all engagements from git api
+        // TODO: Get list from Git API
+        List<Engagement> engagementList = new ArrayList<>();
+
+        // remove all from database
+        deleteAll();
+
+        // insert
+        insertEngagementListInRepository(engagementList);
 
     }
 
