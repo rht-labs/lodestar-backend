@@ -26,5 +26,9 @@ public class GitApiFile {
     @NotBlank
     @JsonbProperty("commit_message")
     private String commitMessage;
+    @JsonbProperty("author_email")
+    private String authorEmail;
+    @JsonbProperty("author_name")
+    private String authorName;
 
 }

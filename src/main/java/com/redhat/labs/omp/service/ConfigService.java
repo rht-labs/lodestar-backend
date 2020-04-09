@@ -22,11 +22,8 @@ public class ConfigService {
     @ConfigProperty(name = "configRepositoryId", defaultValue = "9407")
     String configRepositoryId;
 
-    public String getConfigData() {
-
-        GitApiFile file = gitApi.getFile(Integer.valueOf(configRepositoryId), configFile);
-        return file.getContent();
-
+    public GitApiFile getConfigData() {
+        return gitApi.getFile(Integer.valueOf(configRepositoryId), configFile);
     }
 
 }

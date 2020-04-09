@@ -10,6 +10,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
@@ -23,7 +24,8 @@ public interface OMPGitLabAPIService {
     @POST
     @Path("/api/v1/engagements")
     @Produces("application/json")
-    CompletionStage<Response> createEngagement(GitApiEngagement engagement);
+    CompletionStage<Response> createEngagement(GitApiEngagement engagement, @QueryParam("username") String username,
+            @QueryParam("userEmail") String userEmail);
 
     @POST
     @Path("/api/v1/projects/{projectId}/files")
@@ -42,6 +44,7 @@ public interface OMPGitLabAPIService {
 
     @DELETE
     @Path("/api/v1/projects/{projectId}/files/{filePath}")
-    Response deleteFile(@PathParam("projectId") Integer projectId, @PathParam("filePath") @Encoded String filePath);
+    Response deleteFile(@PathParam("projectId") Integer projectId, @PathParam("filePath") @Encoded String filePath,
+            @QueryParam("username") String username, @QueryParam("userEmail") String userEmail);
 
 }

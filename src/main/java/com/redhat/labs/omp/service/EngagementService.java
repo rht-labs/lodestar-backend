@@ -56,7 +56,7 @@ public class EngagementService {
      * @param engagement
      * @return
      */
-    public Engagement create(Engagement engagement) {
+    public Engagement create(Engagement engagement, String userName, String userEmail) {
 
         // check if engagement exists
         Optional<Engagement> optional = get(engagement.getCustomerName(), engagement.getProjectName());
@@ -69,7 +69,7 @@ public class EngagementService {
 
         LOGGER.info("sending to git api. " + engagement);
         // send to gitlab for processing
-        gitApi.createEngagement(GitApiEngagement.from(engagement))
+        gitApi.createEngagement(GitApiEngagement.from(engagement), userName, userEmail)
                 .whenComplete((response, throwable) -> updateEngagementId(engagement.id, response, throwable));
 
         return engagement;
@@ -86,7 +86,8 @@ public class EngagementService {
      * @param engagement
      * @return
      */
-    public Engagement update(String customerName, String projectName, Engagement engagement) {
+    public Engagement update(String customerName, String projectName, Engagement engagement, String userName,
+            String userEmail) {
 
         // check if engagement exists
         Optional<Engagement> optional = get(customerName, projectName);
@@ -105,7 +106,7 @@ public class EngagementService {
         }
 
         // commit new version to gitlab
-        GitApiFile file = createFileFromEngagement(engagement);
+        GitApiFile file = createFileFromEngagement(engagement, userName, userEmail);
 
         // async update file using git api service
         CompletableFuture.runAsync(() -> updateFile(file, engagement.getEngagementId()));
@@ -153,7 +154,7 @@ public class EngagementService {
      * @param customerName
      * @param projectName
      */
-    public void delete(String customerName, String projectName) {
+    public void delete(String customerName, String projectName, String userName, String userEmail) {
 
         // check if engagement exists
         Optional<Engagement> optional = get(customerName, projectName);
@@ -165,7 +166,8 @@ public class EngagementService {
         Engagement engagement = optional.get();
 
         // async delete file from gitlab
-        CompletableFuture.runAsync(() -> deleteFile(engagement.getEngagementId(), engagementFileName));
+        CompletableFuture
+                .runAsync(() -> deleteFile(engagement.getEngagementId(), engagementFileName, userName, userEmail));
 
         // remove from db
         repository.delete(optional.get());
@@ -186,9 +188,10 @@ public class EngagementService {
      * @param engagement
      * @return
      */
-    private GitApiFile createFileFromEngagement(Engagement engagement) {
+    private GitApiFile createFileFromEngagement(Engagement engagement, String userName, String userEmail) {
         return GitApiFile.builder().filePath(engagementFileName).branch(engagementFileBranch)
-                .commitMessage(engagementFileCommitMessage).content(jsonb.toJson(engagement)).build();
+                .commitMessage(engagementFileCommitMessage).content(jsonb.toJson(engagement)).authorName(userName)
+                .authorEmail(userEmail).build();
     }
 
     /**
@@ -225,10 +228,10 @@ public class EngagementService {
 
     }
 
-    private void deleteFile(Integer engagementId, String filePath) {
+    private void deleteFile(Integer engagementId, String filePath, String userName, String userEmail) {
 
         // call git api to delete file
-        gitApi.deleteFile(engagementId, filePath);
+        gitApi.deleteFile(engagementId, filePath, userName, userEmail);
 
     }
 

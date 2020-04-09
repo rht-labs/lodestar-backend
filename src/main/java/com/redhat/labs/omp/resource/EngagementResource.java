@@ -29,6 +29,12 @@ import com.redhat.labs.omp.service.EngagementService;
 @RequestScoped
 public class EngagementResource {
 
+    private static final String USERNAME_CLAIM = "";
+    private static final String USER_EMAIL_CLAIM = "";
+
+    private static final String DEFAULT_USERNAME = "omp-user";
+    private static final String DEFAULT_EMAIL = "omp-email";
+
     @Inject
     JsonWebToken jwt;
 
@@ -45,14 +51,16 @@ public class EngagementResource {
 
     @POST
     public Response post(Engagement engagement) {
-        return Response.status(HttpStatus.SC_CREATED).entity(engagementService.create(engagement)).build();
+        return Response.status(HttpStatus.SC_CREATED)
+                .entity(engagementService.create(engagement, getUsernameFromToken(), getUserEmailFromToken())).build();
     }
 
     @PUT
     @Path("/customers/{customerName}/projects/{projectName}")
     public Engagement put(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName,
             Engagement engagement) {
-        return engagementService.update(customerName, projectName, engagement);
+        return engagementService.update(customerName, projectName, engagement, getUsernameFromToken(),
+                getUserEmailFromToken());
     }
 
     @GET
@@ -80,7 +88,7 @@ public class EngagementResource {
     public Response delete(@PathParam("customerName") String customerName,
             @PathParam("projectName") String projectName) {
 
-        engagementService.delete(customerName, projectName);
+        engagementService.delete(customerName, projectName, getUsernameFromToken(), getUserEmailFromToken());
         return Response.status(HttpStatus.SC_NO_CONTENT).build();
 
     }
@@ -89,6 +97,16 @@ public class EngagementResource {
     public Response deleteAll() {
         engagementService.deleteAll();
         return Response.status(HttpStatus.SC_NO_CONTENT).build();
+    }
+
+    private String getUsernameFromToken() {
+        Optional<String> optional = jwt.claim(USERNAME_CLAIM);
+        return optional.isPresent() ? optional.get() : DEFAULT_USERNAME;
+    }
+
+    private String getUserEmailFromToken() {
+        Optional<String> optional = jwt.claim(USER_EMAIL_CLAIM);
+        return optional.isPresent() ? optional.get() : DEFAULT_EMAIL;
     }
 
 }

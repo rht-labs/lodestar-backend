@@ -9,10 +9,11 @@ import javax.ws.rs.core.MediaType;
 
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
+import com.redhat.labs.omp.model.git.api.GitApiFile;
 import com.redhat.labs.omp.service.ConfigService;
 
 @Path("/config")
-@Produces(MediaType.TEXT_PLAIN)
+@Produces(MediaType.APPLICATION_JSON)
 @RequestScoped
 public class ConfigResource {
 
@@ -23,7 +24,7 @@ public class ConfigResource {
 	ConfigService configService;
 
 	@GET
-	public String fetchConfigData() {
+	public GitApiFile fetchConfigData() {
 		return configService.getConfigData();
 	}
 
