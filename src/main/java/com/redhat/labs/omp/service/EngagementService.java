@@ -127,6 +127,7 @@ public class EngagementService {
 
         Optional<Engagement> optional = Optional.empty();
 
+        LOGGER.info("{}", repository.listAll());
         // check db
         Engagement persistedEngagement = repository.findByCustomerNameAndProjectName(customerName, projectName);
 
@@ -210,7 +211,8 @@ public class EngagementService {
 
         if (null != throwable || response.getStatus() != HttpStatus.SC_CREATED) {
             LOGGER.error("exception occurred during REST call. '" + throwable.getMessage() + "'");
-            // do something if exception
+            return;
+            // TODO: What can we do here?
         }
 
         String location = response.getHeaderString("Location");

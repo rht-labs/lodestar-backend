@@ -14,7 +14,7 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
     }
 
     public Engagement findByCustomerNameAndProjectName(String customerName, String projectName) {
-        return find("customerName = ?1 and projectName = ?2", customerName, projectName).firstResult();
+        return find("customerName=?1 and projectName=?2", customerName, projectName).firstResult();
     }
 
 }

@@ -1,12 +1,15 @@
 package com.redhat.labs.mocks;
 
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
+
 import javax.enterprise.context.ApplicationScoped;
-import javax.json.Json;
 import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
-import com.redhat.labs.omp.model.Engagement;
+import com.redhat.labs.omp.model.git.api.GitApiEngagement;
+import com.redhat.labs.omp.model.git.api.GitApiFile;
 import com.redhat.labs.omp.rest.client.OMPGitLabAPIService;
 
 import io.quarkus.test.Mock;
@@ -16,42 +19,82 @@ import io.quarkus.test.Mock;
 @ApplicationScoped
 public class MockOMPGitLabAPIService implements OMPGitLabAPIService {
 
-	private String foxyResponse = Json.createObjectBuilder().add("emoji", "\uD83E\uDD8A").build().toString();
-	private String responseLocationHeader = "http://omp-git-api-omp-dev.apps.s11.core.rht-labs.com/api/residencies/12338";
+    public enum SCENARIO {
 
-	@Override
-	public Response getFile(String name, String repoId) {
-		return Response.status(Response.Status.OK).entity(foxyResponse).build();
-	}
+        SUCCESS("SUCCESS"), NOT_FOUND("NOT_FOUND"), SERVER_ERROR("SERVER_ERRROR"),
+        RUNTIME_EXCEPTION("RUNTIME_EXCEPTION"), FOUND("FOUND");
 
-	@Override
-	public Response createEngagement(Engagement engagement) {
+        private String value;
 
-		if (SCENARIO.SERVER_ERROR == SCENARIO.valueOf(engagement.getCustomerName())) {
-			return Response.serverError().build();
-		} else if (SCENARIO.RUNTIME_EXCEPTION == SCENARIO.valueOf(engagement.getCustomerName())) {
-			throw new RuntimeException("uh oh");
-		} else {
-			return Response.status(Response.Status.CREATED).entity(foxyResponse)
-					.header("Location", responseLocationHeader).build();
-		}
-	}
+        SCENARIO(String value) {
+            this.value = value;
+        }
 
-	public enum SCENARIO {
+        public String getValue() {
+            return this.value;
+        }
 
-		SUCCESS("SUCCESS"), NOT_FOUND("NOT_FOUND"), SERVER_ERROR("SERVER_ERRROR"),
-		RUNTIME_EXCEPTION("RUNTIME_EXCEPTION");
+    }
 
-		private String value;
+    @Override
+    public CompletionStage<Response> createEngagement(GitApiEngagement engagement, String username, String userEmail) {
 
-		SCENARIO(String value) {
-			this.value = value;
-		}
+        if (SCENARIO.SUCCESS.value.equalsIgnoreCase(engagement.getDescription())) {
 
-		public String getValue() {
-			return this.value;
-		}
+            String location = "some/path/to/id/1234";
+            Response response = Response.status(201).header("Location", location).build();
 
-	}
+            return createCompletionStage(response, false);
+
+        } else if (SCENARIO.RUNTIME_EXCEPTION.value.equalsIgnoreCase(engagement.getDescription())) {
+
+            Response response = Response.serverError().build();
+            return createCompletionStage(response, true);
+
+        } else if (SCENARIO.SERVER_ERROR.value.equalsIgnoreCase(engagement.getDescription())) {
+
+            Response response = Response.status(500).build();
+            return createCompletionStage(response, false);
+
+        }
+
+        return null;
+    }
+
+    @Override
+    public Response createFile(Integer projectId, GitApiFile file) {
+        return null;
+    }
+
+    @Override
+    public Response updateFile(Integer projectId, GitApiFile file) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    @Override
+    public GitApiFile getFile(Integer projectId, String filePath) {
+        return GitApiFile.builder().filePath("somefile.txt").content("some file context here").build();
+    }
+
+    @Override
+    public Response deleteFile(Integer projectId, String filePath, String username, String userEmail) {
+        // TODO Auto-generated method stub
+        return null;
+    }
+
+    private CompletionStage<Response> createCompletionStage(Response response, boolean exception) {
+
+        CompletableFuture<Response> future = new CompletableFuture<>();
+
+        if (exception) {
+            future.completeExceptionally(new RuntimeException("uh oh"));
+        } else {
+            future.complete(response);
+        }
+
+        return future;
+
+    }
 
 }

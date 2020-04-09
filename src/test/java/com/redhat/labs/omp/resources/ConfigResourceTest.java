@@ -63,7 +63,8 @@ public class ConfigResourceTest {
 				.get("/config")
 			.then()
 				.statusCode(200)
-				.body("emoji", is("\uD83E\uDD8A"));
+				.body("file_path", is("somefile.txt"))
+				.body("content", is("some file context here"));
 		
 	}
 
