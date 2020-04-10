@@ -238,6 +238,30 @@ public class EngagementResourceTest {
 
     }
 
+    /*
+     * PUT SCENARIOS:
+     *   NEGATIVE:
+     *     - engagement does not exist, 404 returned
+     *     - engagement exists
+     *   POSITIVE:
+     *     - engagement exists, is updated in db, git api call successful
+     */
+
+    /*
+     * GET SCENARIOS:
+     *   NEGATIVE:
+     *     - Engagement does not exist, 404 returned
+     *   POSITIVE:
+     *     - Engagement exists and returned
+     */
+
+    /*
+     * DELETE SCENARIOS:
+     *   NEGATIVE:
+     *   POSITIVE:
+     *     - No engagements exists in db, empty list returned
+     *     - Engagements exists, array containing engagements returned
+     */
 
     private Engagement mockEngagement() {
 

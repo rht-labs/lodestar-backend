@@ -3,12 +3,10 @@ package com.redhat.labs.omp.service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.json.bind.Jsonb;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 import org.apache.http.HttpStatus;
@@ -21,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import com.redhat.labs.omp.exception.ResourceAlreadyExistsException;
 import com.redhat.labs.omp.exception.ResourceNotFoundException;
 import com.redhat.labs.omp.model.Engagement;
+import com.redhat.labs.omp.model.git.api.FileAction;
 import com.redhat.labs.omp.model.git.api.GitApiEngagement;
 import com.redhat.labs.omp.model.git.api.GitApiFile;
 import com.redhat.labs.omp.repository.EngagementRepository;
@@ -56,7 +55,7 @@ public class EngagementService {
      * @param engagement
      * @return
      */
-    public Engagement create(Engagement engagement, String userName, String userEmail) {
+    public Engagement create(Engagement engagement) {
 
         // check if engagement exists
         Optional<Engagement> optional = get(engagement.getCustomerName(), engagement.getProjectName());
@@ -69,7 +68,8 @@ public class EngagementService {
 
         LOGGER.info("sending to git api. " + engagement);
         // send to gitlab for processing
-        gitApi.createEngagement(GitApiEngagement.from(engagement), userName, userEmail)
+        gitApi.createEngagement(GitApiEngagement.from(engagement), engagement.getLastUpdateByName(),
+                engagement.getLastUpdateByEmail())
                 .whenComplete((response, throwable) -> updateEngagementId(engagement.id, response, throwable));
 
         return engagement;
@@ -77,17 +77,14 @@ public class EngagementService {
     }
 
     /**
-     * Updates the {@link Engagement} resource in the data store and then
-     * asynchronously sends a request to update the resource using the Git API
-     * service.
+     * Updates the {@link Engagement} resource in the data store.
      * 
      * @param customerName
      * @param projectName
      * @param engagement
      * @return
      */
-    public Engagement update(String customerName, String projectName, Engagement engagement, String userName,
-            String userEmail) {
+    public Engagement update(String customerName, String projectName, Engagement engagement) {
 
         // check if engagement exists
         Optional<Engagement> optional = get(customerName, projectName);
@@ -97,19 +94,11 @@ public class EngagementService {
 
         // set id to persisted id
         engagement.id = optional.get().id;
+        // mark as updated
+        engagement.setModified(true);
+        engagement.setAction(FileAction.update);
         // update in db
         repository.update(engagement);
-
-        // validate project id is available
-        if (null == engagement.getEngagementId()) {
-            throw new IllegalStateException("engagement exists, but engagement id is missing.");
-        }
-
-        // commit new version to gitlab
-        GitApiFile file = createFileFromEngagement(engagement, userName, userEmail);
-
-        // async update file using git api service
-        CompletableFuture.runAsync(() -> updateFile(file, engagement.getEngagementId()));
 
         return engagement;
 
@@ -149,13 +138,15 @@ public class EngagementService {
     }
 
     /**
-     * Removes the {@link Engagement} from the data store and sends a request
-     * asychronously to the git api to remove from gitlab.
+     * Marks the {@link Engagement} for deletion. The Git API sync process will
+     * perform the delete from the data store.
      * 
      * @param customerName
      * @param projectName
+     * @param user
+     * @param userEmail
      */
-    public void delete(String customerName, String projectName, String userName, String userEmail) {
+    public void delete(String customerName, String projectName, String user, String userEmail) {
 
         // check if engagement exists
         Optional<Engagement> optional = get(customerName, projectName);
@@ -166,12 +157,11 @@ public class EngagementService {
 
         Engagement engagement = optional.get();
 
-        // async delete file from gitlab
-        CompletableFuture
-                .runAsync(() -> deleteFile(engagement.getEngagementId(), engagementFileName, userName, userEmail));
-
-        // remove from db
-        repository.delete(optional.get());
+        // mark as modified for delete by sync process
+        engagement.setModified(true);
+        engagement.setAction(FileAction.delete);
+        // update in repository
+        repository.persist(engagement);
 
     }
 
@@ -189,10 +179,10 @@ public class EngagementService {
      * @param engagement
      * @return
      */
-    private GitApiFile createFileFromEngagement(Engagement engagement, String userName, String userEmail) {
+    public GitApiFile createFileFromEngagement(Engagement engagement) {
         return GitApiFile.builder().filePath(engagementFileName).branch(engagementFileBranch)
-                .commitMessage(engagementFileCommitMessage).content(jsonb.toJson(engagement)).authorName(userName)
-                .authorEmail(userEmail).build();
+                .commitMessage(engagementFileCommitMessage).content(jsonb.toJson(engagement))
+                .authorName(engagement.getLastUpdateByName()).authorEmail(engagement.getLastUpdateByEmail()).build();
     }
 
     /**
@@ -230,40 +220,28 @@ public class EngagementService {
 
     }
 
-    private void deleteFile(Integer engagementId, String filePath, String userName, String userEmail) {
-
-        // call git api to delete file
-        gitApi.deleteFile(engagementId, filePath, userName, userEmail);
-
-    }
-
-    private void updateFile(GitApiFile file, Integer engagementId) {
-
-        LOGGER.info("updating file for engagement id {}", engagementId);
-
-        try {
-            // does file exist?
-            gitApi.getFile(engagementId, file.getFilePath());
-        } catch (WebApplicationException e) {
-            // create the file if it was not found
-            if (HttpStatus.SC_NOT_FOUND == e.getResponse().getStatus()) {
-                Response created = gitApi.createFile(engagementId, file);
-                LOGGER.info("create response status {}", created.getStatus());
-            } else {
-                throw e;
-            }
-        }
-
-        // run update
-        Response updated = gitApi.updateFile(engagementId, file);
-        LOGGER.info("update response status {}", updated.getStatus());
-
-    }
-
+    /**
+     * Persists the {@link List} of {@link Engagement} into the data store.
+     * 
+     * @param engagementList
+     */
     private void insertEngagementListInRepository(List<Engagement> engagementList) {
         repository.persist(engagementList);
     }
 
+    /**
+     * Updates teh {@link List} of {@link Engagement} in the data store.
+     * 
+     * @param engagementList
+     */
+    public void updateEngagementListInRepository(List<Engagement> engagementList) {
+        repository.update(engagementList);
+    }
+
+    /**
+     * Responsible for purging the data store of all {@link Engagement} and then
+     * calling the Git API to repopulate the data store with data from Git API.
+     */
     public void syncWithGitLab() {
 
         // get all engagements from git api
@@ -276,6 +254,16 @@ public class EngagementService {
         // insert
         insertEngagementListInRepository(engagementList);
 
+    }
+
+    /**
+     * Returns a {@link List} of {@link Engagement} where the modified flag is set
+     * to true.
+     * 
+     * @return
+     */
+    public List<Engagement> getModifiedEngagements() {
+        return repository.findByModified();
     }
 
 }

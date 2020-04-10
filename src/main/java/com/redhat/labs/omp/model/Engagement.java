@@ -1,7 +1,9 @@
 package com.redhat.labs.omp.model;
 
+import javax.json.bind.annotation.JsonbTransient;
 import javax.validation.constraints.NotNull;
 
+import com.redhat.labs.omp.model.git.api.FileAction;
 import com.redhat.labs.omp.model.git.api.GitApiEngagement;
 
 import io.quarkus.mongodb.panache.PanacheMongoEntity;
@@ -40,18 +42,21 @@ public class Engagement extends PanacheMongoEntity {
     private String ocpSubDomain;
     private String ocpPersistentStorageSize;
     private String ocpClusterSize;
+    @JsonbTransient
+    private Boolean modified;
+    @JsonbTransient
+    private FileAction action;
+    @JsonbTransient
+    private String lastUpdateByName;
+    @JsonbTransient
+    private String lastUpdateByEmail;
 
     public static Engagement from(GitApiEngagement engagement) {
 
-        return Engagement.builder()
-                .engagementId(engagement.getId())
-                .customerName(engagement.getCustomerName())
-                .projectName(engagement.getProjectName())
-                .description(engagement.getDescription())
-                .location(engagement.getLocation())
-                .startDate(engagement.getStartDate())
-                .endDate(engagement.getEndDate())
-                .archiveDate(engagement.getArchiveDate())
+        return Engagement.builder().engagementId(engagement.getId()).customerName(engagement.getCustomerName())
+                .projectName(engagement.getProjectName()).description(engagement.getDescription())
+                .location(engagement.getLocation()).startDate(engagement.getStartDate())
+                .endDate(engagement.getEndDate()).archiveDate(engagement.getArchiveDate())
                 .engagementLeadName(engagement.getEngagementLeadName())
                 .engagementLeadEmail(engagement.getEngagementLeadEmail())
                 .technicalLeadName(engagement.getTechnicalLeadName())
@@ -59,12 +64,10 @@ public class Engagement extends PanacheMongoEntity {
                 .customerContactName(engagement.getCustomerContactName())
                 .customerContactEmail(engagement.getCustomerContactEmail())
                 .ocpCloudProviderName(engagement.getOcpCloudProviderName())
-                .ocpCloudProviderRegion(engagement.getOcpCloudProviderRegion())
-                .ocpVersion(engagement.getOcpVersion())
+                .ocpCloudProviderRegion(engagement.getOcpCloudProviderRegion()).ocpVersion(engagement.getOcpVersion())
                 .ocpSubDomain(engagement.getOcpSubDomain())
                 .ocpPersistentStorageSize(engagement.getOcpPersistentStorageSize())
-                .ocpClusterSize(engagement.getOcpClusterSize())
-                .build();
+                .ocpClusterSize(engagement.getOcpClusterSize()).build();
 
     }
 

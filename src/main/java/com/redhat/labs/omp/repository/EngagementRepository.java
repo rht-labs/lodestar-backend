@@ -1,5 +1,7 @@
 package com.redhat.labs.omp.repository;
 
+import java.util.List;
+
 import javax.enterprise.context.ApplicationScoped;
 
 import com.redhat.labs.omp.model.Engagement;
@@ -15,6 +17,10 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
 
     public Engagement findByCustomerNameAndProjectName(String customerName, String projectName) {
         return find("customerName=?1 and projectName=?2", customerName, projectName).firstResult();
+    }
+
+    public List<Engagement> findByModified() {
+        return find("modified", true).list();
     }
 
 }

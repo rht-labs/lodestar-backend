@@ -32,8 +32,8 @@ public class EngagementResource {
     private static final String USERNAME_CLAIM = "";
     private static final String USER_EMAIL_CLAIM = "";
 
-    private static final String DEFAULT_USERNAME = "omp-user";
-    private static final String DEFAULT_EMAIL = "omp-email";
+    public static final String DEFAULT_USERNAME = "omp-user";
+    public static final String DEFAULT_EMAIL = "omp-email";
 
     @Inject
     JsonWebToken jwt;
@@ -51,16 +51,26 @@ public class EngagementResource {
 
     @POST
     public Response post(Engagement engagement) {
-        return Response.status(HttpStatus.SC_CREATED)
-                .entity(engagementService.create(engagement, getUsernameFromToken(), getUserEmailFromToken())).build();
+
+        // pull user info from token
+        engagement.setLastUpdateByName(getUsernameFromToken());
+        engagement.setLastUpdateByEmail(getUserEmailFromToken());
+
+        return Response.status(HttpStatus.SC_CREATED).entity(engagementService.create(engagement)).build();
+
     }
 
     @PUT
     @Path("/customers/{customerName}/projects/{projectName}")
     public Engagement put(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName,
             Engagement engagement) {
-        return engagementService.update(customerName, projectName, engagement, getUsernameFromToken(),
-                getUserEmailFromToken());
+
+        // pull user info from token
+        engagement.setLastUpdateByName(getUsernameFromToken());
+        engagement.setLastUpdateByEmail(getUserEmailFromToken());
+
+        return engagementService.update(customerName, projectName, engagement);
+
     }
 
     @GET
