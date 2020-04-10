@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
@@ -15,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import com.redhat.labs.omp.model.ActiveSync;
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.model.git.api.FileAction;
+import com.redhat.labs.omp.model.git.api.GitApiEngagement;
 import com.redhat.labs.omp.model.git.api.GitApiFile;
 import com.redhat.labs.omp.repository.ActiveSyncRepository;
 import com.redhat.labs.omp.rest.client.OMPGitLabAPIService;
@@ -40,6 +42,10 @@ public class GitSyncService {
     @RestClient
     OMPGitLabAPIService gitApiClient;
 
+    /**
+     * Periodically processes modified {@link Engagement} in the data store by
+     * calling the Git API to update Git.
+     */
     @Scheduled(every = "30s")
     void sendChangesToGitApi() {
 
@@ -47,33 +53,17 @@ public class GitSyncService {
 
             LOGGER.info("Sending changes from database to Git API...");
 
-            // get all documents with modified flag
-            List<Engagement> modifiedList = engagementService.getModifiedEngagements();
+            // process creates first
+            List<Engagement> createList = engagementService.getModifiedEngagementsByAction(FileAction.create);
+            processModifiedEngagements(createList, FileAction.create);
 
-            for (Engagement engagement : modifiedList) {
+            // process updated second
+            List<Engagement> updatedList = engagementService.getModifiedEngagementsByAction(FileAction.create);
+            processModifiedEngagements(updatedList, FileAction.update);
 
-                // update flag to false
-                engagement.setModified(false);
-
-                // create file to update
-                GitApiFile file = engagementService.createFileFromEngagement(engagement);
-
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("...performing {} on file using Git API. {}", engagement.getAction().name(), file);
-                }
-
-                // send to git api
-                if (FileAction.update == engagement.getAction()) {
-                    gitApiClient.updateFile(engagement.getEngagementId(), file);
-                } else if (FileAction.delete == engagement.getAction()) {
-                    gitApiClient.deleteFile(engagement.getEngagementId(), file.getFilePath(),
-                            engagement.getLastUpdateByName(), engagement.getLastUpdateByEmail());
-                }
-
-            }
-
-            // update modified flag in db
-            engagementService.updateEngagementListInRepository(modifiedList);
+            // process deleted last
+            List<Engagement> deletedList = engagementService.getModifiedEngagementsByAction(FileAction.delete);
+            processModifiedEngagements(deletedList, FileAction.delete);
 
             LOGGER.info("All changes sent to Git API.");
 
@@ -81,6 +71,10 @@ public class GitSyncService {
 
     }
 
+    /**
+     * Periodically starts the process of pulling {@link Engagement} data from Git
+     * and refreshing the data store.
+     */
     @Scheduled(every = "12h")
     void refreshDatabaseFromGit() {
 
@@ -99,6 +93,13 @@ public class GitSyncService {
 
     }
 
+    /**
+     * Return true if this application instance is performing the sync processing.
+     * Will make itself active if the record goes stale in the db. Otherwise, will
+     * return false to indicate it should not be processing.
+     * 
+     * @return
+     */
     boolean active() {
 
         // get record from db
@@ -144,6 +145,59 @@ public class GitSyncService {
         }
 
         return false;
+
+    }
+
+    /**
+     * Processing the list of {@link Engagement} that have been modified. The Git
+     * API will be called to process the engagement depending on the
+     * {@link FileAction} specified. After the REST call completes, the
+     * {@link Engagement} will be reset in the data store.
+     * 
+     * @param engagementList
+     * @param action
+     */
+    private void processModifiedEngagements(List<Engagement> engagementList, FileAction action) {
+
+        for (Engagement engagement : engagementList) {
+
+            // reset modified
+            engagement.setModified(false);
+            engagement.setAction(null);
+
+            // create file to update
+            GitApiFile file = engagementService.createFileFromEngagement(engagement);
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("...performing {} on file using Git API. {}", engagement.getAction().name(), file);
+            }
+
+            if (FileAction.create == action) {
+
+                // call git api
+                Response response = gitApiClient.createEngagement(GitApiEngagement.from(engagement),
+                        engagement.getLastUpdateByName(), engagement.getLastUpdateByEmail());
+
+                // update engagement id
+                engagementService.updateEngagementId(engagement, response);
+
+            } else if (FileAction.update == action) {
+
+                // call git api
+                gitApiClient.updateFile(engagement.getEngagementId(), file);
+
+            } else if (FileAction.delete == action) {
+
+                gitApiClient.deleteFile(engagement.getEngagementId(), file.getFilePath(),
+                        engagement.getLastUpdateByName(), engagement.getLastUpdateByEmail());
+
+            }
+
+        }
+
+        if (FileAction.create != action) {
+            engagementService.updateEngagementListInRepository(engagementList);
+        }
 
     }
 

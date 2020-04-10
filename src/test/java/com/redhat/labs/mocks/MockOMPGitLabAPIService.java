@@ -37,24 +37,20 @@ public class MockOMPGitLabAPIService implements OMPGitLabAPIService {
     }
 
     @Override
-    public CompletionStage<Response> createEngagement(GitApiEngagement engagement, String username, String userEmail) {
+    public Response createEngagement(GitApiEngagement engagement, String username, String userEmail) {
 
         if (SCENARIO.SUCCESS.value.equalsIgnoreCase(engagement.getDescription())) {
 
             String location = "some/path/to/id/1234";
-            Response response = Response.status(201).header("Location", location).build();
-
-            return createCompletionStage(response, false);
+            return Response.status(201).header("Location", location).build();
 
         } else if (SCENARIO.RUNTIME_EXCEPTION.value.equalsIgnoreCase(engagement.getDescription())) {
 
-            Response response = Response.serverError().build();
-            return createCompletionStage(response, true);
+            return Response.serverError().build();
 
         } else if (SCENARIO.SERVER_ERROR.value.equalsIgnoreCase(engagement.getDescription())) {
 
-            Response response = Response.status(500).build();
-            return createCompletionStage(response, false);
+            return Response.status(500).build();
 
         }
 
@@ -81,20 +77,6 @@ public class MockOMPGitLabAPIService implements OMPGitLabAPIService {
     public Response deleteFile(Integer projectId, String filePath, String username, String userEmail) {
         // TODO Auto-generated method stub
         return null;
-    }
-
-    private CompletionStage<Response> createCompletionStage(Response response, boolean exception) {
-
-        CompletableFuture<Response> future = new CompletableFuture<>();
-
-        if (exception) {
-            future.completeExceptionally(new RuntimeException("uh oh"));
-        } else {
-            future.complete(response);
-        }
-
-        return future;
-
     }
 
 }

@@ -5,6 +5,7 @@ import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 
 import com.redhat.labs.omp.model.Engagement;
+import com.redhat.labs.omp.model.git.api.FileAction;
 
 import io.quarkus.mongodb.panache.PanacheMongoRepository;
 
@@ -19,8 +20,8 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
         return find("customerName=?1 and projectName=?2", customerName, projectName).firstResult();
     }
 
-    public List<Engagement> findByModified() {
-        return find("modified", true).list();
+    public List<Engagement> findByModifiedAndAction(FileAction action) {
+        return find("modified=?1 and action=?2", true, action).list();
     }
 
 }

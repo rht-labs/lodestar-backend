@@ -1,7 +1,5 @@
 package com.redhat.labs.omp.rest.client;
 
-import java.util.concurrent.CompletionStage;
-
 import javax.ws.rs.DELETE;
 import javax.ws.rs.Encoded;
 import javax.ws.rs.GET;
@@ -24,7 +22,7 @@ public interface OMPGitLabAPIService {
     @POST
     @Path("/api/v1/engagements")
     @Produces("application/json")
-    CompletionStage<Response> createEngagement(GitApiEngagement engagement, @QueryParam("username") String username,
+    Response createEngagement(GitApiEngagement engagement, @QueryParam("username") String username,
             @QueryParam("userEmail") String userEmail);
 
     @POST

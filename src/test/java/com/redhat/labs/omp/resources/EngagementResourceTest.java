@@ -128,7 +128,7 @@ public class EngagementResourceTest {
                 .get("/engagements/customers/" + engagement.getCustomerName() + "/projects/" + engagement.getProjectName())
             .then()
                 .statusCode(200)
-                .body("engagement_id", equalTo(1234));
+                .body("engagement_id", nullValue());
 
     }
 

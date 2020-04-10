@@ -9,10 +9,7 @@ import javax.inject.Inject;
 import javax.json.bind.Jsonb;
 import javax.ws.rs.core.Response;
 
-import org.apache.http.HttpStatus;
-import org.bson.types.ObjectId;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,10 +17,8 @@ import com.redhat.labs.omp.exception.ResourceAlreadyExistsException;
 import com.redhat.labs.omp.exception.ResourceNotFoundException;
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.model.git.api.FileAction;
-import com.redhat.labs.omp.model.git.api.GitApiEngagement;
 import com.redhat.labs.omp.model.git.api.GitApiFile;
 import com.redhat.labs.omp.repository.EngagementRepository;
-import com.redhat.labs.omp.rest.client.OMPGitLabAPIService;
 
 @ApplicationScoped
 public class EngagementService {
@@ -39,10 +34,6 @@ public class EngagementService {
 
     @Inject
     Jsonb jsonb;
-
-    @Inject
-    @RestClient
-    OMPGitLabAPIService gitApi;
 
     @Inject
     EngagementRepository repository;
@@ -63,14 +54,12 @@ public class EngagementService {
             throw new ResourceAlreadyExistsException("engagement already exists.  use PUT to update resource.");
         }
 
+        // set modified info
+        engagement.setModified(true);
+        engagement.setAction(FileAction.create);
+
         // persist to db
         repository.persist(engagement);
-
-        LOGGER.info("sending to git api. " + engagement);
-        // send to gitlab for processing
-        gitApi.createEngagement(GitApiEngagement.from(engagement), engagement.getLastUpdateByName(),
-                engagement.getLastUpdateByEmail())
-                .whenComplete((response, throwable) -> updateEngagementId(engagement.id, response, throwable));
 
         return engagement;
 
@@ -94,9 +83,11 @@ public class EngagementService {
 
         // set id to persisted id
         engagement.id = optional.get().id;
+
         // mark as updated
         engagement.setModified(true);
         engagement.setAction(FileAction.update);
+
         // update in db
         repository.update(engagement);
 
@@ -160,6 +151,7 @@ public class EngagementService {
         // mark as modified for delete by sync process
         engagement.setModified(true);
         engagement.setAction(FileAction.delete);
+
         // update in repository
         repository.persist(engagement);
 
@@ -191,26 +183,16 @@ public class EngagementService {
      * update the data store using the engagement ID returned in the
      * {@link Response}.
      * 
-     * @param id
+     * @param engagement
      * @param response
      * @param throwable
      */
-    private void updateEngagementId(ObjectId id, Response response, Throwable throwable) {
+    public void updateEngagementId(Engagement engagement, Response response) {
 
-        LOGGER.info("updating engagement id for mongo id '" + id.toString() + "'");
-
-        if (null != throwable || response.getStatus() != HttpStatus.SC_CREATED) {
-            LOGGER.error("exception occurred during REST call. '" + throwable.getMessage() + "'");
-            return;
-            // TODO: What can we do here?
-        }
+        LOGGER.info("updating engagement id for mongo id '" + engagement.id + "'");
 
         String location = response.getHeaderString("Location");
         String engagementId = location.substring(location.lastIndexOf("/") + 1);
-
-        // get engagement by object id
-        LOGGER.info("looking for engagment with id '" + id + "'");
-        Engagement engagement = repository.findById(id);
 
         // update engagement id
         LOGGER.info("adding id '" + engagementId + "' to engagement '" + engagement);
@@ -258,12 +240,12 @@ public class EngagementService {
 
     /**
      * Returns a {@link List} of {@link Engagement} where the modified flag is set
-     * to true.
+     * to true and the action is set to the given {@link FileAction}
      * 
      * @return
      */
-    public List<Engagement> getModifiedEngagements() {
-        return repository.findByModified();
+    public List<Engagement> getModifiedEngagementsByAction(FileAction action) {
+        return repository.findByModifiedAndAction(action);
     }
 
 }
