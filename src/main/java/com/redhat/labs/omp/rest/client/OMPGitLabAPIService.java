@@ -1,5 +1,7 @@
 package com.redhat.labs.omp.rest.client;
 
+import java.util.List;
+
 import javax.ws.rs.DELETE;
 import javax.ws.rs.Encoded;
 import javax.ws.rs.GET;
@@ -18,6 +20,11 @@ import com.redhat.labs.omp.model.git.api.GitApiFile;
 
 @RegisterRestClient(configKey = "omp.gitlab.api")
 public interface OMPGitLabAPIService {
+
+    @GET
+    @Path("/api/v1/engagements")
+    @Produces("application/json")
+    List<GitApiEngagement> getEngagments();
 
     @POST
     @Path("/api/v1/engagements")

@@ -1,7 +1,7 @@
-package com.redhat.labs.mocks;
+package com.redhat.labs.omp.rest.client;
 
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.core.Response;
@@ -77,6 +77,17 @@ public class MockOMPGitLabAPIService implements OMPGitLabAPIService {
     public Response deleteFile(Integer projectId, String filePath, String username, String userEmail) {
         // TODO Auto-generated method stub
         return null;
+    }
+
+    @Override
+    public List<GitApiEngagement> getEngagments() {
+        List<GitApiEngagement> engagementList = new ArrayList<>();
+
+        engagementList.add(GitApiEngagement.builder().customerName("anotherCustomer").projectName("anotherProject")
+                .id(4321).build());
+
+        return engagementList;
+
     }
 
 }

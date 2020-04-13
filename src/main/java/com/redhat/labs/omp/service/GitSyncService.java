@@ -1,6 +1,7 @@
 package com.redhat.labs.omp.service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -22,7 +23,6 @@ import com.redhat.labs.omp.repository.ActiveSyncRepository;
 import com.redhat.labs.omp.rest.client.OMPGitLabAPIService;
 
 import io.quarkus.panache.common.Sort;
-import io.quarkus.scheduler.Scheduled;
 
 @ApplicationScoped
 public class GitSyncService {
@@ -46,27 +46,11 @@ public class GitSyncService {
      * Periodically processes modified {@link Engagement} in the data store by
      * calling the Git API to update Git.
      */
-    @Scheduled(every = "30s")
+//    @Scheduled(every = "30s")
     void sendChangesToGitApi() {
 
         if (!pauseAutoSave.get() && active()) {
-
-            LOGGER.info("Sending changes from database to Git API...");
-
-            // process creates first
-            List<Engagement> createList = engagementService.getModifiedEngagementsByAction(FileAction.create);
-            processModifiedEngagements(createList, FileAction.create);
-
-            // process updated second
-            List<Engagement> updatedList = engagementService.getModifiedEngagementsByAction(FileAction.create);
-            processModifiedEngagements(updatedList, FileAction.update);
-
-            // process deleted last
-            List<Engagement> deletedList = engagementService.getModifiedEngagementsByAction(FileAction.delete);
-            processModifiedEngagements(deletedList, FileAction.delete);
-
-            LOGGER.info("All changes sent to Git API.");
-
+            processModifiedEngagements();
         }
 
     }
@@ -75,7 +59,7 @@ public class GitSyncService {
      * Periodically starts the process of pulling {@link Engagement} data from Git
      * and refreshing the data store.
      */
-    @Scheduled(every = "12h")
+//    @Scheduled(every = "12h")
     void refreshDatabaseFromGit() {
 
         if (active()) {
@@ -83,13 +67,55 @@ public class GitSyncService {
             // set flag to stop other scheduler
             pauseAutoSave.set(true);
 
-            // call sync
-            engagementService.syncWithGitLab();
+            // refresh data
+            refreshBackedFromGit();
 
             // set flag to start other scheduler
             pauseAutoSave.set(false);
 
         }
+
+    }
+
+    /**
+     * Processes modified {@link Engagement} in the data store by calling the Git
+     * API to update Git.
+     */
+    public void processModifiedEngagements() {
+
+        LOGGER.info("Sending changes from database to Git API...");
+
+        // process creates first
+        List<Engagement> createList = engagementService.getModifiedEngagementsByAction(FileAction.create);
+        processModifiedEngagements(createList, FileAction.create);
+
+        // process updated second
+        List<Engagement> updatedList = engagementService.getModifiedEngagementsByAction(FileAction.update);
+        processModifiedEngagements(updatedList, FileAction.update);
+
+        // process deleted last
+        List<Engagement> deletedList = engagementService.getModifiedEngagementsByAction(FileAction.delete);
+        processModifiedEngagements(deletedList, FileAction.delete);
+
+        LOGGER.info("All changes sent to Git API.");
+
+    }
+
+    public void refreshBackedFromGit() {
+
+        LOGGER.info("refreshing backend data from Git...");
+
+        // get all engagements from git
+        List<GitApiEngagement> gitApiEngagementList = gitApiClient.getEngagments();
+
+        // translate into engagments
+        List<Engagement> engagementList = new ArrayList<>();
+        gitApiEngagementList.stream().forEach((engagement) -> engagementList.add(Engagement.from(engagement)));
+
+        // call sync
+        engagementService.syncWithGitLab(engagementList);
+
+        LOGGER.info("refresh of backend data complete.");
 
     }
 
@@ -125,10 +151,10 @@ public class GitSyncService {
 
         }
 
-        // if i created the record, update the timestamp
+        // if i created the record, update the time stamp
         if (uuid.equals(sync.getUuid())) {
 
-            // i am active, update timestamp
+            // i am active, update time stamp
             sync.setLastUpdated(LocalDateTime.now());
             activeSyncRepository.update(sync);
             return true;
@@ -162,7 +188,6 @@ public class GitSyncService {
         for (Engagement engagement : engagementList) {
 
             // reset modified
-            engagement.setModified(false);
             engagement.setAction(null);
 
             // create file to update

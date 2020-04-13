@@ -1,7 +1,7 @@
 package com.redhat.labs.omp.model;
 
 import javax.json.bind.annotation.JsonbTransient;
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 
 import com.redhat.labs.omp.model.git.api.FileAction;
 import com.redhat.labs.omp.model.git.api.GitApiEngagement;
@@ -20,11 +20,11 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 public class Engagement extends PanacheMongoEntity {
 
-    @NotNull
+    @NotBlank
     private String customerName;
-    @NotNull
-    private Integer engagementId;
+    @NotBlank
     private String projectName;
+    private Integer engagementId;
     private String description;
     private String location;
     private String startDate;
@@ -42,8 +42,6 @@ public class Engagement extends PanacheMongoEntity {
     private String ocpSubDomain;
     private String ocpPersistentStorageSize;
     private String ocpClusterSize;
-    @JsonbTransient
-    private Boolean modified;
     @JsonbTransient
     private FileAction action;
     @JsonbTransient

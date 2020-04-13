@@ -21,7 +21,7 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
     }
 
     public List<Engagement> findByModifiedAndAction(FileAction action) {
-        return find("modified=?1 and action=?2", true, action).list();
+        return find("action", action).list();
     }
 
 }

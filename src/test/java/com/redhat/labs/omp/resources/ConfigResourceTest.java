@@ -51,7 +51,7 @@ public class ConfigResourceTest {
 	}
 
 	@Test
-	public void testGetConfigNotInCacheIsInGitRepo() throws Exception {
+	public void testGetConfigInGitRepo() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsReader.json", timeClaims);

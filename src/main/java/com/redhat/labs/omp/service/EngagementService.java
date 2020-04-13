@@ -1,6 +1,5 @@
 package com.redhat.labs.omp.service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,9 +38,8 @@ public class EngagementService {
     EngagementRepository repository;
 
     /**
-     * Creates a new {@link Engagement} resource in the data store and then
-     * asynchronously sends a request to create the resource using the Git API
-     * service.
+     * Creates a new {@link Engagement} resource in the data store and marks if for
+     * asynchronous processing by the {@link GitSyncService}.
      * 
      * @param engagement
      * @return
@@ -55,7 +53,6 @@ public class EngagementService {
         }
 
         // set modified info
-        engagement.setModified(true);
         engagement.setAction(FileAction.create);
 
         // persist to db
@@ -66,7 +63,8 @@ public class EngagementService {
     }
 
     /**
-     * Updates the {@link Engagement} resource in the data store.
+     * Updates the {@link Engagement} resource in the data store and marks it for
+     * asynchronous processing by the {@link GitSyncService}.
      * 
      * @param customerName
      * @param projectName
@@ -81,12 +79,17 @@ public class EngagementService {
             throw new ResourceNotFoundException("no engagement found.  use POST to create resource.");
         }
 
-        // set id to persisted id
-        engagement.id = optional.get().id;
+        // set modified if already marked for modification
+        Engagement persisted = optional.get();
 
-        // mark as updated
-        engagement.setModified(true);
-        engagement.setAction(FileAction.update);
+        // mark as updated, if action not already assigned
+        engagement.setAction((null != persisted.getAction()) ? persisted.getAction() : FileAction.update);
+
+        // set id to persisted id
+        engagement.id = persisted.id;
+
+        // set engagement id in case it was updated before the consumer refreshed
+        engagement.setEngagementId(persisted.getEngagementId());
 
         // update in db
         repository.update(engagement);
@@ -129,8 +132,8 @@ public class EngagementService {
     }
 
     /**
-     * Marks the {@link Engagement} for deletion. The Git API sync process will
-     * perform the delete from the data store.
+     * Marks the {@link Engagement} for deletion. The {@link GitSyncService} process
+     * will perform the delete from the data store.
      * 
      * @param customerName
      * @param projectName
@@ -149,18 +152,18 @@ public class EngagementService {
         Engagement engagement = optional.get();
 
         // mark as modified for delete by sync process
-        engagement.setModified(true);
         engagement.setAction(FileAction.delete);
 
         // update in repository
-        repository.persist(engagement);
+        repository.update(engagement);
 
     }
 
     /**
-     * Removes all {@link Engagement} from the data store
+     * Used by the {@link GitSyncService} to delete all {@link Engagement} from the
+     * data store before re-populating from Git.
      */
-    public void deleteAll() {
+    private void deleteAll() {
         long count = repository.deleteAll();
         LOGGER.info("removed '" + count + "' engagements from the data store.");
     }
@@ -212,7 +215,7 @@ public class EngagementService {
     }
 
     /**
-     * Updates teh {@link List} of {@link Engagement} in the data store.
+     * Updates the {@link List} of {@link Engagement} in the data store.
      * 
      * @param engagementList
      */
@@ -221,14 +224,12 @@ public class EngagementService {
     }
 
     /**
-     * Responsible for purging the data store of all {@link Engagement} and then
-     * calling the Git API to repopulate the data store with data from Git API.
+     * Removes all {@link Engagement} from the data store and inserts the given
+     * {@link List} of {@link Engagement}.
+     * 
+     * @param engagementList
      */
-    public void syncWithGitLab() {
-
-        // get all engagements from git api
-        // TODO: Get list from Git API
-        List<Engagement> engagementList = new ArrayList<>();
+    public void syncWithGitLab(List<Engagement> engagementList) {
 
         // remove all from database
         deleteAll();

@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.validation.Valid;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -50,7 +51,7 @@ public class EngagementResource {
 //	}
 
     @POST
-    public Response post(Engagement engagement) {
+    public Response post(@Valid Engagement engagement) {
 
         // pull user info from token
         engagement.setLastUpdateByName(getUsernameFromToken());
@@ -63,7 +64,7 @@ public class EngagementResource {
     @PUT
     @Path("/customers/{customerName}/projects/{projectName}")
     public Engagement put(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName,
-            Engagement engagement) {
+            @Valid Engagement engagement) {
 
         // pull user info from token
         engagement.setLastUpdateByName(getUsernameFromToken());
@@ -101,12 +102,6 @@ public class EngagementResource {
         engagementService.delete(customerName, projectName, getUsernameFromToken(), getUserEmailFromToken());
         return Response.status(HttpStatus.SC_NO_CONTENT).build();
 
-    }
-
-    @DELETE
-    public Response deleteAll() {
-        engagementService.deleteAll();
-        return Response.status(HttpStatus.SC_NO_CONTENT).build();
     }
 
     private String getUsernameFromToken() {
