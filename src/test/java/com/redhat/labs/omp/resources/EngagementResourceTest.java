@@ -1,7 +1,6 @@
 package com.redhat.labs.omp.resources;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
 
 import java.util.HashMap;
