@@ -8,9 +8,16 @@ The following environment variables are available:
 
 | Name | Example Value | Required |
 |------|---------------|----------|
-| MP_JWT_VERIFY_PUBLICKEY_LOCATION | http://[your-cluster-internal-sso-service-name]:8080/auth/realms/[your-realm-id]/protocol/openid-connect/certs | True |
+| JWT_PUBKICKEY_LOCATION | http://[your-cluster-internal-sso-service-name]:8080/auth/realms/[your-realm-id]/protocol/openid-connect/certs | True |
+| JWT_ISSUER | http://[your-cluster-internal-sso-service-name] | True |
+| JWT_ENABLE | True | False |
+| MONGODB_USER | monguser | True |
+| MONGODB_PASSWORD | mongopassword | True |
+| DATABASE_SERVICE_NAME | omp-backend-mongodb | True |
+| MONGODB_DATABASE | engagements | True |
 | CONFIG_REPOSITORY_ID |  1234             |  True        |
-| OMP_GITLAB_API_URL   | https://gitlab.com | True |
+| CONFIG_REPOSITORY_PATH | schema/config.yml | True |
+| OMP_GITLAB_API_URL   | http://omp-git-api:8080 | True |
 
 ## Development
 
