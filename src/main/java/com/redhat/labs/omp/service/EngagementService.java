@@ -16,6 +16,7 @@ import com.redhat.labs.omp.exception.ResourceAlreadyExistsException;
 import com.redhat.labs.omp.exception.ResourceNotFoundException;
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.model.git.api.FileAction;
+import com.redhat.labs.omp.model.git.api.GitApiEngagement;
 import com.redhat.labs.omp.model.git.api.GitApiFile;
 import com.redhat.labs.omp.repository.EngagementRepository;
 
@@ -175,8 +176,13 @@ public class EngagementService {
      * @return
      */
     public GitApiFile createFileFromEngagement(Engagement engagement) {
+
+        // convert engagement to GitApiEngagement
+        GitApiEngagement gaEngagement = GitApiEngagement.from(engagement);
+        String content = jsonb.toJson(gaEngagement);
+
         return GitApiFile.builder().filePath(engagementFileName).branch(engagementFileBranch)
-                .commitMessage(engagementFileCommitMessage).content(jsonb.toJson(engagement))
+                .commitMessage(engagementFileCommitMessage).content(content)
                 .authorName(engagement.getLastUpdateByName()).authorEmail(engagement.getLastUpdateByEmail()).build();
     }
 
