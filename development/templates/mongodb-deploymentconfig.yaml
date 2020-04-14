@@ -28,7 +28,7 @@ spec:
         - name: MONGODB_PASSWORD
           valueFrom:
             secretKeyRef:
-              key: MONGODB_USER
+              key: MONGODB_PASSWORD
               name: "{{ .Values.name }}-configuration"
         - name: MONGODB_ADMIN_PASSWORD
           valueFrom:

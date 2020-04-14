@@ -12,9 +12,9 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 import com.redhat.labs.omp.model.git.api.GitApiFile;
 import com.redhat.labs.omp.service.ConfigService;
 
+@RequestScoped
 @Path("/config")
 @Produces(MediaType.APPLICATION_JSON)
-@RequestScoped
 public class ConfigResource {
 
 	@Inject

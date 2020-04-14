@@ -1,5 +1,6 @@
 package com.redhat.labs.omp.resource;
 
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PUT;
@@ -12,6 +13,7 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import com.redhat.labs.omp.service.GitSyncService;
 
+@RequestScoped
 @Path("/engagements")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)

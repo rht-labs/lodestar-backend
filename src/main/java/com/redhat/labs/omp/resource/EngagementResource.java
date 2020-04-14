@@ -24,10 +24,10 @@ import com.redhat.labs.omp.exception.ResourceNotFoundException;
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.service.EngagementService;
 
+@RequestScoped
 @Path("/engagements")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-@RequestScoped
 public class EngagementResource {
 
     private static final String USERNAME_CLAIM = "";

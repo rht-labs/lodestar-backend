@@ -12,59 +12,10 @@ spec:
     protocol: TCP
     targetPort: 27017
   selector:
-    name: "{{ .Values.name }}-mongodb"
+    app: "{{ .Values.name }}-mongodb"
     deploymentconfig: "{{ .Values.name }}-mongodb"
   sessionAffinity: None
   type: ClusterIP
 status:
   loadBalancer: {}
 
-
-
-
-
-
-
-parameters:
-- description: Maximum amount of memory the container can use.
-  displayName: Memory Limit
-  name: MEMORY_LIMIT
-  required: true
-  value: 512Mi
-- description: The OpenShift Namespace where the ImageStream resides.
-  displayName: Namespace
-  name: NAMESPACE
-  value: openshift
-- description: The name of the OpenShift Service exposed for the database.
-  displayName: Database Service Name
-  name: DATABASE_SERVICE_NAME
-  required: true
-  value: mongodb
-- description: Username for MongoDB user that will be used for accessing the database.
-  displayName: MongoDB Connection Username
-  from: user[A-Z0-9]{3}
-  generate: expression
-  name: MONGODB_USER
-  required: true
-- description: Password for the MongoDB connection user.
-  displayName: MongoDB Connection Password
-  from: '[a-zA-Z0-9]{16}'
-  generate: expression
-  name: MONGODB_PASSWORD
-  required: true
-- description: Name of the MongoDB database accessed.
-  displayName: MongoDB Database Name
-  name: MONGODB_DATABASE
-  required: true
-  value: sampledb
-- description: Password for the database admin user.
-  displayName: MongoDB Admin Password
-  from: '[a-zA-Z0-9]{16}'
-  generate: expression
-  name: MONGODB_ADMIN_PASSWORD
-  required: true
-- description: Version of MongoDB image to be used (2.4, 2.6, 3.2 or latest).
-  displayName: Version of MongoDB Image
-  name: MONGODB_VERSION
-  required: true
-  value: "3.2"
