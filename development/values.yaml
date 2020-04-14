@@ -12,8 +12,12 @@ git:
   uri: https://github.com/rht-labs/open-management-portal-backend.git
   ref: master
 
-cacheService: false
 ompGitlabApiUrl: http://omp-git-api:8080
 jwtPublicKeyLocation: false
 jwtIssuer: false
 jwtEnable: true
+mongodbServiceName: omp-backend-mongodb
+mongodbUser: false
+mongodbPassword: false
+mongodbDatabase: false
+mongodbAdminPassword: false

@@ -29,14 +29,25 @@ cd open-management-portal-backend/development
 ```shell script
 helm template . \
   --set git.uri=https://github.com/dwasinge/open-management-portal-backend.git \
-  --set git.ref=develop \
-  --set cacheService=omp-cache \
+  --set git.ref=master \
   --set ompGitlabApiUrl=https://omp-git-api-omp-dev.apps.s11.core.rht-labs.com \
   --set jwtPublicKeyLocation=https://sso-omp-jasee.apps.s11.core.rht-labs.com/auth/realms/omp/protocol/openid-connect/certs \
   --set jwtIssuer=https://sso-omp-jasee.apps.s11.core.rht-labs.com/auth/realms/omp \
   --set jwtEnable=true \
+  --set mongodbServiceName=omp-backend-mongodb \
+  --set mongodbUser=mongouser \
+  --set mongodbPassword=mongopassword \
+  --set mongodbDatabase=engagements \
+  --set mongodbAdminPassword=mongoadminpassword \
 | oc apply -f -
 ```
+
+mongodbServiceName: omp-backend-mongodb
+mongodbUser: false
+mongodbPassword: false
+mongodbDatabase: false
+mongodbAdminPassword: false
+
 
 It accepts the following variables
 
