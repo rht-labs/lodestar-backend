@@ -17,7 +17,7 @@ jwtPublicKeyLocation: false
 jwtIssuer: false
 jwtEnable: true
 mongodbServiceName: omp-backend-mongodb
-mongodbUser: false
-mongodbPassword: false
-mongodbDatabase: false
-mongodbAdminPassword: false
+mongodbUser: mongouser
+mongodbPassword: mongopassword
+mongodbDatabase: engagements
+mongodbAdminPassword: mongoadminpassword
