@@ -53,3 +53,8 @@ then
   curl -i -X PUT ${host}/engagements/process/modified -H "Content-Type: application/json" -H "Authorization: Bearer ${token}"
 fi
 
+if [ "launch" == "$command" ]
+then
+  echo "launching engagement"
+  curl -i -X PUT ${host}/engagements/launch -d @launch-engagement.json -H "Content-Type: application/json" -H "Authorization: Bearer ${token}"
+fi
