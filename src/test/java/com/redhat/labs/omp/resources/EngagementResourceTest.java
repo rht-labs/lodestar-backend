@@ -835,7 +835,7 @@ public class EngagementResourceTest {
                 .statusCode(201)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("engagement_id", nullValue());
+                .body("project_id", nullValue());
 
         // Launch engagement
         given()
