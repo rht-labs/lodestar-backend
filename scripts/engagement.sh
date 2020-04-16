@@ -8,7 +8,7 @@ project=$4
 if [ -z "$command"  -o -z "$host" ]
 then
   echo "usage:"
-  echo "enagement.sh [refresh|create|update|get|process] omp-backend-host"
+  echo "enagement.sh [refresh|create|update|get|process|launch|toggle] omp-backend-host"
 fi
 
 json=$(curl -d "client_id=open-management-portal" -d "username=jacob" -d "password=password" -d "grant_type=password" https://sso-omp-jasee.apps.s11.core.rht-labs.com/auth/realms/omp/protocol/openid-connect/token)
@@ -57,4 +57,10 @@ if [ "launch" == "$command" ]
 then
   echo "launching engagement"
   curl -i -X PUT ${host}/engagements/launch -d @launch-engagement.json -H "Content-Type: application/json" -H "Authorization: Bearer ${token}"
+fi
+
+if [ "toggle" == "$command" ]
+then
+  echo "launching engagement"
+  curl -i -X PUT ${host}/engagements/autosave/toggle -H "Content-Type: application/json" -H "Authorization: Bearer ${token}"
 fi

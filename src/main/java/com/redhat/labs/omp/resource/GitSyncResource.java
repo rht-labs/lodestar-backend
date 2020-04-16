@@ -2,6 +2,9 @@ package com.redhat.labs.omp.resource;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.json.Json;
+import javax.json.JsonObject;
+import javax.json.bind.Jsonb;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -40,6 +43,16 @@ public class GitSyncResource {
 
         service.processModifiedEngagements();
         return Response.ok().build();
+
+    }
+
+    @PUT
+    @Path("/autosave/toggle")
+    public Response toggle() {
+
+        boolean value = service.toggleAutoSave();
+        JsonObject model = Json.createObjectBuilder().add("autosave", value).build();
+        return Response.ok().entity(model).build();
 
     }
 

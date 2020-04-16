@@ -28,7 +28,7 @@ public class GitSyncService {
     private static final Logger LOGGER = LoggerFactory.getLogger(GitSyncService.class);
     private final UUID uuid = UUID.randomUUID();
 
-    AtomicBoolean pauseAutoSave = new AtomicBoolean(false);
+    AtomicBoolean autosave = new AtomicBoolean(true);
 
     @Inject
     ActiveSyncRepository activeSyncRepository;
@@ -47,11 +47,7 @@ public class GitSyncService {
     @Scheduled(cron = "{auto.save.cron.expr}")
     void sendChangesToGitApi() {
 
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("running auto save to git function.");
-        }
-
-        if (!pauseAutoSave.get() && active()) {
+        if (autosave.get() && active()) {
 
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("backend instance {} is active and performing push to git.", uuid);
@@ -63,29 +59,16 @@ public class GitSyncService {
 
     }
 
-    /**
-     * Periodically starts the process of pulling {@link Engagement} data from Git
-     * and refreshing the data store.
-     */
-//    @Scheduled(every = "12h")
-    void refreshDatabaseFromGit() {
+    public boolean toggleAutoSave() {
 
-        if (active()) {
+        boolean temp;
+        do {
+            temp = autosave.get();
+        } while(!autosave.compareAndSet(temp, !temp));
 
-            // set flag to stop other scheduler
-            pauseAutoSave.set(true);
-
-            // refresh data
-            refreshBackedFromGit();
-
-            // set flag to start other scheduler
-            pauseAutoSave.set(false);
-
-        }
+        return autosave.get();
 
     }
-
-
 
     public void refreshBackedFromGit() {
 
