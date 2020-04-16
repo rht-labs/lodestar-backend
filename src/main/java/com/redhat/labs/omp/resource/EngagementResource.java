@@ -13,10 +13,12 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 
-import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import com.redhat.labs.omp.exception.ResourceNotFoundException;
@@ -29,8 +31,8 @@ import com.redhat.labs.omp.service.EngagementService;
 @Consumes(MediaType.APPLICATION_JSON)
 public class EngagementResource {
 
-    private static final String USERNAME_CLAIM = "";
-    private static final String USER_EMAIL_CLAIM = "";
+    private static final String USERNAME_CLAIM = "preferred_username";
+    private static final String USER_EMAIL_CLAIM = "email";
 
     public static final String DEFAULT_USERNAME = "omp-user";
     public static final String DEFAULT_EMAIL = "omp-email";
@@ -42,13 +44,19 @@ public class EngagementResource {
     EngagementService engagementService;
 
     @POST
-    public Response post(@Valid Engagement engagement) {
+    public Response post(@Valid Engagement engagement, @Context UriInfo uriInfo) {
 
         // pull user info from token
         engagement.setLastUpdateByName(getUsernameFromToken());
         engagement.setLastUpdateByEmail(getUserEmailFromToken());
 
-        return Response.status(HttpStatus.SC_CREATED).entity(engagementService.create(engagement)).build();
+        // create the resource
+        Engagement created = engagementService.create(engagement);
+
+        // build location response
+        UriBuilder builder = uriInfo.getAbsolutePathBuilder();
+        builder.path("/customers/" + created.getCustomerName() + "/projects/" + created.getProjectName());
+        return Response.created(builder.build()).entity(created).build();
 
     }
 
