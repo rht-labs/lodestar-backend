@@ -1,7 +1,6 @@
 package com.redhat.labs.omp.service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -16,13 +15,12 @@ import org.slf4j.LoggerFactory;
 
 import com.redhat.labs.omp.model.ActiveSync;
 import com.redhat.labs.omp.model.Engagement;
-import com.redhat.labs.omp.model.git.api.FileAction;
-import com.redhat.labs.omp.model.git.api.GitApiEngagement;
-import com.redhat.labs.omp.model.git.api.GitApiFile;
+import com.redhat.labs.omp.model.FileAction;
 import com.redhat.labs.omp.repository.ActiveSyncRepository;
 import com.redhat.labs.omp.rest.client.OMPGitLabAPIService;
 
 import io.quarkus.panache.common.Sort;
+import io.quarkus.scheduler.Scheduled;
 
 @ApplicationScoped
 public class GitSyncService {
@@ -46,11 +44,21 @@ public class GitSyncService {
      * Periodically processes modified {@link Engagement} in the data store by
      * calling the Git API to update Git.
      */
-//    @Scheduled(every = "30s")
+    @Scheduled(cron = "{auto.save.cron.expr}")
     void sendChangesToGitApi() {
 
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("running auto save to git function.");
+        }
+
         if (!pauseAutoSave.get() && active()) {
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("backend instance {} is active and performing push to git.", uuid);
+            }
+
             processModifiedEngagements();
+
         }
 
     }
@@ -77,40 +85,14 @@ public class GitSyncService {
 
     }
 
-    /**
-     * Processes modified {@link Engagement} in the data store by calling the Git
-     * API to update Git.
-     */
-    public void processModifiedEngagements() {
 
-        LOGGER.info("Sending changes from database to Git API...");
-
-        // process creates first
-        List<Engagement> createList = engagementService.getModifiedEngagementsByAction(FileAction.create);
-        processModifiedEngagements(createList, FileAction.create);
-
-        // process updated second
-        List<Engagement> updatedList = engagementService.getModifiedEngagementsByAction(FileAction.update);
-        processModifiedEngagements(updatedList, FileAction.update);
-
-        // process deleted last
-        List<Engagement> deletedList = engagementService.getModifiedEngagementsByAction(FileAction.delete);
-        processModifiedEngagements(deletedList, FileAction.delete);
-
-        LOGGER.info("All changes sent to Git API.");
-
-    }
 
     public void refreshBackedFromGit() {
 
         LOGGER.info("refreshing backend data from Git...");
 
         // get all engagements from git
-        List<GitApiEngagement> gitApiEngagementList = gitApiClient.getEngagments();
-
-        // translate into engagments
-        List<Engagement> engagementList = new ArrayList<>();
-        gitApiEngagementList.stream().forEach((engagement) -> engagementList.add(Engagement.from(engagement)));
+        List<Engagement> engagementList = gitApiClient.getEngagments();
 
         // call sync
         engagementService.syncWithGitLab(engagementList);
@@ -175,6 +157,14 @@ public class GitSyncService {
     }
 
     /**
+     * Processes modified {@link Engagement} in the data store by calling the Git
+     * API to update Git.
+     */
+    public void processModifiedEngagements() {
+        processModifiedEngagements(engagementService.getModifiedEngagements());
+    }
+
+    /**
      * Processing the list of {@link Engagement} that have been modified. The Git
      * API will be called to process the engagement depending on the
      * {@link FileAction} specified. After the REST call completes, the
@@ -183,46 +173,49 @@ public class GitSyncService {
      * @param engagementList
      * @param action
      */
-    private void processModifiedEngagements(List<Engagement> engagementList, FileAction action) {
+    private void processModifiedEngagements(List<Engagement> engagementList) {
 
         for (Engagement engagement : engagementList) {
+
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("...performing {} on engagement {} using Git API.", engagement.getAction().name(),
+                        engagement);
+            }
+
+            // call git api
+            Response response = gitApiClient.createOrUpdateEngagement(engagement, engagement.getLastUpdateByName(),
+                    engagement.getLastUpdateByEmail());
+
+            // update id for create actions
+            if (FileAction.create == engagement.getAction()) {
+                updateIdFromResponse(engagement, response);
+            }
 
             // reset modified
             engagement.setAction(null);
 
-            // create file to update
-            GitApiFile file = engagementService.createFileFromEngagement(engagement);
-
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("...performing {} on file using Git API. {}", engagement.getAction().name(), file);
-            }
-
-            if (FileAction.create == action) {
-
-                // call git api
-                Response response = gitApiClient.createEngagement(GitApiEngagement.from(engagement),
-                        engagement.getLastUpdateByName(), engagement.getLastUpdateByEmail());
-
-                // update engagement id
-                engagementService.updateEngagementId(engagement, response);
-
-            } else if (FileAction.update == action) {
-
-                // call git api
-                gitApiClient.updateFile(engagement.getEngagementId(), file);
-
-            } else if (FileAction.delete == action) {
-
-                gitApiClient.deleteFile(engagement.getEngagementId(), file.getFilePath(),
-                        engagement.getLastUpdateByName(), engagement.getLastUpdateByEmail());
-
-            }
-
         }
 
-        if (FileAction.create != action) {
-            engagementService.updateEngagementListInRepository(engagementList);
-        }
+        // update engagements in db
+        engagementService.updateEngagementListInRepository(engagementList);
+
+    }
+
+    /**
+     * Sets the project ID from the Location header on the {@link Engagement}.
+     * 
+     * @param engagement
+     * @param response
+     */
+    private void updateIdFromResponse(Engagement engagement, Response response) {
+
+        // get location from header
+        String location = response.getHeaderString("Location");
+        // get id from location string
+        String id = location.substring(location.lastIndexOf("/") + 1);
+
+        // update engagement id
+        engagement.setProjectId(Integer.valueOf(id));
 
     }
 

@@ -3,10 +3,10 @@ package com.redhat.labs.omp.model;
 import javax.json.bind.annotation.JsonbTransient;
 import javax.validation.constraints.NotBlank;
 
-import com.redhat.labs.omp.model.git.api.FileAction;
-import com.redhat.labs.omp.model.git.api.GitApiEngagement;
+import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.types.ObjectId;
 
-import io.quarkus.mongodb.panache.PanacheMongoEntity;
+import io.quarkus.mongodb.panache.PanacheMongoEntityBase;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,13 +18,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class Engagement extends PanacheMongoEntity {
+public class Engagement extends PanacheMongoEntityBase {
+
+    // Mongo DB generated ID
+    @BsonId
+    private ObjectId mongoId;
 
     @NotBlank
     private String customerName;
     @NotBlank
     private String projectName;
-    private Integer engagementId;
+    private Integer projectId;
     private String description;
     private String location;
     private String startDate;
@@ -48,25 +52,5 @@ public class Engagement extends PanacheMongoEntity {
     private String lastUpdateByName;
     @JsonbTransient
     private String lastUpdateByEmail;
-
-    public static Engagement from(GitApiEngagement engagement) {
-
-        return Engagement.builder().engagementId(engagement.getId()).customerName(engagement.getCustomerName())
-                .projectName(engagement.getProjectName()).description(engagement.getDescription())
-                .location(engagement.getLocation()).startDate(engagement.getStartDate())
-                .endDate(engagement.getEndDate()).archiveDate(engagement.getArchiveDate())
-                .engagementLeadName(engagement.getEngagementLeadName())
-                .engagementLeadEmail(engagement.getEngagementLeadEmail())
-                .technicalLeadName(engagement.getTechnicalLeadName())
-                .technicalLeadEmail(engagement.getTechnicalLeadEmail())
-                .customerContactName(engagement.getCustomerContactName())
-                .customerContactEmail(engagement.getCustomerContactEmail())
-                .ocpCloudProviderName(engagement.getOcpCloudProviderName())
-                .ocpCloudProviderRegion(engagement.getOcpCloudProviderRegion()).ocpVersion(engagement.getOcpVersion())
-                .ocpSubDomain(engagement.getOcpSubDomain())
-                .ocpPersistentStorageSize(engagement.getOcpPersistentStorageSize())
-                .ocpClusterSize(engagement.getOcpClusterSize()).build();
-
-    }
 
 }

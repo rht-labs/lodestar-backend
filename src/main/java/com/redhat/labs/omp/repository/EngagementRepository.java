@@ -5,7 +5,7 @@ import java.util.List;
 import javax.enterprise.context.ApplicationScoped;
 
 import com.redhat.labs.omp.model.Engagement;
-import com.redhat.labs.omp.model.git.api.FileAction;
+import com.redhat.labs.omp.model.FileAction;
 
 import io.quarkus.mongodb.panache.PanacheMongoRepository;
 
@@ -22,6 +22,10 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
 
     public List<Engagement> findByModifiedAndAction(FileAction action) {
         return find("action", action).list();
+    }
+
+    public List<Engagement> findByModified() {
+        return find("action is not null").list();
     }
 
 }

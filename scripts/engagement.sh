@@ -14,7 +14,7 @@ fi
 json=$(curl -d "client_id=open-management-portal" -d "username=jacob" -d "password=password" -d "grant_type=password" https://sso-omp-jasee.apps.s11.core.rht-labs.com/auth/realms/omp/protocol/openid-connect/token)
 token=$( jq -r ".access_token" <<<"$json" )
 
-if [ "localhost:8080" == "$omphost" ]
+if [ "localhost:8080" == "$omphost" -o "localhost:8081" == "$omphost" ]
 then
   host=http://${omphost}
 else

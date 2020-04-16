@@ -7,7 +7,6 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -84,16 +83,6 @@ public class EngagementResource {
     @GET
     public List<Engagement> getAll() {
         return engagementService.getAll();
-    }
-
-    @DELETE
-    @Path("/customers/{customerName}/projects/{projectName}")
-    public Response delete(@PathParam("customerName") String customerName,
-            @PathParam("projectName") String projectName) {
-
-        engagementService.delete(customerName, projectName, getUsernameFromToken(), getUserEmailFromToken());
-        return Response.status(HttpStatus.SC_NO_CONTENT).build();
-
     }
 
     private String getUsernameFromToken() {

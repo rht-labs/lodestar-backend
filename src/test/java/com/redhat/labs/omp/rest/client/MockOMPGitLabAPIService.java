@@ -8,9 +8,8 @@ import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
-import com.redhat.labs.omp.model.git.api.GitApiEngagement;
+import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.model.git.api.GitApiFile;
-import com.redhat.labs.omp.rest.client.OMPGitLabAPIService;
 
 import io.quarkus.test.Mock;
 
@@ -37,7 +36,7 @@ public class MockOMPGitLabAPIService implements OMPGitLabAPIService {
     }
 
     @Override
-    public Response createEngagement(GitApiEngagement engagement, String username, String userEmail) {
+    public Response createOrUpdateEngagement(Engagement engagement, String username, String userEmail) {
 
         if (SCENARIO.SUCCESS.value.equalsIgnoreCase(engagement.getDescription())) {
 
@@ -58,33 +57,16 @@ public class MockOMPGitLabAPIService implements OMPGitLabAPIService {
     }
 
     @Override
-    public Response createFile(Integer projectId, GitApiFile file) {
-        return null;
-    }
-
-    @Override
-    public Response updateFile(Integer projectId, GitApiFile file) {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    @Override
     public GitApiFile getFile(Integer projectId, String filePath) {
         return GitApiFile.builder().filePath("somefile.txt").content("some file context here").build();
     }
 
     @Override
-    public Response deleteFile(Integer projectId, String filePath, String username, String userEmail) {
-        // TODO Auto-generated method stub
-        return null;
-    }
+    public List<Engagement> getEngagments() {
+        List<Engagement> engagementList = new ArrayList<>();
 
-    @Override
-    public List<GitApiEngagement> getEngagments() {
-        List<GitApiEngagement> engagementList = new ArrayList<>();
-
-        engagementList.add(GitApiEngagement.builder().customerName("anotherCustomer").projectName("anotherProject")
-                .id(4321).build());
+        engagementList.add(Engagement.builder().customerName("anotherCustomer").projectName("anotherProject")
+                .projectId(4321).build());
 
         return engagementList;
 

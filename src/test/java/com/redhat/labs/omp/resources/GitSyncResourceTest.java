@@ -13,18 +13,24 @@ import javax.json.bind.Jsonb;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.rest.client.MockOMPGitLabAPIService.SCENARIO;
 import com.redhat.labs.utils.TokenUtils;
 
+import de.flapdoodle.embed.mongo.Command;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
 import de.flapdoodle.embed.mongo.config.IMongodConfig;
 import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
+import de.flapdoodle.embed.mongo.config.RuntimeConfigBuilder;
 import de.flapdoodle.embed.mongo.distribution.Version;
+import de.flapdoodle.embed.process.config.IRuntimeConfig;
+import de.flapdoodle.embed.process.config.io.ProcessOutput;
 import de.flapdoodle.embed.process.runtime.Network;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
@@ -33,7 +39,14 @@ import io.restassured.response.Response;
 @QuarkusTest
 public class GitSyncResourceTest {
 
-    private static final MongodStarter starter = MongodStarter.getDefaultInstance();
+    private static final Logger LOGGER = LoggerFactory.getLogger(GitSyncResourceTest.class);
+
+    private static final IRuntimeConfig config =
+            new RuntimeConfigBuilder()
+                .defaultsWithLogger(Command.MongoD, LOGGER)
+                .processOutput(ProcessOutput.getDefaultInstanceSilent())
+                .build();
+    private static final MongodStarter starter = MongodStarter.getInstance(config);
 
     @Inject
     Jsonb quarkusJsonb;
@@ -97,7 +110,7 @@ public class GitSyncResourceTest {
                 .statusCode(201)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("engagement_id", nullValue());
+                .body("project_id", nullValue());
 
 
         // process created
@@ -126,29 +139,10 @@ public class GitSyncResourceTest {
                 .statusCode(200)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("engagement_id", equalTo(1234))
+                .body("project_id", equalTo(1234))
                 .body("description", equalTo(engagement.getDescription()));
 
         // process updated
-        given()
-            .when()
-                .auth()
-                .oauth2(token)
-                .contentType(ContentType.JSON)
-                .put("/engagements/process/modified")
-            .then()
-                .statusCode(200);
-
-        // DELETE engagement - delete
-        given()
-            .when()
-                .auth()
-                .oauth2(token)
-                .delete("/engagements/customers/" + engagement.getCustomerName() + "/projects/" + engagement.getProjectName())
-            .then()
-                .statusCode(204);
-
-        // process delete
         given()
             .when()
                 .auth()
@@ -183,7 +177,7 @@ public class GitSyncResourceTest {
                 .statusCode(201)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("engagement_id", nullValue());
+                .body("project_id", nullValue());
 
 
         // update description
@@ -202,7 +196,7 @@ public class GitSyncResourceTest {
                 .statusCode(200)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("engagement_id", nullValue())
+                .body("project_id", nullValue())
                 .body("description", equalTo(engagement.getDescription()))
                 .body("engagement_lead_name", equalTo(engagement.getEngagementLeadName()));
 
@@ -247,7 +241,7 @@ public class GitSyncResourceTest {
                 .statusCode(201)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("engagement_id", nullValue());
+                .body("project_id", nullValue());
 
         // GET
         given()
@@ -259,7 +253,7 @@ public class GitSyncResourceTest {
                 .statusCode(200)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("engagement_id", nullValue());
+                .body("project_id", nullValue());
 
         // Run sync
         given()
@@ -283,7 +277,7 @@ public class GitSyncResourceTest {
         Engagement[] engagements = quarkusJsonb.fromJson(response.getBody().asString(), Engagement[].class);
         assertEquals(1, engagements.length);
 
-        assertEquals(4321, engagements[0].getEngagementId());
+        assertEquals(4321, engagements[0].getProjectId());
         assertEquals("anotherCustomer", engagements[0].getCustomerName());
         assertEquals("anotherProject", engagements[0].getProjectName());
 

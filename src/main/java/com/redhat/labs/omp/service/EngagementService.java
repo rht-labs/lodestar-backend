@@ -15,9 +15,7 @@ import org.slf4j.LoggerFactory;
 import com.redhat.labs.omp.exception.ResourceAlreadyExistsException;
 import com.redhat.labs.omp.exception.ResourceNotFoundException;
 import com.redhat.labs.omp.model.Engagement;
-import com.redhat.labs.omp.model.git.api.FileAction;
-import com.redhat.labs.omp.model.git.api.GitApiEngagement;
-import com.redhat.labs.omp.model.git.api.GitApiFile;
+import com.redhat.labs.omp.model.FileAction;
 import com.redhat.labs.omp.repository.EngagementRepository;
 
 @ApplicationScoped
@@ -87,10 +85,10 @@ public class EngagementService {
         engagement.setAction((null != persisted.getAction()) ? persisted.getAction() : FileAction.update);
 
         // set id to persisted id
-        engagement.id = persisted.id;
+        engagement.setMongoId(persisted.getMongoId());
 
         // set engagement id in case it was updated before the consumer refreshed
-        engagement.setEngagementId(persisted.getEngagementId());
+        engagement.setProjectId(persisted.getProjectId());
 
         // update in db
         repository.update(engagement);
@@ -141,24 +139,24 @@ public class EngagementService {
      * @param user
      * @param userEmail
      */
-    public void delete(String customerName, String projectName, String user, String userEmail) {
-
-        // check if engagement exists
-        Optional<Engagement> optional = get(customerName, projectName);
-
-        if (!optional.isPresent()) {
-            throw new ResourceNotFoundException("no engagement found.  use POST to create resource.");
-        }
-
-        Engagement engagement = optional.get();
-
-        // mark as modified for delete by sync process
-        engagement.setAction(FileAction.delete);
-
-        // update in repository
-        repository.update(engagement);
-
-    }
+//    public void delete(String customerName, String projectName, String user, String userEmail) {
+//
+//        // check if engagement exists
+//        Optional<Engagement> optional = get(customerName, projectName);
+//
+//        if (!optional.isPresent()) {
+//            throw new ResourceNotFoundException("no engagement found.  use POST to create resource.");
+//        }
+//
+//        Engagement engagement = optional.get();
+//
+//        // mark as modified for delete by sync process
+//        engagement.setAction(FileAction.delete);
+//
+//        // update in repository
+//        repository.update(engagement);
+//
+//    }
 
     /**
      * Used by the {@link GitSyncService} to delete all {@link Engagement} from the
@@ -175,16 +173,16 @@ public class EngagementService {
      * @param engagement
      * @return
      */
-    public GitApiFile createFileFromEngagement(Engagement engagement) {
-
-        // convert engagement to GitApiEngagement
-        GitApiEngagement gaEngagement = GitApiEngagement.from(engagement);
-        String content = jsonb.toJson(gaEngagement);
-
-        return GitApiFile.builder().filePath(engagementFileName).branch(engagementFileBranch)
-                .commitMessage(engagementFileCommitMessage).content(content)
-                .authorName(engagement.getLastUpdateByName()).authorEmail(engagement.getLastUpdateByEmail()).build();
-    }
+//    public GitApiFile createFileFromEngagement(Engagement engagement) {
+//
+//        // convert engagement to GitApiEngagement
+//        GitApiEngagement gaEngagement = GitApiEngagement.from(engagement);
+//        String content = jsonb.toJson(gaEngagement);
+//
+//        return GitApiFile.builder().filePath(engagementFileName).branch(engagementFileBranch)
+//                .commitMessage(engagementFileCommitMessage).content(content)
+//                .authorName(engagement.getLastUpdateByName()).authorEmail(engagement.getLastUpdateByEmail()).build();
+//    }
 
     /**
      * Callback function to handle response from the asynchronous REST call to
@@ -196,20 +194,20 @@ public class EngagementService {
      * @param response
      * @param throwable
      */
-    public void updateEngagementId(Engagement engagement, Response response) {
-
-        LOGGER.info("updating engagement id for mongo id '" + engagement.id + "'");
-
-        String location = response.getHeaderString("Location");
-        String engagementId = location.substring(location.lastIndexOf("/") + 1);
-
-        // update engagement id
-        LOGGER.info("adding id '" + engagementId + "' to engagement '" + engagement);
-        engagement.setEngagementId(Integer.valueOf(engagementId));
-
-        repository.update(engagement);
-
-    }
+//    public void updateEngagementId(Engagement engagement, Response response) {
+//
+//        LOGGER.info("updating engagement id for mongo id '" + engagement.getMongoId() + "'");
+//
+//        String location = response.getHeaderString("Location");
+//        String id = location.substring(location.lastIndexOf("/") + 1);
+//
+//        // update engagement id
+//        LOGGER.info("adding id '" + id + "' to engagement '" + engagement);
+//        engagement.setProjectId(Integer.valueOf(id));
+//
+//        repository.update(engagement);
+//
+//    }
 
     /**
      * Persists the {@link List} of {@link Engagement} into the data store.
@@ -246,13 +244,12 @@ public class EngagementService {
     }
 
     /**
-     * Returns a {@link List} of {@link Engagement} where the modified flag is set
-     * to true and the action is set to the given {@link FileAction}
+     * Returns a {@link List} of {@link Engagement} where {@link FileAction} is set.
      * 
      * @return
      */
-    public List<Engagement> getModifiedEngagementsByAction(FileAction action) {
-        return repository.findByModifiedAndAction(action);
+    public List<Engagement> getModifiedEngagements() {
+        return repository.findByModified();
     }
 
 }

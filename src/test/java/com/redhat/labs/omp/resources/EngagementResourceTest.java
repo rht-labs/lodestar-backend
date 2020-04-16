@@ -13,18 +13,24 @@ import javax.json.bind.Jsonb;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.rest.client.MockOMPGitLabAPIService.SCENARIO;
 import com.redhat.labs.utils.TokenUtils;
 
+import de.flapdoodle.embed.mongo.Command;
 import de.flapdoodle.embed.mongo.MongodExecutable;
 import de.flapdoodle.embed.mongo.MongodProcess;
 import de.flapdoodle.embed.mongo.MongodStarter;
 import de.flapdoodle.embed.mongo.config.IMongodConfig;
 import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
 import de.flapdoodle.embed.mongo.config.Net;
+import de.flapdoodle.embed.mongo.config.RuntimeConfigBuilder;
 import de.flapdoodle.embed.mongo.distribution.Version;
+import de.flapdoodle.embed.process.config.IRuntimeConfig;
+import de.flapdoodle.embed.process.config.io.ProcessOutput;
 import de.flapdoodle.embed.process.runtime.Network;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
@@ -33,7 +39,14 @@ import io.restassured.response.Response;
 @QuarkusTest
 public class EngagementResourceTest {
 
-    private static final MongodStarter starter = MongodStarter.getDefaultInstance();
+    private static final Logger LOGGER = LoggerFactory.getLogger(EngagementResourceTest.class);
+
+    private static final IRuntimeConfig config =
+            new RuntimeConfigBuilder()
+                .defaultsWithLogger(Command.MongoD, LOGGER)
+                .processOutput(ProcessOutput.getDefaultInstanceSilent())
+                .build();
+    private static final MongodStarter starter = MongodStarter.getInstance(config);
 
     @Inject
     Jsonb quarkusJsonb;
@@ -119,7 +132,7 @@ public class EngagementResourceTest {
                 .statusCode(201)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("engagement_id", nullValue());
+                .body("project_id", nullValue());
 
 
     }
@@ -343,7 +356,7 @@ public class EngagementResourceTest {
                 .statusCode(201)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("engagement_id", nullValue());
+                .body("project_id", nullValue());
 
         // update description
         engagement.setDescription("updated");
@@ -360,7 +373,7 @@ public class EngagementResourceTest {
                 .statusCode(200)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("engagement_id", nullValue())
+                .body("project_id", nullValue())
                 .body("description", equalTo(engagement.getDescription()));
 
     }
@@ -388,7 +401,7 @@ public class EngagementResourceTest {
                 .statusCode(201)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("engagement_id", nullValue());
+                .body("project_id", nullValue());
 
         // update description
         engagement.setDescription("updated");
@@ -430,7 +443,7 @@ public class EngagementResourceTest {
                 .statusCode(201)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("engagement_id", nullValue());
+                .body("project_id", nullValue());
 
         // update description
         engagement.setDescription("updated");
@@ -472,7 +485,7 @@ public class EngagementResourceTest {
                 .statusCode(201)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("engagement_id", nullValue());
+                .body("project_id", nullValue());
 
         // update description
         engagement.setDescription("updated");
@@ -514,7 +527,7 @@ public class EngagementResourceTest {
                 .statusCode(201)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("engagement_id", nullValue());
+                .body("project_id", nullValue());
 
         // update description
         engagement.setDescription("updated");
@@ -556,7 +569,7 @@ public class EngagementResourceTest {
                 .statusCode(201)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("engagement_id", nullValue());
+                .body("project_id", nullValue());
 
         // update description
         engagement.setDescription("updated");
@@ -598,7 +611,7 @@ public class EngagementResourceTest {
                 .statusCode(201)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("engagement_id", nullValue());
+                .body("project_id", nullValue());
 
         // update description
         engagement.setDescription("updated");
@@ -671,7 +684,7 @@ public class EngagementResourceTest {
                 .statusCode(201)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("engagement_id", nullValue());
+                .body("project_id", nullValue());
 
         // GET
         given()
@@ -683,7 +696,7 @@ public class EngagementResourceTest {
                 .statusCode(200)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("engagement_id", nullValue());
+                .body("project_id", nullValue());
 
     }
 
@@ -710,7 +723,7 @@ public class EngagementResourceTest {
                 .statusCode(201)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("engagement_id", nullValue());
+                .body("project_id", nullValue());
 
         // GET
         given()
@@ -773,7 +786,7 @@ public class EngagementResourceTest {
                 .statusCode(201)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("engagement_id", nullValue());
+                .body("project_id", nullValue());
 
         // GET engagement
         Response response = 
@@ -787,70 +800,6 @@ public class EngagementResourceTest {
         assertEquals(200, response.getStatusCode());
         Engagement[] engagements = quarkusJsonb.fromJson(response.getBody().asString(), Engagement[].class);
         assertEquals(1, engagements.length);
-
-    }
-
-    /*
-     * DELETE SCENARIOS:
-     * Postive:
-     *  - delete, engagement exists, returns
-     * Negative:
-     *  - get engagement doesn't exist, 404
-     *  
-     */
-    @Test
-    public void testDeleteEngagementWithAuthAndRoleSuccess() throws Exception {
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
-
-        Engagement engagement = mockEngagement();
-        engagement.setDescription(SCENARIO.SUCCESS.getValue());
-
-        String body = quarkusJsonb.toJson(engagement);
-
-        // POST engagement
-        given()
-            .when()
-                .auth()
-                .oauth2(token)
-                .body(body)
-                .contentType(ContentType.JSON)
-                .post("/engagements")
-            .then()
-                .statusCode(201)
-                .body("customer_name", equalTo(engagement.getCustomerName()))
-                .body("project_name", equalTo(engagement.getProjectName()))
-                .body("engagement_id", nullValue());
-
-        // DELETE
-        given()
-            .when()
-                .auth()
-                .oauth2(token)
-                .delete("/engagements/customers/" + engagement.getCustomerName() + "/projects/" + engagement.getProjectName())
-            .then()
-                .statusCode(204);
-
-    }
-
-    @Test
-    public void testDeleteEngagementWithAuthAndRoleDoesNotExist() throws Exception {
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
-
-        Engagement engagement = mockEngagement();
-        engagement.setDescription(SCENARIO.SUCCESS.getValue());
-
-        // DELETE
-        given()
-            .when()
-                .auth()
-                .oauth2(token)
-                .delete("/engagements/customers/" + engagement.getCustomerName() + "/projects/" + engagement.getProjectName())
-            .then()
-                .statusCode(404);
 
     }
 

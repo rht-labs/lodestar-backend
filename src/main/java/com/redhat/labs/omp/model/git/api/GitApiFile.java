@@ -18,10 +18,8 @@ public class GitApiFile {
     @JsonbProperty("file_path")
     private String filePath;
     @NotBlank
-    @JsonbProperty("branch")
     private String branch;
     @NotBlank
-    @JsonbProperty("content")
     private String content;
     @NotBlank
     @JsonbProperty("commit_message")
