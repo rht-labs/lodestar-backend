@@ -3,6 +3,7 @@ package com.redhat.labs.omp.resources;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.HashMap;
@@ -800,6 +801,78 @@ public class EngagementResourceTest {
         assertEquals(200, response.getStatusCode());
         Engagement[] engagements = quarkusJsonb.fromJson(response.getBody().asString(), Engagement[].class);
         assertEquals(1, engagements.length);
+
+    }
+
+    /*
+     * Launch Tests
+     * Positive:
+     *  - engagement exists, call launch, launch data on returned engagement
+     * Negagive:
+     *  - engagement does not exist, 404 returned
+     */
+
+    @Test
+    public void testLaunchEngagementWithAuthAndRoleSuccess() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Engagement engagement = mockEngagement();
+        engagement.setDescription(SCENARIO.SUCCESS.getValue());
+
+        String body = quarkusJsonb.toJson(engagement);
+
+        // POST engagement
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .body(body)
+                .contentType(ContentType.JSON)
+                .post("/engagements")
+            .then()
+                .statusCode(201)
+                .body("customer_name", equalTo(engagement.getCustomerName()))
+                .body("project_name", equalTo(engagement.getProjectName()))
+                .body("engagement_id", nullValue());
+
+        // Launch engagement
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .body(body)
+                .contentType(ContentType.JSON)
+                .put("/engagements/launch")
+             .then()
+                 .statusCode(200)
+                 .body("launch.launched_date_time", notNullValue())
+                 .body("launch.launched_by", equalTo("jdoe"));
+
+    }
+
+    @Test
+    public void testLaunchEngagementWithAuthAndRoleEngagementNotFound() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Engagement engagement = mockEngagement();
+        engagement.setDescription(SCENARIO.SUCCESS.getValue());
+
+        String body = quarkusJsonb.toJson(engagement);
+
+        // Launch engagement
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .body(body)
+                .contentType(ContentType.JSON)
+                .put("/engagements/launch")
+             .then()
+                 .statusCode(404);
 
     }
 

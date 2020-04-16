@@ -1,5 +1,6 @@
 package com.redhat.labs.omp.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -11,10 +12,12 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.redhat.labs.omp.exception.InvalidRequestException;
 import com.redhat.labs.omp.exception.ResourceAlreadyExistsException;
 import com.redhat.labs.omp.exception.ResourceNotFoundException;
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.model.FileAction;
+import com.redhat.labs.omp.model.Launch;
 import com.redhat.labs.omp.repository.EngagementRepository;
 
 @ApplicationScoped
@@ -34,6 +37,9 @@ public class EngagementService {
 
     @Inject
     EngagementRepository repository;
+
+    @Inject
+    GitSyncService gitSyncService;
 
     /**
      * Creates a new {@link Engagement} resource in the data store and marks if for
@@ -179,6 +185,34 @@ public class EngagementService {
      */
     public List<Engagement> getModifiedEngagements() {
         return repository.findByModified();
+    }
+
+    /**
+     * Adds {@link Launch} data to the given {@link Engagement} and uses
+     * {@link GitSyncService} to process the modified {@link Engagement}.
+     * 
+     * @param engagement
+     * @return
+     */
+    public Engagement launch(Engagement engagement) {
+
+        // do not relaunch
+        if (null != engagement.getLaunch()) {
+            throw new InvalidRequestException("engagement has already been launched.");
+        }
+
+        // create new launch data for engagement
+        engagement.setLaunch(Launch.builder().launchedDateTime(LocalDateTime.now())
+                .launchedBy(engagement.getLastUpdateByName()).build());
+
+        // update db
+        Engagement updated = update(engagement.getCustomerName(), engagement.getProjectName(), engagement);
+
+        // sync change(s) to git
+        gitSyncService.processModifiedEngagements();
+
+        return updated;
+
     }
 
 }
