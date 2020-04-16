@@ -9,9 +9,9 @@ import io.quarkus.jsonb.JsonbConfigCustomizer;
 @Singleton
 public class JsonConfig implements JsonbConfigCustomizer {
 
-	@Override
-	public void customize(JsonbConfig jsonbConfig) {
-		jsonbConfig.withPropertyNamingStrategy(PropertyNamingStrategy.LOWER_CASE_WITH_UNDERSCORES);
-	}
-	
+    @Override
+    public void customize(JsonbConfig jsonbConfig) {
+        jsonbConfig.withFormatting(true).withPropertyNamingStrategy(PropertyNamingStrategy.LOWER_CASE_WITH_UNDERSCORES);
+    }
+
 }

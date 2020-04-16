@@ -5,21 +5,15 @@ import static org.hamcrest.CoreMatchers.is;
 
 import java.util.HashMap;
 
-import javax.inject.Inject;
-
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.junit.jupiter.api.Test;
 
-import com.redhat.labs.omp.cache.EngagementDataCache;
 import com.redhat.labs.utils.TokenUtils;
 
 import io.quarkus.test.junit.QuarkusTest;
 
 @QuarkusTest
 public class ConfigResourceTest {
-	
-	@Inject
-	EngagementDataCache cache;
 
 	@ConfigProperty(name = "configFileCacheKey", defaultValue = "schema/config.yml")
 	String configFileCacheKey;
@@ -30,7 +24,6 @@ public class ConfigResourceTest {
 	 * 
 	 * SUCCESS -
 	 *   token supplied, has correct role, in cache
-	 *   token supplied, has correct role, not in cache, git api service returns 201
 	 * 
 	 * FAIL - 
 	 *   token has wrong role - 403
@@ -58,7 +51,7 @@ public class ConfigResourceTest {
 	}
 
 	@Test
-	public void testGetConfigNotInCacheIsInGitRepo() throws Exception {
+	public void testGetConfigInGitRepo() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsReader.json", timeClaims);
@@ -70,30 +63,9 @@ public class ConfigResourceTest {
 				.get("/config")
 			.then()
 				.statusCode(200)
-				.body("emoji", is("\uD83E\uDD8A"));
+				.body("file_path", is("somefile.txt"))
+				.body("content", is("some file context here"));
 		
 	}
-
-	@Test
-	public void testGetConfigInCache() throws Exception {
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsReader.json", timeClaims);
-
-		// insert into cache
-		cache.store(configFileCacheKey, "{\"emoji\":\"\uD83E\uDD8A\"}");
-
-		given()
-			.when()
-				.auth()
-					.oauth2(token)
-				.get("/config")
-			.then()
-				.statusCode(200)
-				.body("emoji", is("\uD83E\uDD8A"));
-
-	}
-
-	
 
 }

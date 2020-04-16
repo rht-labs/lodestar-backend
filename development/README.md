@@ -28,13 +28,17 @@ cd open-management-portal-backend/development
 
 ```shell script
 helm template . \
-  --set git.uri=https://github.com/dwasinge/open-management-portal-backend.git \
-  --set git.ref=develop \
-  --set cacheService=omp-cache \
-  --set ompGitlabApiUrl=https://omp-git-api-omp-dev.apps.s11.core.rht-labs.com \
-  --set jwtPublicKeyLocation=https://sso-omp-jasee.apps.s11.core.rht-labs.com/auth/realms/omp/protocol/openid-connect/certs \
-  --set jwtIssuer=https://sso-omp-jasee.apps.s11.core.rht-labs.com/auth/realms/omp \
+  --set git.uri=https://github.com/rht-labs/open-management-portal-backend.git \
+  --set git.ref=master \
+  --set ompGitlabApiUrl=http://omp-git-api:8080 \
+  --set jwtPublicKeyLocation=<your-jwt-public-key-location> \
+  --set jwtIssuer=https:<your-jwt-issuer> \
   --set jwtEnable=true \
+  --set mongodbServiceName=omp-backend-mongodb \
+  --set mongodbUser=<your-mongodb-user> \
+  --set mongodbPassword=<your-mongodb-password> \
+  --set mongodbDatabase=engagements \
+  --set mongodbAdminPassword=<your-mongodb-admin-password> \
 | oc apply -f -
 ```
 
@@ -44,10 +48,14 @@ It accepts the following variables
 |---|---|
 | `git.uri`  | The HTTPS reference to the repo (your fork!) to build  |
 | `git.ref`  | The branch name to build  |
-| `cacheService`  | The service name of the Infinispan deployment  |
 | `ompGitlabApiUrl`  | URL for the route or service to the Git API service  |
 | `jwtVerifyPublicKeyLocation`  | The URL at which your OpenID Connect (SSO) provider exposes its public key  |
 | `jwtIssuer`  | The issuer specified JWT token|
 | `jwtEnable`  | Flag to turn on and off JWT validation  |
+| `mongodbServiceName` | MongoDB service name |
+| `mongodbUser` | Application user for MongoDB |
+| `mongodbPassword` | Application user password for MongoDB |
+| `mongodbDatabase` | Application database name |
+| `mongodbAdminPassword` | Admin password for MongoDB |
 
 This will spin up all of the usual resources that this service needs in production, plus a `BuildConfig` configured to build it from source from the Git repository specified. To trigger this build, use `oc start-build omp-backend`.
