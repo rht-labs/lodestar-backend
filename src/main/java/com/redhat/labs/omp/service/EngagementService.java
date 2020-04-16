@@ -6,7 +6,6 @@ import java.util.Optional;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.json.bind.Jsonb;
-import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
@@ -131,34 +130,6 @@ public class EngagementService {
     }
 
     /**
-     * Marks the {@link Engagement} for deletion. The {@link GitSyncService} process
-     * will perform the delete from the data store.
-     * 
-     * @param customerName
-     * @param projectName
-     * @param user
-     * @param userEmail
-     */
-//    public void delete(String customerName, String projectName, String user, String userEmail) {
-//
-//        // check if engagement exists
-//        Optional<Engagement> optional = get(customerName, projectName);
-//
-//        if (!optional.isPresent()) {
-//            throw new ResourceNotFoundException("no engagement found.  use POST to create resource.");
-//        }
-//
-//        Engagement engagement = optional.get();
-//
-//        // mark as modified for delete by sync process
-//        engagement.setAction(FileAction.delete);
-//
-//        // update in repository
-//        repository.update(engagement);
-//
-//    }
-
-    /**
      * Used by the {@link GitSyncService} to delete all {@link Engagement} from the
      * data store before re-populating from Git.
      */
@@ -166,48 +137,6 @@ public class EngagementService {
         long count = repository.deleteAll();
         LOGGER.info("removed '" + count + "' engagements from the data store.");
     }
-
-    /**
-     * Helper function to create {@link GitApiFile} from an {@link Engagement}.
-     * 
-     * @param engagement
-     * @return
-     */
-//    public GitApiFile createFileFromEngagement(Engagement engagement) {
-//
-//        // convert engagement to GitApiEngagement
-//        GitApiEngagement gaEngagement = GitApiEngagement.from(engagement);
-//        String content = jsonb.toJson(gaEngagement);
-//
-//        return GitApiFile.builder().filePath(engagementFileName).branch(engagementFileBranch)
-//                .commitMessage(engagementFileCommitMessage).content(content)
-//                .authorName(engagement.getLastUpdateByName()).authorEmail(engagement.getLastUpdateByEmail()).build();
-//    }
-
-    /**
-     * Callback function to handle response from the asynchronous REST call to
-     * create a new {@link Engagement} using the Git API service. This method will
-     * update the data store using the engagement ID returned in the
-     * {@link Response}.
-     * 
-     * @param engagement
-     * @param response
-     * @param throwable
-     */
-//    public void updateEngagementId(Engagement engagement, Response response) {
-//
-//        LOGGER.info("updating engagement id for mongo id '" + engagement.getMongoId() + "'");
-//
-//        String location = response.getHeaderString("Location");
-//        String id = location.substring(location.lastIndexOf("/") + 1);
-//
-//        // update engagement id
-//        LOGGER.info("adding id '" + id + "' to engagement '" + engagement);
-//        engagement.setProjectId(Integer.valueOf(id));
-//
-//        repository.update(engagement);
-//
-//    }
 
     /**
      * Persists the {@link List} of {@link Engagement} into the data store.
