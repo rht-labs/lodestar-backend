@@ -1,4 +1,4 @@
-name: Java CI
+name: PR check
 
 on:
   - pull_request
