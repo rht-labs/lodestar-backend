@@ -91,6 +91,5 @@ spec:
         kind: ImageStreamTag
         name: mongodb:{{ .Values.mongodb.version | default "3.6" }}
         namespace: openshift
-      lastTriggeredImage: ""
     type: ImageChange
   - type: ConfigChange
