@@ -1,7 +1,11 @@
 name: PR check
 
 on:
-  - pull_request
+  pull_request:
+    paths-ignore:
+      - deployment/**
+      - development/**
+      - scripts/**
 
 jobs:
   build:
