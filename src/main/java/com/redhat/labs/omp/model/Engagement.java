@@ -46,6 +46,8 @@ public class Engagement extends PanacheMongoEntityBase {
     private String ocpSubDomain;
     private String ocpPersistentStorageSize;
     private String ocpClusterSize;
+    private Launch launch;
+
     @JsonbTransient
     private FileAction action;
     @JsonbTransient

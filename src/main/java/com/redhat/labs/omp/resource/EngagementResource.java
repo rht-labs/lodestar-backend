@@ -103,4 +103,16 @@ public class EngagementResource {
         return optional.isPresent() ? optional.get() : DEFAULT_EMAIL;
     }
 
+    @PUT
+    @Path("/launch")
+    public Engagement launch(@Valid Engagement engagement) {
+
+        // pull user info from token
+        engagement.setLastUpdateByName(getUsernameFromToken());
+        engagement.setLastUpdateByEmail(getUserEmailFromToken());
+
+        return engagementService.launch(engagement);
+
+    }
+
 }
