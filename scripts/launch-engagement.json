@@ -1,0 +1,22 @@
+{
+    "archive_date": "20170930",
+    "customer_contact_email": "reg@chiefs.com",
+    "customer_contact_name": "Reg Dunlop",
+    "customer_name": "customer1",
+    "description": "Internal Test",
+    "end_date": "20200609",
+    "engagement_lead_email": "doug93@leafs.com",
+    "engagement_lead_name": "Borje Salming",
+    "id": 12766,
+    "location": "Toronto, ON",
+    "ocp_cloud_provider_name": "GCP",
+    "ocp_cloud_provider_region": "West",
+    "ocp_cluster_size": "medium",
+    "ocp_persistent_storage_size": "50GB",
+    "ocp_sub_domain": "jello",
+    "ocp_version": "v4.2",
+    "project_name": "project1",
+    "start_date": "20200414",
+    "technical_lead_email": "wendel17@leafs.com",
+    "technical_lead_name": "Wendel Clark"
+}

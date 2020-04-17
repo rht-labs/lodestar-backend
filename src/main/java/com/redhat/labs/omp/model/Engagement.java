@@ -1,19 +1,34 @@
 package com.redhat.labs.omp.model;
 
+import javax.json.bind.annotation.JsonbTransient;
+import javax.validation.constraints.NotBlank;
+
+import org.bson.codecs.pojo.annotations.BsonId;
+import org.bson.types.ObjectId;
+
+import io.quarkus.mongodb.panache.PanacheMongoEntityBase;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Engagement {
+@EqualsAndHashCode(callSuper = true)
+public class Engagement extends PanacheMongoEntityBase {
 
-    private Integer id;
+    // Mongo DB generated ID
+    @BsonId
+    private ObjectId mongoId;
+
+    @NotBlank
     private String customerName;
+    @NotBlank
     private String projectName;
+    private Integer projectId;
     private String description;
     private String location;
     private String startDate;
@@ -31,5 +46,13 @@ public class Engagement {
     private String ocpSubDomain;
     private String ocpPersistentStorageSize;
     private String ocpClusterSize;
-    
+    private Launch launch;
+
+    @JsonbTransient
+    private FileAction action;
+    @JsonbTransient
+    private String lastUpdateByName;
+    @JsonbTransient
+    private String lastUpdateByEmail;
+
 }

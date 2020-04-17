@@ -1,6 +1,6 @@
 package com.redhat.labs.omp.model;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,8 +11,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class VersionManifest {
+public class Launch {
 
-	private List<Version> containers;
-	private List<Version> applicationData;
+    private LocalDateTime launchedDateTime;
+    private String launchedBy;
+
 }

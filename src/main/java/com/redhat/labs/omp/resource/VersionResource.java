@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.annotation.security.PermitAll;
+import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -26,11 +27,12 @@ import com.redhat.labs.omp.service.VersionService;
  * @author mcanoy
  *
  */
+@RequestScoped
 @Path("/api/v1/version")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class VersionResource {
-	private static final Logger LOGGER = LoggerFactory.getLogger(VersionResource.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(VersionResource.class);
 
     @ConfigProperty(name = "git.commit")
     String gitCommit;
@@ -46,12 +48,15 @@ public class VersionResource {
     @Counted(name="versionResourceCounter")
     @PermitAll
     public VersionManifest getVersion() {
-    	List<Version> versions = new ArrayList<>();
-    	versions.add(versionService.getGitApiVersion());
-    	Version version = Version.builder().application("omp-backend-container").gitCommit(gitCommit).gitTag(gitTag).build();
-    	
-    	LOGGER.debug(version.toString());
-    	versions.add(version);
-        return VersionManifest.builder().versions(versions).applicationData(versionService.getVersionManifest()).build();
+        List<Version> versions = new ArrayList<>();
+        versions.add(versionService.getGitApiVersion());
+        Version version = Version.builder().application("omp-backend-container").gitCommit(gitCommit).gitTag(gitTag).version(gitCommit).build();
+        if(version.getGitTag().startsWith("v")) {
+            version.setVersion(gitTag);
+        }
+        versions.add(version);
+
+        LOGGER.debug("Version: {}", version.getVersion());
+        return VersionManifest.builder().containers(versions).applicationData(versionService.getVersionManifest()).build();
     }
 }
