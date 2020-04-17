@@ -18,8 +18,7 @@ spec:
         deploymentconfig: "{{ .Values.name }}-mongodb"
     spec:
       containers:
-      - capabilities: {}
-        env:
+      - env:
         - name: MONGODB_USER
           valueFrom:
             secretKeyRef:
@@ -64,13 +63,13 @@ spec:
         resources:
           limits:
             memory: 512Mi
-      securityContext:
-        capabilities: {}
-        privileged: false
-      terminationMessagePath: /dev/termination-log
-      volumeMounts:
-      - mountPath: /var/lib/mongodb/data
-        name: "{{ .Values.name }}-data"
+        securityContext:
+          capabilities: {}
+          privileged: false
+        terminationMessagePath: /dev/termination-log
+        volumeMounts:
+        - mountPath: /var/lib/mongodb/data
+          name: "{{ .Values.name }}-data"
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       volumes:
