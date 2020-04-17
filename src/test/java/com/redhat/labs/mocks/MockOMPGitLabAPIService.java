@@ -7,6 +7,7 @@ import javax.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import com.redhat.labs.omp.model.Engagement;
+import com.redhat.labs.omp.model.Version;
 import com.redhat.labs.omp.rest.client.OMPGitLabAPIService;
 
 import io.quarkus.test.Mock;
@@ -52,6 +53,11 @@ public class MockOMPGitLabAPIService implements OMPGitLabAPIService {
 			return this.value;
 		}
 
+	}
+
+	@Override
+	public Version getVersion() {
+		return Version.builder().gitCommit("git-commit").gitTag("git-tag").build();
 	}
 
 }

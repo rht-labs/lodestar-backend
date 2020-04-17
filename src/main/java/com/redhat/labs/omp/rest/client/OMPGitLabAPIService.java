@@ -3,6 +3,7 @@ package com.redhat.labs.omp.rest.client;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 import com.redhat.labs.omp.model.Engagement;
+import com.redhat.labs.omp.model.Version;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
@@ -20,5 +21,10 @@ public interface OMPGitLabAPIService {
     @Path("/api/v1/engagements")
     @Produces("application/json")
     Response createEngagement(Engagement engagement);
+
+    @GET
+    @Path("/api/v1/version")
+    @Produces("application/json")
+    Version getVersion();
 
 }
