@@ -14,6 +14,8 @@ import javax.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 import com.redhat.labs.omp.model.Engagement;
+import com.redhat.labs.omp.model.Version;
+
 import com.redhat.labs.omp.model.git.api.GitApiFile;
 
 @RegisterRestClient(configKey = "omp.gitlab.api")
@@ -34,5 +36,10 @@ public interface OMPGitLabAPIService {
     @Path("/api/v1/projects/{projectId}/files/{filePath}")
     @Produces("application/json")
     GitApiFile getFile(@PathParam("projectId") Integer projectId, @PathParam("filePath") @Encoded String filePath);
+
+    @GET
+    @Path("/api/v1/version")
+    @Produces("application/json")
+    Version getVersion();
 
 }
