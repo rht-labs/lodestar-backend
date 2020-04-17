@@ -31,29 +31,28 @@ public class VersionManifestConfig {
     private List<Version> versionData;
 
     @SuppressWarnings("serial")
-	void onStart(@Observes StartupEvent event) {
+    void onStart(@Observes StartupEvent event) {
         LOGGER.warn("Loading versions from {}", versionJsonFile);
         
         Path path = Paths.get(versionJsonFile);
         
         if(Files.isReadable(path)) {
             try {
-            	String fileContents = new String(Files.readAllBytes(path));
-            	
-            	JsonbConfig config = new JsonbConfig();
+                String fileContents = new String(Files.readAllBytes(path));
+                JsonbConfig config = new JsonbConfig();
                 Jsonb jsonb = JsonbBuilder.create(config);
                 versionData = jsonb.fromJson(fileContents, new ArrayList<Version>() {}.getClass().getGenericSuperclass());
-				LOGGER.warn(versionData.toString());
-			} catch (IOException e) {
-				LOGGER.error("Found but unable to read file {}", versionJsonFile);
-			}
+                LOGGER.warn(versionData.toString());
+            } catch (IOException e) {
+                LOGGER.error("Found but unable to read file {}", versionJsonFile);
+            }
         } else {
             LOGGER.warn("Unable to locate version manifest file at {}", versionJsonFile);
         }
     }
     
     public List<Version> getVersionData() {
-    	return versionData;
+        return versionData;
     }
     
 }

@@ -13,6 +13,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class VersionManifest {
 
-	private List<Version> containers;
-	private List<Version> applicationData;
+    private List<Version> containers;
+    private List<Version> applicationData;
 }

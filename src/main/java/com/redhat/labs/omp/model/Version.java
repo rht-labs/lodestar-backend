@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Version {
     
-	private String application;
+    private String application;
     private String gitCommit;
     private String gitTag;
     private String version;

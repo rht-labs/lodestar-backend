@@ -14,27 +14,27 @@ import com.redhat.labs.omp.rest.client.OMPGitLabAPIService;
 @ApplicationScoped
 public class VersionService {
 
-	@RestClient
-	@Inject
-	OMPGitLabAPIService gitApiService;
-	
-	@Inject
-	VersionManifestConfig versionManifestConfig;
-	
-	public List<Version> getVersionManifest() {
-		return versionManifestConfig.getVersionData();
-	}
-	
-	public Version getGitApiVersion() {
-		Version version = gitApiService.getVersion();
-		version.setApplication("omp-git-api-container");
-		
-		if(version.getGitTag().startsWith("v")) {
-			version.setVersion(version.getGitTag());
-		} else {
-			version.setVersion(version.getGitCommit());
-		}
-		
-		return version;
-	}
+    @RestClient
+    @Inject
+    OMPGitLabAPIService gitApiService;
+
+    @Inject
+    VersionManifestConfig versionManifestConfig;
+
+    public List<Version> getVersionManifest() {
+        return versionManifestConfig.getVersionData();
+    }
+
+    public Version getGitApiVersion() {
+        Version version = gitApiService.getVersion();
+        version.setApplication("omp-git-api-container");
+        
+        if(version.getGitTag().startsWith("v")) {
+            version.setVersion(version.getGitTag());
+        } else {
+            version.setVersion(version.getGitCommit());
+        }
+
+        return version;
+    }
 }

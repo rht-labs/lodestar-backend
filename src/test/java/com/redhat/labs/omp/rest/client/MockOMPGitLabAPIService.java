@@ -73,10 +73,10 @@ public class MockOMPGitLabAPIService implements OMPGitLabAPIService {
 
     }
 
-	@Override
-	public Version getVersion() {
-		Version v = Version.builder().gitCommit("abcdef").gitTag("v1.1").build();
-		return v;
-	}
+    @Override
+    public Version getVersion() {
+        Version v = Version.builder().gitCommit("abcdef").gitTag("v1.1").build();
+        return v;
+    }
 
 }
