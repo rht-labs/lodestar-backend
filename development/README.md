@@ -59,3 +59,39 @@ It accepts the following variables
 | `mongodbAdminPassword` | Admin password for MongoDB |
 
 This will spin up all of the usual resources that this service needs in production, plus a `BuildConfig` configured to build it from source from the Git repository specified. To trigger this build, use `oc start-build omp-backend`.
+
+# Local Development
+
+### Mongo DB
+
+If you are developing locally you will need to connect to a database. By default it connects to a local instead. You can use the docker setup located in the `development` directory in this repo to deploy an instance. It will persist data into a sub-directory named `mongo-volume`. To destroy the database entirely you can shut down the docker instance and remove the sub-directory.
+
+From the root of the repo
+
+```bash
+cd development
+docker-compose up
+```
+
+### Local Git API
+
+Clone the Git API repo, follow the local dev steps there and run it on port 8080.
+
+### Run locally
+
+```bash
+# required
+export OMP_GITLAB_API_URL=http://localhost:8080
+
+#some options
+# could include not default mongo values here
+export OMP_BACKEND_GIT_COMMIT=gitSHA
+export OMP_BACKED_GIT_TAG=v34.4
+export JWT_LOGGING=INFO
+export OMP_BACKEND_VERSIONS_PATH=$PWD/version-manifest.yml
+
+echo "OMP GIT API $OMP_GITLAB_API_URL"
+mvn quarkus:dev
+```
+
+Navigate to http://localhost:8080
