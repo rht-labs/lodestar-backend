@@ -25,7 +25,6 @@ import com.redhat.labs.omp.service.VersionService;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class VersionResource {
-
     @Inject
     VersionService versionService;
     
