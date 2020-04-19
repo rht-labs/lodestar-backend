@@ -1,3 +1,5 @@
+![Build Container](https://github.com/rht-labs/open-management-portal-backend/workflows/Build%20Container/badge.svg)
+
 # Open Management Portal - Backend
 
 > The API for the Open Management Portal.
