@@ -1,5 +1,5 @@
 ---
-{{- if .Values.mongodb.persistent }}
+{{- if and (not .Values.development) (.Values.mongodb.persistent) }}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

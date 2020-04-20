@@ -1,0 +1,32 @@
+{{- if .Values.development }}
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  labels:
+    app: {{ .Values.name }}
+  name: {{ .Values.name }}
+spec:
+  failedBuildsHistoryLimit: 5
+  nodeSelector: null
+  output:
+    to:
+      kind: ImageStreamTag
+      name: "{{ .Values.imageName }}:{{ .Values.imageTag }}"
+  postCommit: {}
+  resources: {}
+  runPolicy: Serial
+  source:
+    git:
+      uri: {{ .Values.git.uri }}
+      ref: {{ .Values.git.ref }}
+    type: Git
+  strategy:
+    sourceStrategy:
+      from:
+        kind: DockerImage
+        name: "{{ .Values.builderImage }}:{{ .Values.builderImageTag }}"
+    type: Source
+  successfulBuildsHistoryLimit: 5
+  triggers:
+    - type: ConfigChange
+{{- end }}

@@ -1,4 +1,4 @@
-{{- if eq .Values.imageTag "latest" }}
+{{- if or (eq .Values.imageTag "latest") (.Values.development) }}
 ---
 apiVersion: image.openshift.io/v1
 kind: ImageStream
@@ -9,6 +9,7 @@ metadata:
 spec:
   lookupPolicy:
     local: false
+  {{- if not .Values.development}}
   tags:
   - annotations: null
     from:
@@ -19,4 +20,5 @@ spec:
     name: {{ .Values.imageTag }}
     referencePolicy:
       type: Source
+  {{- end }}
 {{- end }}

@@ -39,6 +39,9 @@ spec:
             secretKeyRef:
               key: MONGODB_DATABASE
               name: "{{ .Values.name }}-configuration"
+        {{- if .Values.development }}
+        capabilities: {}
+        {{- end }}
         image: ' '
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -73,7 +76,7 @@ spec:
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       volumes:
-      {{- if .Values.mongodb.persistent }}
+      {{- if and (not .Values.development) (.Values.mongodb.persistent) }}
       - name: "{{ .Values.name }}-data"
         persistentVolumeClaim:
           claimName: "{{ .Values.name }}-mongodb"
@@ -89,7 +92,11 @@ spec:
       - mongodb
       from:
         kind: ImageStreamTag
+        {{- if .Values.development }}
+        name: mongodb:3.2
+        {{- else }}
         name: mongodb:{{ .Values.mongodb.version | default "3.6" }}
+        {{- end }}
         namespace: openshift
     type: ImageChange
   - type: ConfigChange
