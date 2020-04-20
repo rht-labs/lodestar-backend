@@ -34,7 +34,7 @@ public class VersionResource {
     @PermitAll
     public VersionManifest getVersion() {
         VersionManifest vm = versionService.getVersionManifest();
-        vm.getContainers().add(versionService.getGitApiVersion());
+        vm.addContainer(versionService.getGitApiVersion());
 
         return vm;
     }
