@@ -7,9 +7,8 @@ on:
 
 jobs:
   build:
-
+    if: github.repository == 'rht-labs/open-management-portal-backend'
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
     - name: Set up JDK
