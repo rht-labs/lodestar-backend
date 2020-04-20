@@ -22,3 +22,5 @@ mongodbUser: mongouser
 mongodbPassword: mongopassword
 mongodbDatabase: engagements
 mongodbAdminPassword: mongoadminpassword
+versions:
+  sampleApp: v34.4
