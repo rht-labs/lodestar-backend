@@ -1,0 +1,5 @@
+applications:
+- application: ball
+  version: v2.0
+- application: launcher
+  version: v1.1
