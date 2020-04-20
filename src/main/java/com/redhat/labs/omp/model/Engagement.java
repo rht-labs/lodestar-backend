@@ -1,5 +1,7 @@
 package com.redhat.labs.omp.model;
 
+import java.util.List;
+
 import javax.json.bind.annotation.JsonbTransient;
 import javax.validation.constraints.NotBlank;
 
@@ -47,6 +49,7 @@ public class Engagement extends PanacheMongoEntityBase {
     private String ocpPersistentStorageSize;
     private String ocpClusterSize;
     private Launch launch;
+    private List<EngagementUser> engagementUsers;
 
     @JsonbTransient
     private FileAction action;
