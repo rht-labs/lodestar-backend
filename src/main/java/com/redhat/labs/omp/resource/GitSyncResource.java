@@ -12,6 +12,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 
 import com.redhat.labs.omp.service.GitSyncService;
 
@@ -29,6 +30,7 @@ public class GitSyncResource {
 
     @PUT
     @Path("/refresh")
+    @SecurityRequirement(name = "jwt", scopes = {})
     public Response refresh() {
 
         service.refreshBackedFromGit();
@@ -38,6 +40,7 @@ public class GitSyncResource {
 
     @PUT
     @Path("/process/modified")
+    @SecurityRequirement(name = "jwt", scopes = {})
     public Response push() {
 
         service.processModifiedEngagements();
@@ -47,6 +50,7 @@ public class GitSyncResource {
 
     @PUT
     @Path("/autosave/toggle")
+    @SecurityRequirement(name = "jwt", scopes = {})
     public Response toggle() {
 
         boolean value = service.toggleAutoSave();

@@ -8,6 +8,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 
 import com.redhat.labs.omp.model.git.api.GitApiFile;
 import com.redhat.labs.omp.service.ConfigService;
@@ -24,6 +25,7 @@ public class ConfigResource {
 	ConfigService configService;
 
 	@GET
+	@SecurityRequirement(name = "jwt", scopes = {})
 	public GitApiFile fetchConfigData() {
 		return configService.getConfigData();
 	}

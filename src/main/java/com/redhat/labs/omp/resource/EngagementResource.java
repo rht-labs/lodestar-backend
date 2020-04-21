@@ -20,6 +20,9 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.eclipse.microprofile.openapi.annotations.enums.SecuritySchemeType;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 
 import com.redhat.labs.omp.exception.ResourceNotFoundException;
 import com.redhat.labs.omp.model.Engagement;
@@ -29,6 +32,7 @@ import com.redhat.labs.omp.service.EngagementService;
 @Path("/engagements")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@SecurityScheme(securitySchemeName = "jwt", type = SecuritySchemeType.HTTP, scheme = "bearer", bearerFormat = "JWT")
 public class EngagementResource {
 
     private static final String USERNAME_CLAIM = "preferred_username";
@@ -44,6 +48,7 @@ public class EngagementResource {
     EngagementService engagementService;
 
     @POST
+    @SecurityRequirement(name = "jwt", scopes = {})
     public Response post(@Valid Engagement engagement, @Context UriInfo uriInfo) {
 
         // pull user info from token
@@ -61,6 +66,7 @@ public class EngagementResource {
     }
 
     @PUT
+    @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/customers/{customerName}/projects/{projectName}")
     public Engagement put(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName,
             @Valid Engagement engagement) {
@@ -74,6 +80,7 @@ public class EngagementResource {
     }
 
     @GET
+    @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/customers/{customerName}/projects/{projectName}")
     public Engagement get(@PathParam("customerName") String customerName,
             @PathParam("projectName") String projectName) {
@@ -89,8 +96,22 @@ public class EngagementResource {
     }
 
     @GET
+    @SecurityRequirement(name = "jwt", scopes = {})
     public List<Engagement> getAll() {
         return engagementService.getAll();
+    }
+
+    @PUT
+    @Path("/launch")
+    @SecurityRequirement(name = "jwt", scopes = {})
+    public Engagement launch(@Valid Engagement engagement) {
+
+        // pull user info from token
+        engagement.setLastUpdateByName(getUsernameFromToken());
+        engagement.setLastUpdateByEmail(getUserEmailFromToken());
+
+        return engagementService.launch(engagement);
+
     }
 
     private String getUsernameFromToken() {
@@ -101,18 +122,6 @@ public class EngagementResource {
     private String getUserEmailFromToken() {
         Optional<String> optional = jwt.claim(USER_EMAIL_CLAIM);
         return optional.isPresent() ? optional.get() : DEFAULT_EMAIL;
-    }
-
-    @PUT
-    @Path("/launch")
-    public Engagement launch(@Valid Engagement engagement) {
-
-        // pull user info from token
-        engagement.setLastUpdateByName(getUsernameFromToken());
-        engagement.setLastUpdateByEmail(getUserEmailFromToken());
-
-        return engagementService.launch(engagement);
-
     }
 
 }
