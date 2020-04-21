@@ -39,9 +39,7 @@ spec:
             secretKeyRef:
               key: MONGODB_DATABASE
               name: "{{ .Values.name }}-configuration"
-        {{- if .Values.development }}
         capabilities: {}
-        {{- end }}
         image: ' '
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -92,11 +90,7 @@ spec:
       - mongodb
       from:
         kind: ImageStreamTag
-        {{- if .Values.development }}
-        name: mongodb:3.2
-        {{- else }}
         name: mongodb:{{ .Values.mongodb.version | default "3.6" }}
-        {{- end }}
         namespace: openshift
     type: ImageChange
   - type: ConfigChange
