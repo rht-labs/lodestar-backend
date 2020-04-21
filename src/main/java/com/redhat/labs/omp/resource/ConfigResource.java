@@ -21,20 +21,20 @@ import com.redhat.labs.omp.service.ConfigService;
 @Produces(MediaType.APPLICATION_JSON)
 public class ConfigResource {
 
-	@Inject
-	JsonWebToken jwt;
+    @Inject
+    JsonWebToken jwt;
 
-	@Inject
-	ConfigService configService;
+    @Inject
+    ConfigService configService;
 
-	@GET
-	@SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = {
+    @GET
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @APIResponses(value = { 
             @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
-            @APIResponse(responseCode = "200", description = "Configuration file data has been returned.")})
+            @APIResponse(responseCode = "200", description = "Configuration file data has been returned.") })
     @Operation(summary = "Returns configuration file data from git.")
-	public GitApiFile fetchConfigData() {
-		return configService.getConfigData();
-	}
+    public GitApiFile fetchConfigData() {
+        return configService.getConfigData();
+    }
 
 }
