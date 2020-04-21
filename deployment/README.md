@@ -18,16 +18,17 @@ If you are not familiar with Helm - how to configure it and run - you can start 
 git clone https://github.com/rht-labs/open-management-portal-backend
 ```
 
-2. Change into to the `development` directory:
+2. Change into to the `deployment` directory:
 
 ```
-cd open-management-portal-backend/development
+cd open-management-portal-backend/deployment
 ```
 
 3. Deploy using the following Helm command:
 
 ```shell script
 helm template . \
+  --values values-dev.yaml \
   --set git.uri=https://github.com/rht-labs/open-management-portal-backend.git \
   --set git.ref=master \
   --set ompGitlabApiUrl=http://omp-git-api:8080 \
@@ -69,7 +70,7 @@ If you are developing locally you will need to connect to a database. By default
 From the root of the repo
 
 ```bash
-cd development
+cd deployment
 docker-compose up
 ```
 
