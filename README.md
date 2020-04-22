@@ -123,7 +123,7 @@ This project was built using Quarkus.
 
 ## Testing
 
-This project runs unit tests using an alternate application profile, which disables JWT token verification and user role verification. This means that all endpoints are available without returning 401 or 403, but the user context is not available during tests.
+This project runs tests using an embedded Mongo DB and Using the TokenUtils found in the test directory.  The only component Mocked is the external REST Client calls to the Git API.
 
 ## Useful Commands
 
@@ -135,3 +135,4 @@ mvn test
 # build for production
 mvn quarkus:build
 ```
+
