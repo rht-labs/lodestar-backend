@@ -57,22 +57,61 @@ A configurable auto sync feature allows data that has been modified in Mongo DB 
 auto.save.cron.expr=0/30 * * * * ?
 ```
 
+__NOTE:__ There is no current auto sync from Gitlab to Mongo DB.  The `/engagements/refresh` API can be used to force a refresh of the data in Mongo DB from Gitlab if changes have been made without using the Backend APIs
+
 ## Configuration
 
 The following environment variables are available:
+
+### Logging
+| Name | Example Value | Required |
+|------|---------------|----------|
+| JWT_LOGGING| INFO | False |
+| OMP_BACKEND_LOGGING | INFO | False |
+
+### JWT
 
 | Name | Example Value | Required |
 |------|---------------|----------|
 | JWT_PUBKICKEY_LOCATION | http://[your-cluster-internal-sso-service-name]:8080/auth/realms/[your-realm-id]/protocol/openid-connect/certs | True |
 | JWT_ISSUER | http://[your-cluster-internal-sso-service-name] | True |
 | JWT_ENABLE | True | False |
+
+### Mongo DB
+
+| Name | Example Value | Required |
+|------|---------------|----------|
 | MONGODB_USER | monguser | True |
 | MONGODB_PASSWORD | mongopassword | True |
 | DATABASE_SERVICE_NAME | omp-backend-mongodb | True |
 | MONGODB_DATABASE | engagements | True |
+
+### Config Resource
+
+| Name | Example Value | Required |
+|------|---------------|----------|
 | CONFIG_REPOSITORY_ID |  1234             |  True        |
-| CONFIG_REPOSITORY_PATH | schema/config.yml | True |
+| CONFIG_FILE | schema/config.yml | False |
+
+### Git API
+
+| Name | Example Value | Required |
+|------|---------------|----------|
 | OMP_GITLAB_API_URL   | http://omp-git-api:8080 | True |
+
+### Version Resource
+
+| Name | Example Value | Required |
+|------|---------------|----------|
+| OMP_BACKEND_GIT_COMMIT | not.set | False |
+| OMP_BACKEND_GIT_TAG | not.set | False |
+| OMP_BACKEND_VERSIONS_PATH | /config/version-manifest.yml | False |
+
+### Git Auto Sync
+
+| Name | Example Value | Required |
+|------|---------------|----------|
+| AUTO_SAVE_CRON_EXPR | 0/30 * * * * ? | False |
 
 ## Development
 
