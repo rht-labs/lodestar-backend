@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>open-management-portal-backend - 1.0-SNAPSHOT</title>
+    <title>OMP</title>
+    <link rel="shortcut icon" href="https://www.openshift.com/hubfs/favicon-2.ico">
     <style>
         h1, h2, h3, h4, h5, h6 {
             margin-bottom: 0.5rem;
@@ -36,7 +37,7 @@
 
         .lead {
             font-weight: 300;
-            font-size: 2rem;
+            font-size: 1rem;
         }
 
         .banner {
@@ -62,12 +63,12 @@
         .left-column {
             padding: .75rem;
             max-width: 75%;
-            min-width: 55%;
+            min-width: 40%;
         }
 
         .right-column {
             padding: .75rem;
-            max-width: 25%;
+            max-width: 40%;
         }
 
         .container {
@@ -94,41 +95,62 @@
             list-style-type: none;
             padding-left: 0;
         }
+        a:link {
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
 
     </style>
+
 </head>
 <body>
 
 <div class="banner lead">
-    The OMP backend is online!
+    OMP Backend
 </div>
 
 <div class="container">
     <div class="left-column">
-        <p class="lead"> You've reached the API server for the Open Management Portal.</p>
+        <p class="lead"> This is the API server for the Open Management Portal.</p>
 
-        <h2>Why do you see this?</h2>
-
-        <p>Honestly, unless you're working on the system, you probably shouldn't be seeing this.<br />
-            More information about the application is available at
-            <code><a href="https://github.com/rht-labs">the rht-labs GitHub page</a></code>.</p>
+        <p><a href="https://github.com/rht-labs/open-management-portal-backend">Github Repo</p  >
 
         <p><a href="/swagger-ui">Swagger UI</a></p>
 
     </div>
     <div class="right-column">
         <div class="right-section">
-            <h3>Application</h3>
-            <ul>
-                <li>GroupId: com.rht_labs</li>
-                <li>ArtifactId: open-management-portal-backend</li>
-                <li>Version: 1.0-SNAPSHOT</li>
-                <li>Quarkus Version: 0.28.1</li>
+            <h3>Versions</h3>
+            <div id="versions2"></div>
+            <ul id="versions">
             </ul>
         </div>
     </div>
 </div>
-
+<script>
+    const ul = document.getElementById('versions');
+    function createLI(applications) {
+        return applications.map(function(application) {
+                let li = document.createElement('li');
+                let span = document.createElement('span');
+                span.innerHTML = `${application.application}: ${application.version}`;
+                li.appendChild(span);
+                ul.appendChild(li);
+            })
+    }
+    fetch('/api/v1/version')
+        .then((response) => {
+            return response.json();
+        })
+        .then((data) => {
+            console.log(data);
+            let containers = data.containers;
+            createLI(containers);
+            createLI(data.applications);
+        });
+</script>
 
 </body>
 </html>
