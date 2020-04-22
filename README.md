@@ -48,6 +48,14 @@ PUT  /engagements/process/modified
 PUT  /engagements/refresh
 ```
 
+### Version Resource
+
+The version resource exposes an endpoint that will allow the client to determine which versions of the backend, git api, and other components being used by OMP.
+
+```
+GET  /api/v1/version
+```
+
 ## Scheduled Auto Sync to Git API
 
 A configurable auto sync feature allows data that has been modified in Mongo DB to be pushed to Gitlab using the Git API.  This feature is configured using a CRON expression that can be updated in the application.properties file or overridden using environment variables.
