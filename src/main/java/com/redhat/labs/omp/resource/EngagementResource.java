@@ -20,6 +20,12 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import org.eclipse.microprofile.jwt.JsonWebToken;
+import org.eclipse.microprofile.openapi.annotations.Operation;
+import org.eclipse.microprofile.openapi.annotations.enums.SecuritySchemeType;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
+import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
+import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 
 import com.redhat.labs.omp.exception.ResourceNotFoundException;
 import com.redhat.labs.omp.model.Engagement;
@@ -29,6 +35,7 @@ import com.redhat.labs.omp.service.EngagementService;
 @Path("/engagements")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@SecurityScheme(securitySchemeName = "jwt", type = SecuritySchemeType.HTTP, scheme = "bearer", bearerFormat = "JWT")
 public class EngagementResource {
 
     private static final String USERNAME_CLAIM = "preferred_username";
@@ -44,6 +51,12 @@ public class EngagementResource {
     EngagementService engagementService;
 
     @POST
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @APIResponses(value = {
+            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "409", description = "Engagement resource already exists"),
+            @APIResponse(responseCode = "201", description = "Engagement stored in database")})
+    @Operation(summary = "Creates the engagement resource in the database.")
     public Response post(@Valid Engagement engagement, @Context UriInfo uriInfo) {
 
         // pull user info from token
@@ -61,7 +74,13 @@ public class EngagementResource {
     }
 
     @PUT
+    @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/customers/{customerName}/projects/{projectName}")
+    @APIResponses(value = {
+            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "404", description = "Engagement resource not found to update"),
+            @APIResponse(responseCode = "200", description = "Engagement updated in the database")})
+    @Operation(summary = "Updates the engagement resource in the database.")
     public Engagement put(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName,
             @Valid Engagement engagement) {
 
@@ -74,7 +93,13 @@ public class EngagementResource {
     }
 
     @GET
+    @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/customers/{customerName}/projects/{projectName}")
+    @APIResponses(value = {
+            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "404", description = "Engagement resource with customer and project names does not exist"),
+            @APIResponse(responseCode = "200", description = "Engagement resource found and returned")})
+    @Operation(summary = "Returns the engagement resource for the given customer and project names.")
     public Engagement get(@PathParam("customerName") String customerName,
             @PathParam("projectName") String projectName) {
 
@@ -89,8 +114,30 @@ public class EngagementResource {
     }
 
     @GET
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @APIResponses(value = {
+            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "200", description = "A list or empty list of engagement resources returned")})
+    @Operation(summary = "Returns all engagement resources from the database.  Can be empty list if none found.")
     public List<Engagement> getAll() {
         return engagementService.getAll();
+    }
+
+    @PUT
+    @Path("/launch")
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @APIResponses(value = {
+            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "200", description = "Launch data added to engagement resource and persisted to git")})
+    @Operation(summary = "Adds launch data to the engagement resource and immediately persists it to git.")
+    public Engagement launch(@Valid Engagement engagement) {
+
+        // pull user info from token
+        engagement.setLastUpdateByName(getUsernameFromToken());
+        engagement.setLastUpdateByEmail(getUserEmailFromToken());
+
+        return engagementService.launch(engagement);
+
     }
 
     private String getUsernameFromToken() {
@@ -101,18 +148,6 @@ public class EngagementResource {
     private String getUserEmailFromToken() {
         Optional<String> optional = jwt.claim(USER_EMAIL_CLAIM);
         return optional.isPresent() ? optional.get() : DEFAULT_EMAIL;
-    }
-
-    @PUT
-    @Path("/launch")
-    public Engagement launch(@Valid Engagement engagement) {
-
-        // pull user info from token
-        engagement.setLastUpdateByName(getUsernameFromToken());
-        engagement.setLastUpdateByEmail(getUserEmailFromToken());
-
-        return engagementService.launch(engagement);
-
     }
 
 }
