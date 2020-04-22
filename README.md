@@ -7,10 +7,13 @@ The API for the Open Management Portal.
 ## JSON REST APIs
 
 The JSON REST APIs consist of three resources types:
+
 * config
 * engagements
 * git sync
 * version
+
+The application, once running, also exposes a Swagger UI that will provide more details about each of the APIs described below.  It can be found using the `/swagger-ui` path for the application.
 
 ### Config Resource
 
