@@ -212,6 +212,65 @@ public class GitSyncResourceTest {
 
     }
 
+    @Test
+    public void testPutEngagementProcessModifiedWithAuthAndRoleGitApiException() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Engagement engagement = mockEngagement();
+        engagement.setDescription(SCENARIO.RUNTIME_EXCEPTION.getValue());
+
+        String body = quarkusJsonb.toJson(engagement);
+
+        // POST engagement - create
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .body(body)
+                .contentType(ContentType.JSON)
+                .post("/engagements")
+            .then()
+                .statusCode(201)
+                .body("customer_name", equalTo(engagement.getCustomerName()))
+                .body("project_name", equalTo(engagement.getProjectName()))
+                .body("project_id", nullValue());
+
+
+        // create another engagement
+        engagement = mockEngagement();
+        engagement.setCustomerName("AnotherTestCustomer");
+        engagement.setProjectName("AnotherTestProject");
+        engagement.setDescription(SCENARIO.SUCCESS.getValue());
+        body = quarkusJsonb.toJson(engagement);
+
+        // POST engagement - create
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .body(body)
+                .contentType(ContentType.JSON)
+                .post("/engagements")
+            .then()
+                .statusCode(201)
+                .body("customer_name", equalTo(engagement.getCustomerName()))
+                .body("project_name", equalTo(engagement.getProjectName()))
+                .body("project_id", nullValue());
+
+        // sync to git api
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .contentType(ContentType.JSON)
+                .put("/engagements/process/modified")
+            .then()
+                .statusCode(200);
+
+    }
+
     /*
      * GIT 2 Backend Refresh
      *  - create 1, then run sync
