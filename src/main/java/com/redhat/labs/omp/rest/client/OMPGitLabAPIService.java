@@ -2,11 +2,9 @@ package com.redhat.labs.omp.rest.client;
 
 import java.util.List;
 
-import javax.ws.rs.Encoded;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
@@ -15,7 +13,6 @@ import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.model.Version;
-
 import com.redhat.labs.omp.model.git.api.GitApiFile;
 
 @RegisterRestClient(configKey = "omp.gitlab.api")
@@ -33,9 +30,9 @@ public interface OMPGitLabAPIService {
             @QueryParam("userEmail") String userEmail);
 
     @GET
-    @Path("/api/v1/projects/{projectId}/files/{filePath}")
+    @Path("/api/v1/config")
     @Produces("application/json")
-    GitApiFile getFile(@PathParam("projectId") Integer projectId, @PathParam("filePath") @Encoded String filePath);
+    GitApiFile getConfigFile();
 
     @GET
     @Path("/api/v1/version")

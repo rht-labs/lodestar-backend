@@ -97,12 +97,6 @@ The following environment variables are available:
 | DATABASE_SERVICE_NAME | omp-backend-mongodb | True |
 | MONGODB_DATABASE | engagements | True |
 
-### Config Resource
-
-| Name | Example Value | Required |
-|------|---------------|----------|
-| CONFIG_REPOSITORY_ID |  1234             |  True        |
-| CONFIG_FILE | schema/config.yml | False |
 
 ### Git API
 
