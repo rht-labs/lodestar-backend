@@ -39,7 +39,6 @@ spec:
             secretKeyRef:
               key: MONGODB_DATABASE
               name: "{{ .Values.name }}-configuration"
-        capabilities: {}
         image: ' '
         imagePullPolicy: IfNotPresent
         livenessProbe:
