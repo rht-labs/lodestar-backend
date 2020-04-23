@@ -7,6 +7,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -64,7 +65,7 @@ public class GitSyncService {
         boolean temp;
         do {
             temp = autosave.get();
-        } while(!autosave.compareAndSet(temp, !temp));
+        } while (!autosave.compareAndSet(temp, !temp));
 
         return autosave.get();
 
@@ -165,17 +166,28 @@ public class GitSyncService {
                         engagement);
             }
 
-            // call git api
-            Response response = gitApiClient.createOrUpdateEngagement(engagement, engagement.getLastUpdateByName(),
-                    engagement.getLastUpdateByEmail());
+            try {
 
-            // update id for create actions
-            if (FileAction.create == engagement.getAction()) {
-                updateIdFromResponse(engagement, response);
+                // call git api
+                Response response = gitApiClient.createOrUpdateEngagement(engagement, engagement.getLastUpdateByName(),
+                        engagement.getLastUpdateByEmail());
+
+                // update id for create actions
+                if (FileAction.create == engagement.getAction()) {
+                    updateIdFromResponse(engagement, response);
+                }
+
+                // reset modified
+                engagement.setAction(null);
+
+            } catch (WebApplicationException e) {
+                // rest call returned and 400 or above http code
+                LOGGER.error(
+                        "failed to create or update engagement with message '{}', please check to see data needs to be refreshed from git. engagement: {}",
+                        e.getMessage(), engagement);
+                // go to next engagement to process
+                continue;
             }
-
-            // reset modified
-            engagement.setAction(null);
 
         }
 
