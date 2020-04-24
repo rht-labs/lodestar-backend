@@ -39,7 +39,6 @@ spec:
             secretKeyRef:
               key: MONGODB_DATABASE
               name: "{{ .Values.name }}-configuration"
-        capabilities: {}
         image: ' '
         imagePullPolicy: IfNotPresent
         livenessProbe:
@@ -65,7 +64,6 @@ spec:
           limits:
             memory: 512Mi
         securityContext:
-          capabilities: {}
           privileged: false
         terminationMessagePath: /dev/termination-log
         volumeMounts:
