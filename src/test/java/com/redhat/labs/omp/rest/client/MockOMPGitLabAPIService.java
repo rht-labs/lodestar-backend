@@ -59,7 +59,7 @@ public class MockOMPGitLabAPIService implements OMPGitLabAPIService {
     }
 
     @Override
-    public GitApiFile getFile(Integer projectId, String filePath) {
+    public GitApiFile getConfigFile() {
         return GitApiFile.builder().filePath("somefile.txt").content("some file context here").build();
     }
 
