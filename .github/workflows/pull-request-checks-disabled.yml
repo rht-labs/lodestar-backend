@@ -1,0 +1,18 @@
+name: PR check without code changes
+
+on:
+  pull_request:
+    paths:
+      - "!**"
+      - deployment/**
+      - scripts/**
+      - README.md
+      - lombok.config
+      - .gitignore
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Skip build
+      run: echo "This build has been skipped because the only changes are in non-code directories."

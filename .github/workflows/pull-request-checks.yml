@@ -4,8 +4,10 @@ on:
   pull_request:
     paths-ignore:
       - deployment/**
-      - development/**
       - scripts/**
+      - README.md
+      - lombok.config
+      - .gitignore
 
 jobs:
   build:
