@@ -38,7 +38,7 @@ public class ConfigResourceTest {
 	public void testGetConfigTokenHasWrongRole() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+        String token = TokenUtils.generateTokenString("/JwtClaimsUnknown.json", timeClaims);
 
 		given()
 			.when()
