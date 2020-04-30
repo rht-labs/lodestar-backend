@@ -19,7 +19,7 @@ public class VersionResourceTest {
             .get("/api/v1/version")
         .then()
             .statusCode(200)
-            .body(containsString("77.8"));
+            .body(containsString("master-abcdef"));
         //Body is coming back formatted unlike other calls. Unable to get correct formatting at the moment
     }   
 }

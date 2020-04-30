@@ -81,8 +81,11 @@ public class VersionManifestConfig {
      */
     private void setAppVersion() {
         version = Version.builder().application("omp-backend-container").gitCommit(gitCommit).gitTag(gitTag).version(gitCommit).build();
-        if(version.getGitTag().startsWith("v")) {
-            version.setVersion(gitTag);
+        LOGGER.debug("Git tag {}", version.getGitTag());
+        if(version.getGitTag().equals("master") || version.getGitTag().equals("latest")) {
+            version.setVersion(version.getGitTag() + "-" + version.getGitCommit());
+        } else {
+            version.setVersion(version.getGitTag());
         }
     }
 

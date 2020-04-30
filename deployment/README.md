@@ -65,7 +65,7 @@ This will spin up all of the usual resources that this service needs in producti
 
 ### Mongo DB
 
-If you are developing locally you will need to connect to a database. By default it connects to a local instead. You can use the docker setup located in the `development` directory in this repo to deploy an instance. It will persist data into a sub-directory named `mongo-volume`. To destroy the database entirely you can shut down the docker instance and remove the sub-directory.
+If you are developing locally you will need to connect to a database. By default it connects to a local instead. You can use the docker setup located in this directory to deploy an instance. It will persist data into a sub-directory named `mongo-volume`. To destroy the database entirely you can shut down the docker instance and remove the sub-directory.
 
 From the root of the repo
 
