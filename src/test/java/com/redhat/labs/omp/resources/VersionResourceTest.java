@@ -1,7 +1,7 @@
 package com.redhat.labs.omp.resources;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.hasItem;
 
 import org.junit.jupiter.api.Test;
 
@@ -19,8 +19,8 @@ public class VersionResourceTest {
             .get("/api/v1/version")
         .then()
             .statusCode(200)
-            .body(containsString("master-abcdef"));
-        //Body is coming back formatted unlike other calls. Unable to get correct formatting at the moment
+            .body("containers.version",hasItem("master-abcdef"))
+            .body("containers.version", hasItem("v1.1"));
     }   
 }
     
