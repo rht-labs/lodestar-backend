@@ -15,7 +15,7 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 13.0.1
-    - name: Build with Maven & Quarkus
+    - name: Build app & run tests
       run: mvn test -q
     - name: Find and Replace Commit
       uses: jacobtomlinson/gha-find-replace@0.1.1
