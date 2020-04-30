@@ -36,3 +36,4 @@ release.properties
 
 .applier/roles
 .adhoc
+deployment/mongo-volume

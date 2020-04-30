@@ -15,19 +15,13 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 13.0.1
-    - name: Build with Maven & Quarkus
-      run: mvn test
+    - name: Build app & run tests
+      run: mvn test -q
     - name: Find and Replace Commit
       uses: jacobtomlinson/gha-find-replace@0.1.1
       with:
         find: "###GIT_COMMIT###"
         replace: "${{ github.sha }}"
-        include: ".s2i"
-    - name: Find and Replace Tag
-      uses: jacobtomlinson/gha-find-replace@0.1.1
-      with:
-        find: "###GIT_TAG###"
-        replace: "${{ github.ref }}"
         include: ".s2i"
     - uses: redhat-cop/github-actions/s2i@v2
       with:

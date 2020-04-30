@@ -40,10 +40,10 @@ public class VersionService {
         }
         version.setApplication("omp-git-api-container");
         
-        if(version.getGitTag().startsWith("v")) {
-            version.setVersion(version.getGitTag());
+        if(version.getGitTag().equals("master") || version.getGitTag().equals("latest")) {
+            version.setVersion(version.getGitTag() + "-" + version.getGitCommit());
         } else {
-            version.setVersion(version.getGitCommit());
+            version.setVersion(version.getGitTag());
         }
 
         return version;

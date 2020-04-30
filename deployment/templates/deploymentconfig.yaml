@@ -30,6 +30,9 @@ spec:
       - envFrom:
         - secretRef:
             name: omp-backend-configuration
+        env:
+        - name: OMP_BACKEND_GIT_TAG
+          value: {{ .Values.imageTag }}
         image: {{ .Values.name }}:{{ .Values.imageTag }}
         imagePullPolicy: Always
         name: {{ .Values.name }}

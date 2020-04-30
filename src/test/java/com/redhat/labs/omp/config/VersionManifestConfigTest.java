@@ -24,7 +24,7 @@ public class VersionManifestConfigTest {
 		Assertions.assertEquals(1, vm.getContainers().size());
 		Assertions.assertEquals(2, vm.getApplications().size());
 		Assertions.assertEquals("omp-backend-container", vm.getContainers().get(0).getApplication());
-		Assertions.assertEquals("abcdef", vm.getContainers().get(0).getVersion());
+		Assertions.assertEquals("master-abcdef", vm.getContainers().get(0).getVersion());
 		Assertions.assertEquals("ball", vm.getApplications().get(0).getApplication());
 		Assertions.assertEquals("v2.0", vm.getApplications().get(0).getVersion());
 	}
