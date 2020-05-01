@@ -2,8 +2,6 @@
 
 command=$1
 omphost=$2
-echo $command
-echo $omphost
 
 if [ -z "$command" -o -z "$omphost" ]
 then
@@ -27,8 +25,6 @@ then
 else
   host=https://${omphost}
 fi
-
-echo "using host - ${host}"
 
 if [ "refresh" == "$command" ]
 then
