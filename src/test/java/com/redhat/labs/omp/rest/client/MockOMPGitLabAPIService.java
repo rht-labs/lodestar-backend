@@ -11,7 +11,6 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.model.Version;
-import com.redhat.labs.omp.model.git.api.GitApiFile;
 
 import io.quarkus.test.Mock;
 
@@ -59,8 +58,15 @@ public class MockOMPGitLabAPIService implements OMPGitLabAPIService {
     }
 
     @Override
-    public GitApiFile getConfigFile() {
-        return GitApiFile.builder().filePath("somefile.txt").content("some file context here").build();
+    public Response getConfigFile() {
+        String file = "{ \"content\": \"content\", \"encoding\": \"base64\", \"file_path\": \"myfile.yaml\" }";
+        return Response.ok(file).build();
+    }
+
+    @Override
+    public Response getConfigFileV2() {
+		String json = "{ \"hello\" : \"world\" }";
+		return Response.ok(json).build();
     }
 
     @Override

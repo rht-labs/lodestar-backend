@@ -23,6 +23,8 @@ The config resource exposes an API that will return the configured config file f
 GET /config
 ```
 
+It's recommended to add the version header with the a version above v1. v1 returns yaml wrapped json. Fun! v2 and forward return pure json with all git information stripped out.
+
 ### Engagement Resource
 
 The engagements resource exposes an API that allows clients to create, retrieve, and delete engagement resources.  The unique key for an engagement consists of `customer_name` and `project_name`.  The following endpoints will update the configured Mongo DB and mark the records as modified so an asynchronous process can push the changes to Gitlab using the [Git API](https://github.com/rht-labs/open-management-portal-git-api).
