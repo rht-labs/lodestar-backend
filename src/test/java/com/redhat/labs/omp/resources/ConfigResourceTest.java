@@ -63,9 +63,28 @@ public class ConfigResourceTest {
 				.get("/config")
 			.then()
 				.statusCode(200)
-				.body("file_path", is("somefile.txt"))
-				.body("content", is("some file context here"));
+				.body(is("{ \"content\": \"content\", \"encoding\": \"base64\", \"file_path\": \"myfile.yaml\" }"))
+				.body("content", is("content"))
+				.body("file_path", is("myfile.yaml"));
 		
+	}
+
+	@Test
+	public void testGetConfigInGitRepoV2() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsReader.json", timeClaims);
+
+		given()
+			.headers("Accept-version", "v2")
+			.when()
+				.auth()
+					.oauth2(token)
+				.get("/config")
+			.then()
+				.statusCode(200)
+				.body(is("{ \"hello\" : \"world\" }"));
+
 	}
 
 }

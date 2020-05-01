@@ -13,7 +13,6 @@ import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.model.Version;
-import com.redhat.labs.omp.model.git.api.GitApiFile;
 
 @RegisterRestClient(configKey = "omp.gitlab.api")
 public interface OMPGitLabAPIService {
@@ -32,7 +31,12 @@ public interface OMPGitLabAPIService {
     @GET
     @Path("/api/v1/config")
     @Produces("application/json")
-    GitApiFile getConfigFile();
+    Response getConfigFile();
+
+    @GET
+    @Path("/api/v2/config")
+    @Produces("application/json")
+    Response getConfigFileV2();
 
     @GET
     @Path("/api/v1/version")
