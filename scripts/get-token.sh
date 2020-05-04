@@ -1,15 +1,25 @@
 #!/bin/bash
 
-username=$1
-password=$2
+# 
 
-if [ -z "$username"  -o -z "$password" ]
+if [ -z "$TOKEN_USER"  -o -z "$TOKEN_PASSWORD" -o -z "$TOKEN_URL" ] 
 then
-  echo "usage:"
-  echo "get-token.sh username password"
+
+  # try to set the environment variables using token_config
+  source token_config
+
+  if [ "$TOKEN_USER" == "set" -o "$TOKEN_PASSWORD" == "set"  -o "$TOKEN_URL" == "set" ]
+  then
+
+    echo "Environment Variables: TOKEN_USER, TOKEN_PASSWORD, and TOKEN_URL must be set.  These can be configured in token_config."
+    exit
+
+  fi
+
 fi
 
-json=$(curl -d "client_id=open-management-portal" -d "username=${username}" -d "password=${password}" -d "grant_type=password" https://sso-omp-jasee.apps.s11.core.rht-labs.com/auth/realms/omp/protocol/openid-connect/token)
+json=$(curl -d "client_id=open-management-portal" -d "username=$TOKEN_USER" -d "password=$TOKEN_PASSWORD" -d "grant_type=password" $TOKEN_URL)
 token=$( jq -r ".access_token" <<<"$json" )
 
+# return token
 echo $token
