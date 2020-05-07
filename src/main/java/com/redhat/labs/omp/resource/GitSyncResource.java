@@ -2,8 +2,6 @@ package com.redhat.labs.omp.resource;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.json.Json;
-import javax.json.JsonObject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -56,21 +54,6 @@ public class GitSyncResource {
 
         service.processModifiedEngagements();
         return Response.ok().build();
-
-    }
-
-    @PUT
-    @Path("/autosave/toggle")
-    @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = {
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
-            @APIResponse(responseCode = "200", description = "The autosave feature has been toggled on or off.")})
-    @Operation(summary = "Starts or stops the autosave feature, depending on the current state.")
-    public Response toggle() {
-
-        boolean value = service.toggleAutoSave();
-        JsonObject model = Json.createObjectBuilder().add("autosave", value).build();
-        return Response.ok().entity(model).build();
 
     }
 
