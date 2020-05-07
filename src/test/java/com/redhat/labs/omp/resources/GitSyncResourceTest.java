@@ -10,73 +10,23 @@ import java.util.HashMap;
 import javax.inject.Inject;
 import javax.json.bind.Jsonb;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.rest.client.MockOMPGitLabAPIService.SCENARIO;
+import com.redhat.labs.utils.EmbeddedMongoTest;
 import com.redhat.labs.utils.TokenUtils;
 
-import de.flapdoodle.embed.mongo.Command;
-import de.flapdoodle.embed.mongo.MongodExecutable;
-import de.flapdoodle.embed.mongo.MongodProcess;
-import de.flapdoodle.embed.mongo.MongodStarter;
-import de.flapdoodle.embed.mongo.config.IMongodConfig;
-import de.flapdoodle.embed.mongo.config.MongodConfigBuilder;
-import de.flapdoodle.embed.mongo.config.Net;
-import de.flapdoodle.embed.mongo.config.RuntimeConfigBuilder;
-import de.flapdoodle.embed.mongo.distribution.Version;
-import de.flapdoodle.embed.process.config.IRuntimeConfig;
-import de.flapdoodle.embed.process.config.io.ProcessOutput;
-import de.flapdoodle.embed.process.runtime.Network;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 
+@EmbeddedMongoTest
 @QuarkusTest
 public class GitSyncResourceTest {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(GitSyncResourceTest.class);
-
-    private static final IRuntimeConfig config =
-            new RuntimeConfigBuilder()
-                .defaultsWithLogger(Command.MongoD, LOGGER)
-                .processOutput(ProcessOutput.getDefaultInstanceSilent())
-                .build();
-    private static final MongodStarter starter = MongodStarter.getInstance(config);
-
     @Inject
     Jsonb quarkusJsonb;
-
-    private MongodExecutable _mongodExe;
-    private MongodProcess _mongod;
-
-    @BeforeEach
-    protected void setUp() throws Exception {
-
-        // setup local config
-        IMongodConfig config = new MongodConfigBuilder()
-                .version(Version.Main.PRODUCTION)
-                .net(new Net("localhost", 12345, Network.localhostIsIPv6()))
-                .build();
-
-        // create executable
-        _mongodExe = starter.prepare(config);
-        // start mongo
-        _mongod = _mongodExe.start();
-
-    }
-
-    @AfterEach
-    protected void tearDown() throws Exception {
-
-        _mongod.stop();
-        _mongodExe.stop();
-
-    }
 
     /*
      * Process Modified

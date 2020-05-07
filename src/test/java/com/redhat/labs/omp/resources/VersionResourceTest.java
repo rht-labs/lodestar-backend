@@ -5,9 +5,12 @@ import static org.hamcrest.CoreMatchers.hasItem;
 
 import org.junit.jupiter.api.Test;
 
+import com.redhat.labs.utils.EmbeddedMongoTest;
+
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 
+@EmbeddedMongoTest
 @QuarkusTest
 public class VersionResourceTest {
 
