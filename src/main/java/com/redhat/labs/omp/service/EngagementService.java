@@ -18,7 +18,12 @@ import com.redhat.labs.omp.exception.ResourceNotFoundException;
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.model.FileAction;
 import com.redhat.labs.omp.model.Launch;
+import com.redhat.labs.omp.model.event.BackendEvent;
+import com.redhat.labs.omp.model.event.EventType;
 import com.redhat.labs.omp.repository.EngagementRepository;
+
+import io.quarkus.vertx.ConsumeEvent;
+import io.vertx.mutiny.core.eventbus.EventBus;
 
 @ApplicationScoped
 public class EngagementService {
@@ -39,7 +44,7 @@ public class EngagementService {
     EngagementRepository repository;
 
     @Inject
-    GitSyncService gitSyncService;
+    EventBus eventBus;
 
     /**
      * Creates a new {@link Engagement} resource in the data store and marks if for
@@ -139,7 +144,7 @@ public class EngagementService {
      * Used by the {@link GitSyncService} to delete all {@link Engagement} from the
      * data store before re-populating from Git.
      */
-    private void deleteAll() {
+    void deleteAll() {
         long count = repository.deleteAll();
         LOGGER.info("removed '" + count + "' engagements from the data store.");
     }
@@ -149,7 +154,7 @@ public class EngagementService {
      * 
      * @param engagementList
      */
-    private void insertEngagementListInRepository(List<Engagement> engagementList) {
+    void insertEngagementListInRepository(List<Engagement> engagementList) {
         repository.persist(engagementList);
     }
 
@@ -158,7 +163,7 @@ public class EngagementService {
      * 
      * @param engagementList
      */
-    public void updateEngagementListInRepository(List<Engagement> engagementList) {
+    void updateEngagementListInRepository(List<Engagement> engagementList) {
         repository.update(engagementList);
     }
 
@@ -168,7 +173,7 @@ public class EngagementService {
      * 
      * @param engagementList
      */
-    public void syncWithGitLab(List<Engagement> engagementList) {
+    void refreshFromEngagementList(List<Engagement> engagementList) {
 
         // remove all from database
         deleteAll();
@@ -183,7 +188,7 @@ public class EngagementService {
      * 
      * @return
      */
-    public List<Engagement> getModifiedEngagements() {
+    List<Engagement> getModifiedEngagements() {
         return repository.findByModified();
     }
 
@@ -209,9 +214,75 @@ public class EngagementService {
         Engagement updated = update(engagement.getCustomerName(), engagement.getProjectName(), engagement);
 
         // sync change(s) to git
-        gitSyncService.processModifiedEngagements();
+        sendEngagementsModifiedEvent();
 
         return updated;
+
+    }
+
+    /**
+     * Consumes a {@link BackendEvent}. If the force flag on the event is true or
+     * there are no {@link Engagement} currently in the database, the {@link List}
+     * of {@link Engagement}s in the event will be inserted into the database.
+     * Please note that the database will be purged before the insert happens.
+     * 
+     * @param event
+     */
+    @ConsumeEvent(EventType.Constants.DB_REFRESH_ADDRESS)
+    void consumeDbRefreshRequestedEvent(BackendEvent event) {
+
+        if (!event.isForceUpdate() && getAll().size() > 0) {
+            LOGGER.debug("engagements already exist in db and force is not set.  doing nothing for db refresh request.");
+            return;
+        }
+
+        LOGGER.debug("purging existing engagements from db and inserting from event list {}", event.getEngagementList());
+        // refresh the db
+        refreshFromEngagementList(event.getEngagementList());
+
+    }
+
+    /**
+     * Consumes a {@link BackendEvent} and updates the database using the
+     * {@link List} of {@link Engagement}s that are contained in the event.
+     * 
+     * @param event
+     */
+    @ConsumeEvent(EventType.Constants.UPDATE_ENGAGEMENTS_IN_DB_REQUESTED_ADDRESS)
+    void consumeUpdateEngagementsInDbRequestedEvent(BackendEvent event) {
+        updateEngagementListInRepository(event.getEngagementList());
+    }
+
+    /**
+     * Consumes the {@link BackendEvent} and triggers the processing of any modified
+     * {@link Engagement}s.
+     * 
+     * @param event
+     */
+    @ConsumeEvent(EventType.Constants.PUSH_TO_GIT_REQUESTED_ADDRESS)
+    void consumePushToGitRequestedEvent(BackendEvent event) {
+
+        LOGGER.debug("consuming process time elapsed event.");
+
+        sendEngagementsModifiedEvent();
+    }
+
+    /**
+     * If any {@link Engagement}s in the database have been modified, it creates a
+     * {@link BackendEvent} and places it on the {@link EventBus} for processing.
+     */
+    void sendEngagementsModifiedEvent() {
+
+        List<Engagement> modifiedList = getModifiedEngagements();
+
+        if (modifiedList.size() == 0) {
+            LOGGER.debug("no modified engagements to process");
+            return;
+        }
+
+        LOGGER.debug("emitting db engagements modified event");
+        BackendEvent event = BackendEvent.createUpdateEngagementsInGitRequestedEvent(modifiedList);
+        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
 
     }
 

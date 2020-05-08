@@ -15,7 +15,9 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 
-import com.redhat.labs.omp.service.GitSyncService;
+import com.redhat.labs.omp.model.event.BackendEvent;
+
+import io.vertx.mutiny.core.eventbus.EventBus;
 
 @RequestScoped
 @Path("/engagements")
@@ -24,7 +26,7 @@ import com.redhat.labs.omp.service.GitSyncService;
 public class GitSyncResource {
 
     @Inject
-    GitSyncService service;
+    EventBus eventBus;
 
     @Inject
     JsonWebToken jwt;
@@ -38,7 +40,9 @@ public class GitSyncResource {
     @Operation(summary = "Purges the database and refreshes it with data in git.")
     public Response refresh() {
 
-        service.refreshBackedFromGit();
+        // send request event with force set to true
+        BackendEvent event = BackendEvent.createDatabaseRefreshRequestedEvent(true);
+        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
         return Response.ok().build();
 
     }
@@ -52,7 +56,9 @@ public class GitSyncResource {
     @Operation(summary = "Sends all modified engagements to git to be stored.")
     public Response push() {
 
-        service.processModifiedEngagements();
+        // send time elapsed event to start push to git from db
+        BackendEvent event = BackendEvent.createPushToGitRequestedEvent();
+        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
         return Response.ok().build();
 
     }

@@ -11,11 +11,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.redhat.labs.omp.model.ActiveSync;
+import com.redhat.labs.omp.model.event.BackendEvent;
 import com.redhat.labs.omp.repository.ActiveSyncRepository;
 
 import io.quarkus.panache.common.Sort;
 import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
+import io.vertx.mutiny.core.eventbus.EventBus;
 
 public class ActiveGitSyncService {
 
@@ -25,7 +27,7 @@ public class ActiveGitSyncService {
     ActiveSyncRepository activeSyncRepository;
 
     @Inject
-    GitSyncService gitSyncService;
+    EventBus eventBus;
 
     private final UUID uuid = UUID.randomUUID();
 
@@ -43,6 +45,13 @@ public class ActiveGitSyncService {
         LOGGER.debug("starting instance {}", uuid);
         // try to set active flag
         checkIfActive();
+
+        // sync mongo with git if no engagements found in mongo
+        if (active) {
+            LOGGER.debug("populating database from git...");
+            BackendEvent refreshDbEvent = BackendEvent.createDatabaseRefreshRequestedEvent(false);
+            eventBus.sendAndForget(refreshDbEvent.getEventType().getEventBusAddress(), refreshDbEvent);
+        }
 
     }
 
@@ -122,8 +131,11 @@ public class ActiveGitSyncService {
     void pushModififedEngagementsToGit() {
 
         if (active) {
-            LOGGER.debug("scheduled job for send process time elapsed event triggered. {}", active);
-            gitSyncService.processModifiedEngagements();
+
+            LOGGER.debug("{} emitting a process time elapsed event.", uuid);
+            BackendEvent event = BackendEvent.createPushToGitRequestedEvent();
+            eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
+
         }
 
     }
