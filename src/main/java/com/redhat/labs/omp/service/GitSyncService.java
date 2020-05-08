@@ -13,8 +13,12 @@ import org.slf4j.LoggerFactory;
 
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.model.FileAction;
-import com.redhat.labs.omp.repository.ActiveSyncRepository;
+import com.redhat.labs.omp.model.event.BackendEvent;
+import com.redhat.labs.omp.model.event.EventType;
 import com.redhat.labs.omp.rest.client.OMPGitLabAPIService;
+
+import io.quarkus.vertx.ConsumeEvent;
+import io.vertx.mutiny.core.eventbus.EventBus;
 
 @ApplicationScoped
 public class GitSyncService {
@@ -22,47 +26,46 @@ public class GitSyncService {
     private static final Logger LOGGER = LoggerFactory.getLogger(GitSyncService.class);
 
     @Inject
-    ActiveSyncRepository activeSyncRepository;
-
-    @Inject
-    EngagementService engagementService;
-
-    @Inject
     @RestClient
     OMPGitLabAPIService gitApiClient;
 
-    public void refreshBackedFromGit() {
-
-        LOGGER.info("refreshing backend data from Git...");
-
-        // get all engagements from git
-        List<Engagement> engagementList = gitApiClient.getEngagments();
-
-        // call sync
-        engagementService.syncWithGitLab(engagementList);
-
-        LOGGER.info("refresh of backend data complete.");
-
-    }
+    @Inject
+    EventBus eventBus;
 
     /**
-     * Processes modified {@link Engagement} in the data store by calling the Git
-     * API to update Git.
+     * This method consumes a {@link BackendEvent}, enriches the event with
+     * {@link Engagement}s from Git and sends the event to the {@link EventBus} for
+     * processing.
+     * 
+     * @param event
      */
-    public void processModifiedEngagements() {
-        processModifiedEngagements(engagementService.getModifiedEngagements());
+    @ConsumeEvent(EventType.Constants.DB_REFRESH_REQUESTED_ADDRESS)
+    void consumeDbRefreshRequestedEvent(BackendEvent event) {
+
+        LOGGER.debug("processing db refresh request event");
+
+        // create refresh event
+        BackendEvent refreshDbEvent = BackendEvent.createDatabaseRefreshEvent(gitApiClient.getEngagments(),
+                event.isForceUpdate());
+        // send event to bus for processing
+        eventBus.sendAndForget(refreshDbEvent.getEventType().getEventBusAddress(), refreshDbEvent);
+
     }
 
     /**
      * Processing the list of {@link Engagement} that have been modified. The Git
      * API will be called to process the engagement depending on the
      * {@link FileAction} specified. After the REST call completes, the
-     * {@link Engagement} will be reset in the data store.
+     * {@link Engagement} updated list will be added to a {@link BackendEvent} and
+     * added to the {@link EventBus} to trigger an updated in the database.
      * 
      * @param engagementList
      * @param action
      */
-    private void processModifiedEngagements(List<Engagement> engagementList) {
+    @ConsumeEvent(EventType.Constants.UPDATE_ENGAGEMENTS_IN_GIT_REQUESTED_ADDRESS)
+    void consumeUpdateEngagementsInGitRequestedEvent(BackendEvent event) {
+
+        List<Engagement> engagementList = event.getEngagementList();
 
         for (Engagement engagement : engagementList) {
 
@@ -96,8 +99,9 @@ public class GitSyncService {
 
         }
 
-        // update engagements in db
-        engagementService.updateEngagementListInRepository(engagementList);
+        // send event to update in db
+        BackendEvent updateInDbEvent = BackendEvent.createUpdateEngagementsInDbRequestedEvent(engagementList);
+        eventBus.sendAndForget(updateInDbEvent.getEventType().getEventBusAddress(), updateInDbEvent);
 
     }
 
