@@ -9,6 +9,8 @@ import javax.validation.constraints.NotBlank;
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.types.ObjectId;
 
+import com.redhat.labs.omp.validation.ValidName;
+
 import io.quarkus.mongodb.panache.PanacheMongoEntityBase;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,9 +31,11 @@ public class Engagement extends PanacheMongoEntityBase {
     private ObjectId mongoId;
 
     @NotBlank
+    @ValidName
     @JsonbProperty("customer_name")
     private String customerName;
     @NotBlank
+    @ValidName
     @JsonbProperty("project_name")
     private String projectName;
     @JsonbProperty("project_id")
