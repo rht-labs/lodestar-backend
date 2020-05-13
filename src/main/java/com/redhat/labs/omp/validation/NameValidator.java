@@ -21,6 +21,10 @@ public class NameValidator implements ConstraintValidator<ValidName, String> {
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
 
+        if(null == value || value.trim().length() == 0) {
+            return false;
+        }
+
         Pattern pattern = Pattern.compile(validNameRegex, Pattern.UNICODE_CHARACTER_CLASS);
         return pattern.matcher(value).matches();
 

@@ -4,7 +4,6 @@ import java.util.List;
 
 import javax.json.bind.annotation.JsonbProperty;
 import javax.json.bind.annotation.JsonbTransient;
-import javax.validation.constraints.NotBlank;
 
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.types.ObjectId;
@@ -29,12 +28,9 @@ public class Engagement extends PanacheMongoEntityBase {
     @BsonId
     @JsonbProperty("mongo_id")
     private ObjectId mongoId;
-
-    @NotBlank
     @ValidName
     @JsonbProperty("customer_name")
     private String customerName;
-    @NotBlank
     @ValidName
     @JsonbProperty("project_name")
     private String projectName;

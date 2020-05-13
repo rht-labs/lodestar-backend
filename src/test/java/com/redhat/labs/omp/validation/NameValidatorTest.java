@@ -17,6 +17,29 @@ public class NameValidatorTest {
     NameValidator validator;
 
     @Test
+    public void testValueIsNull() {
+
+        Assert.assertFalse(validator.isValid(null, null));
+
+    }
+
+    @Test
+    public void testValueIsEmptyString() {
+
+        String input = "";
+        Assert.assertFalse(validator.isValid(input, null));
+
+    }
+
+    @Test
+    public void testValueIsWhitespace() {
+
+        String input = "   ";
+        Assert.assertFalse(validator.isValid(input, null));
+
+    }
+
+    @Test
     public void testStartsWithLetter() {
 
         String input = "Diw34 Id (d)._";
