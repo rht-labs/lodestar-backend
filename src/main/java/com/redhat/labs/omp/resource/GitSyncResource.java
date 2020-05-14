@@ -2,8 +2,6 @@ package com.redhat.labs.omp.resource;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
-import javax.json.Json;
-import javax.json.JsonObject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -17,7 +15,9 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 
-import com.redhat.labs.omp.service.GitSyncService;
+import com.redhat.labs.omp.model.event.BackendEvent;
+
+import io.vertx.mutiny.core.eventbus.EventBus;
 
 @RequestScoped
 @Path("/engagements")
@@ -26,7 +26,7 @@ import com.redhat.labs.omp.service.GitSyncService;
 public class GitSyncResource {
 
     @Inject
-    GitSyncService service;
+    EventBus eventBus;
 
     @Inject
     JsonWebToken jwt;
@@ -40,7 +40,9 @@ public class GitSyncResource {
     @Operation(summary = "Purges the database and refreshes it with data in git.")
     public Response refresh() {
 
-        service.refreshBackedFromGit();
+        // send request event with force set to true
+        BackendEvent event = BackendEvent.createDatabaseRefreshRequestedEvent(true);
+        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
         return Response.ok().build();
 
     }
@@ -54,23 +56,10 @@ public class GitSyncResource {
     @Operation(summary = "Sends all modified engagements to git to be stored.")
     public Response push() {
 
-        service.processModifiedEngagements();
+        // send time elapsed event to start push to git from db
+        BackendEvent event = BackendEvent.createPushToGitRequestedEvent();
+        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
         return Response.ok().build();
-
-    }
-
-    @PUT
-    @Path("/autosave/toggle")
-    @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = {
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
-            @APIResponse(responseCode = "200", description = "The autosave feature has been toggled on or off.")})
-    @Operation(summary = "Starts or stops the autosave feature, depending on the current state.")
-    public Response toggle() {
-
-        boolean value = service.toggleAutoSave();
-        JsonObject model = Json.createObjectBuilder().add("autosave", value).build();
-        return Response.ok().entity(model).build();
 
     }
 
