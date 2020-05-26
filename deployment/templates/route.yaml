@@ -1,4 +1,3 @@
-{{- if .Values.development }}
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
@@ -13,6 +12,7 @@ spec:
     targetPort: "{{ .Values.servicePort }}-tcp"
   tls:
     termination: edge
+    insecureEdgeTerminationPolicy: Redirect
   to:
     kind: Service
     name: {{ .Values.name }}
@@ -20,4 +20,3 @@ spec:
   wildcardPolicy: None
 status:
   ingress: []
-{{- end }}
