@@ -6,6 +6,7 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.json.bind.Jsonb;
@@ -272,6 +273,9 @@ public class GitSyncResourceTest {
             .put("/engagements/refresh")
         .then()
             .statusCode(200);
+
+        // make sure the async processes finish
+        TimeUnit.SECONDS.sleep(1);
 
         // GET all engagement
         Response response = 
