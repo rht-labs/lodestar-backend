@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Engagement Events</title>
+
+    <link rel="stylesheet" type="text/css"
+          href="https://cdnjs.cloudflare.com/ajax/libs/patternfly/3.24.0/css/patternfly.min.css">
+    <link rel="stylesheet" type="text/css"
+          href="https://cdnjs.cloudflare.com/ajax/libs/patternfly/3.24.0/css/patternfly-additions.min.css">
+</head>
+<body>
+<div class="container">
+
+    <h2>Events</h2>
+    <div class="row">
+    <p class="col-md-12">Event: <strong><span id="content">N/A</span></strong></p>
+    </div>
+</div>
+</body>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<script>
+    var socket = new WebSocket("ws://omp-backend:8080/engagements/events");
+    socket.onopen = function() {
+      console.log("Connected to web socket")
+    };
+    socket.onmessage =function(m) {
+                    console.log("Got message: " + m.data);
+                    document.getElementById("content").innerHTML = m.data;
+                };
+
+</script>
+</html>
