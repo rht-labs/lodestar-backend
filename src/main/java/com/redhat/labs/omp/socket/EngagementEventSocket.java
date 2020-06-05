@@ -25,6 +25,7 @@ public class EngagementEventSocket {
     @OnOpen
     public void onOpen(Session session) {
         sessions.put(session.getId(), session);
+        LOG.debug("session {} added", session.getId());
     }
 
     @OnClose
@@ -45,10 +46,13 @@ public class EngagementEventSocket {
     }
 
     public void broadcast(String message) {
+
+        LOG.debug("current session count {}", sessions.size());
+
         sessions.values().forEach(s -> {
             s.getAsyncRemote().sendObject(message, result -> {
                 if (result.getException() != null) {
-                    System.out.println("Unable to send message: " + result.getException());
+                    LOG.error("Unable to send message: " + result.getException());
                 }
             });
         });
