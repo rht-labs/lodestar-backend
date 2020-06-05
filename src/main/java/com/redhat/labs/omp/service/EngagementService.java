@@ -21,6 +21,7 @@ import com.redhat.labs.omp.model.Launch;
 import com.redhat.labs.omp.model.event.BackendEvent;
 import com.redhat.labs.omp.model.event.EventType;
 import com.redhat.labs.omp.repository.EngagementRepository;
+import com.redhat.labs.omp.socket.EngagementEventSocket;
 
 import io.quarkus.vertx.ConsumeEvent;
 import io.vertx.mutiny.core.eventbus.EventBus;
@@ -45,6 +46,9 @@ public class EngagementService {
 
     @Inject
     EventBus eventBus;
+
+    @Inject
+    EngagementEventSocket socket; 
 
     /**
      * Creates a new {@link Engagement} resource in the data store and marks if for
@@ -181,6 +185,9 @@ public class EngagementService {
         // insert
         insertEngagementListInRepository(engagementList);
 
+        // send event to socket with modified engagements
+        sendEngagementEvent(jsonb.toJson(engagementList));
+
     }
 
     /**
@@ -284,6 +291,10 @@ public class EngagementService {
         BackendEvent event = BackendEvent.createUpdateEngagementsInGitRequestedEvent(modifiedList);
         eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
 
+    }
+    
+    void sendEngagementEvent(String message) {
+        socket.broadcast(message);
     }
 
 }
