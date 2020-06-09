@@ -14,6 +14,7 @@ import javax.websocket.server.ServerEndpoint;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 @ApplicationScoped
 @ServerEndpoint("/engagements/events")
 public class EngagementEventSocket {
@@ -43,6 +44,7 @@ public class EngagementEventSocket {
     @OnMessage
     public void onMessage(String message) {
         // do nothing
+        LOG.info("received message {}", message);
     }
 
     public void broadcast(String message) {
