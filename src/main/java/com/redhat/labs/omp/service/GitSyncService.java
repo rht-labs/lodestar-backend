@@ -18,6 +18,7 @@ import com.redhat.labs.omp.model.event.EventType;
 import com.redhat.labs.omp.rest.client.OMPGitLabAPIService;
 
 import io.quarkus.vertx.ConsumeEvent;
+import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.core.eventbus.EventBus;
 
 @ApplicationScoped
@@ -28,6 +29,9 @@ public class GitSyncService {
     @Inject
     @RestClient
     OMPGitLabAPIService gitApiClient;
+
+    @Inject
+    Vertx vertx;
 
     @Inject
     EventBus eventBus;
@@ -44,28 +48,64 @@ public class GitSyncService {
 
         LOGGER.debug("processing db refresh request event");
 
-        // create refresh event
-        BackendEvent refreshDbEvent = BackendEvent.createDatabaseRefreshEvent(gitApiClient.getEngagments(),
-                event.isForceUpdate());
-        // send event to bus for processing
-        eventBus.sendAndForget(refreshDbEvent.getEventType().getEventBusAddress(), refreshDbEvent);
+        vertx.<List<Engagement>>executeBlocking(promise -> {
+
+            try {
+                List<Engagement> engagementList = gitApiClient.getEngagments();
+                promise.complete(engagementList);
+            } catch (WebApplicationException wae) {
+                promise.fail(wae);
+            }
+
+        }).subscribe().with(item -> {
+            // create refresh event
+            BackendEvent refreshDbEvent = BackendEvent.createDatabaseRefreshEvent(item,
+                    event.isForceUpdate());
+            // send event to bus for processing
+            eventBus.sendAndForget(refreshDbEvent.getEventType().getEventBusAddress(), refreshDbEvent);
+        }, failure -> {
+            LOGGER.warn("failed to retrieve engagements from git. {}", failure.getMessage(), failure);
+        });
 
     }
 
     /**
-     * Processing the list of {@link Engagement} that have been modified. The Git
-     * API will be called to process the engagement depending on the
-     * {@link FileAction} specified. After the REST call completes, the
-     * {@link Engagement} updated list will be added to a {@link BackendEvent} and
-     * added to the {@link EventBus} to trigger an updated in the database.
+     * Consumes {@link BackendEvent} to trigger the processing of modified
+     * {@link Engagement}s. Starts the processing in a separate {@link Thread} using
+     * executeBlocking to prevent blocking the event loop.
      * 
-     * @param engagementList
-     * @param action
+     * @param event
      */
     @ConsumeEvent(EventType.Constants.UPDATE_ENGAGEMENTS_IN_GIT_REQUESTED_ADDRESS)
     void consumeUpdateEngagementsInGitRequestedEvent(BackendEvent event) {
 
         List<Engagement> engagementList = event.getEngagementList();
+
+        vertx.executeBlocking(promise -> {
+            try {
+                processModifiedEvents(engagementList);
+                promise.complete();
+            } catch (Exception e) {
+                promise.fail(e);
+            }
+        }).subscribe().with(item -> {
+            LOGGER.debug("processing modified engagements succeeded.");
+        }, failure -> {
+            LOGGER.warn("processing modified engagements failed with message {}", failure.getMessage(), failure);
+        });
+
+    }
+
+    /**
+     * Processes given the list of {@link Engagement} that have been modified. The
+     * Git API will be called to process the engagement depending on the
+     * {@link FileAction} specified. After the REST call completes, the
+     * {@link Engagement} updated list will be added to a {@link BackendEvent} and
+     * added to the {@link EventBus} to trigger an updated in the database.
+     * 
+     * @param engagementList
+     */
+    private void processModifiedEvents(List<Engagement> engagementList) {
 
         for (Engagement engagement : engagementList) {
 
