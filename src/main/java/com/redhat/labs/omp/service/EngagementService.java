@@ -21,6 +21,7 @@ import com.redhat.labs.omp.model.Launch;
 import com.redhat.labs.omp.model.event.BackendEvent;
 import com.redhat.labs.omp.model.event.EventType;
 import com.redhat.labs.omp.repository.EngagementRepository;
+import com.redhat.labs.omp.socket.EngagementEventSocket;
 
 import io.quarkus.vertx.ConsumeEvent;
 import io.vertx.mutiny.core.eventbus.EventBus;
@@ -45,6 +46,9 @@ public class EngagementService {
 
     @Inject
     EventBus eventBus;
+
+    @Inject
+    EngagementEventSocket socket;
 
     /**
      * Creates a new {@link Engagement} resource in the data store and marks if for
@@ -181,6 +185,9 @@ public class EngagementService {
         // insert
         insertEngagementListInRepository(engagementList);
 
+        // send event to socket with modified engagements
+        sendEngagementEvent(jsonb.toJson(engagementList));
+
     }
 
     /**
@@ -232,11 +239,13 @@ public class EngagementService {
     void consumeDbRefreshRequestedEvent(BackendEvent event) {
 
         if (!event.isForceUpdate() && getAll().size() > 0) {
-            LOGGER.debug("engagements already exist in db and force is not set.  doing nothing for db refresh request.");
+            LOGGER.debug(
+                    "engagements already exist in db and force is not set.  doing nothing for db refresh request.");
             return;
         }
 
-        LOGGER.debug("purging existing engagements from db and inserting from event list {}", event.getEngagementList());
+        LOGGER.debug("purging existing engagements from db and inserting from event list {}",
+                event.getEngagementList());
         // refresh the db
         refreshFromEngagementList(event.getEngagementList());
 
@@ -284,6 +293,15 @@ public class EngagementService {
         BackendEvent event = BackendEvent.createUpdateEngagementsInGitRequestedEvent(modifiedList);
         eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
 
+    }
+
+    /**
+     * Sends the given message to the configured socket sessions
+     * 
+     * @param message
+     */
+    void sendEngagementEvent(String message) {
+        socket.broadcast(message);
     }
 
 }
