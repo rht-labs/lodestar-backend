@@ -74,6 +74,9 @@ public class GitSyncResourceTest {
             .then()
                 .statusCode(200);
 
+        // make sure the async processes finish
+        TimeUnit.SECONDS.sleep(1);
+
         // update description
         engagement.setDescription("updated");
         body = quarkusJsonb.toJson(engagement);
