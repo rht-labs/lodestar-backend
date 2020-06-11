@@ -61,6 +61,20 @@ The version resource exposes an endpoint that will allow the client to determine
 GET  /api/v1/version
 ```
 
+### Events Resource
+
+The events resource is an endpoint that implements a websocket.  The current implementation requires a valid token to be passed using the `access-token` query parameter.  When connected, messages can be send using the websocket.
+
+The only messages currently pushed out to clients are modified `engagement` resources.  When an engagement is modified not using the REST APIs, a list of `engagement` resources will be placed on the websocket for processing by clients.  
+
+For example, a database refresh will put a list of all `engagements` loaded from Git into the database on to the websocket.  Or if the status of the engagement changes, a list containing the `engagement` that's status changed will be placed on the websocket.
+
+Messages passed from clients to the backend will be logged and ignored.  Only messages from the backend to clients has been implemented.
+
+```
+GET  /engagements/events?access-token=
+```
+
 ## Scheduled Auto Sync to Git API
 
 A configurable auto sync feature allows data that has been modified in Mongo DB to be pushed to Gitlab using the [Git API](https://github.com/rht-labs/open-management-portal-git-api).  This feature is configured using a CRON expression that can be updated in the application.properties file or overridden using environment variables.

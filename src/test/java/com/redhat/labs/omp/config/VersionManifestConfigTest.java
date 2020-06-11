@@ -15,19 +15,19 @@ import io.quarkus.test.junit.QuarkusTest;
 @QuarkusTest
 public class VersionManifestConfigTest {
 
-	@Inject
-	VersionManifestConfig vmc;
-	
-	@Test
-	public void testYaml() throws JsonProcessingException {
-		
-		VersionManifest vm = vmc.getVersionData();
+    @Inject
+    VersionManifestConfig vmc;
+    
+    @Test
+    public void testYaml() throws JsonProcessingException {
+        
+        VersionManifest vm = vmc.getVersionData();
 
-		Assertions.assertEquals(1, vm.getContainers().size());
-		Assertions.assertEquals(2, vm.getApplications().size());
-		Assertions.assertEquals("omp-backend-container", vm.getContainers().get(0).getApplication());
-		Assertions.assertEquals("master-abcdef", vm.getContainers().get(0).getVersion());
-		Assertions.assertEquals("ball", vm.getApplications().get(0).getApplication());
-		Assertions.assertEquals("v2.0", vm.getApplications().get(0).getVersion());
-	}
+        Assertions.assertEquals(1, vm.getContainers().size());
+        Assertions.assertEquals(2, vm.getApplications().size());
+        Assertions.assertEquals("omp-backend-container", vm.getContainers().get(0).getApplication());
+        Assertions.assertEquals("master-abcdef", vm.getContainers().get(0).getVersion());
+        Assertions.assertEquals("ball", vm.getApplications().get(0).getApplication());
+        Assertions.assertEquals("v2.0", vm.getApplications().get(0).getVersion());
+    }
 }

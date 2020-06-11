@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.json.bind.Jsonb;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,9 +19,12 @@ import com.redhat.labs.omp.exception.ResourceNotFoundException;
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.model.FileAction;
 import com.redhat.labs.omp.model.Launch;
+import com.redhat.labs.omp.model.Status;
 import com.redhat.labs.omp.model.event.BackendEvent;
 import com.redhat.labs.omp.model.event.EventType;
 import com.redhat.labs.omp.repository.EngagementRepository;
+import com.redhat.labs.omp.rest.client.OMPGitLabAPIService;
+import com.redhat.labs.omp.socket.EngagementEventSocket;
 
 import io.quarkus.vertx.ConsumeEvent;
 import io.vertx.mutiny.core.eventbus.EventBus;
@@ -45,6 +49,13 @@ public class EngagementService {
 
     @Inject
     EventBus eventBus;
+
+    @Inject
+    EngagementEventSocket socket;
+    
+    @Inject
+    @RestClient
+    OMPGitLabAPIService gitApi;
 
     /**
      * Creates a new {@link Engagement} resource in the data store and marks if for
@@ -106,6 +117,27 @@ public class EngagementService {
         return engagement;
 
     }
+    
+    //Status comes from gitlab so it does not need to to be sync'd
+    public Engagement updateStatus(String customerName, String projectName) {
+        
+        Status status = gitApi.getStatus(customerName, projectName);
+        
+        Optional<Engagement> optional = get(customerName, projectName);
+        if (!optional.isPresent()) {
+            throw new ResourceNotFoundException("no engagement found.  use POST to create resource.");
+        }
+        
+        Engagement persisted = optional.get();
+        persisted.setStatus(status);
+        
+        // update in db
+        repository.update(persisted);
+        
+        sendEngagementEvent(jsonb.toJson(persisted));
+        
+        return persisted;
+    }
 
     /**
      * Returns an {@link Optional} containing an {@link Engagement} if it is present
@@ -118,8 +150,10 @@ public class EngagementService {
     public Optional<Engagement> get(String customerName, String projectName) {
 
         Optional<Engagement> optional = Optional.empty();
-
-        LOGGER.info("{}", repository.listAll());
+        
+        if(LOGGER.isDebugEnabled()) {
+            repository.listAll().stream().forEach( engagement -> LOGGER.debug("E {} {}", engagement.getCustomerName(), engagement.getProjectName()));
+        }
         // check db
         Engagement persistedEngagement = repository.findByCustomerNameAndProjectName(customerName, projectName);
 
@@ -181,6 +215,9 @@ public class EngagementService {
         // insert
         insertEngagementListInRepository(engagementList);
 
+        // send event to socket with modified engagements
+        sendEngagementEvent(jsonb.toJson(engagementList));
+
     }
 
     /**
@@ -232,11 +269,13 @@ public class EngagementService {
     void consumeDbRefreshRequestedEvent(BackendEvent event) {
 
         if (!event.isForceUpdate() && getAll().size() > 0) {
-            LOGGER.debug("engagements already exist in db and force is not set.  doing nothing for db refresh request.");
+            LOGGER.debug(
+                    "engagements already exist in db and force is not set.  doing nothing for db refresh request.");
             return;
         }
 
-        LOGGER.debug("purging existing engagements from db and inserting from event list {}", event.getEngagementList());
+        LOGGER.debug("purging existing engagements from db and inserting from event list {}",
+                event.getEngagementList());
         // refresh the db
         refreshFromEngagementList(event.getEngagementList());
 
@@ -284,6 +323,15 @@ public class EngagementService {
         BackendEvent event = BackendEvent.createUpdateEngagementsInGitRequestedEvent(modifiedList);
         eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
 
+    }
+
+    /**
+     * Sends the given message to the configured socket sessions
+     * 
+     * @param message
+     */
+    void sendEngagementEvent(String message) {
+        socket.broadcast(message);
     }
 
 }

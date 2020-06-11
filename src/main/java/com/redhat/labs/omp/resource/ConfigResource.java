@@ -23,7 +23,7 @@ import com.redhat.labs.omp.service.ConfigService;
 @Path("/config")
 @Produces(MediaType.APPLICATION_JSON)
 public class ConfigResource {
-	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigResource.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigResource.class);
 
     @Inject
     JsonWebToken jwt;
