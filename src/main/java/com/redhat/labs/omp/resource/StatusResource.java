@@ -47,7 +47,7 @@ public class StatusResource {
     @Path("/hook")
     @APIResponses(value = { 
             @APIResponse(responseCode = "401", description = "Invalid Gitlab Token"),
-            @APIResponse(responseCode = "200", description = "Configuration file data has been returned.") })
+            @APIResponse(responseCode = "200", description = "Returns the hook given.") })
     @Operation(summary = "Entry point for update notifications")
     public Response fetchConfigData(@HeaderParam(value = "x-gitlab-token") String gitLabToken, Hook hook) {
         

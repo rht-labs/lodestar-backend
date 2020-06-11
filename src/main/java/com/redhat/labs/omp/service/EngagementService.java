@@ -128,7 +128,6 @@ public class EngagementService {
             throw new ResourceNotFoundException("no engagement found.  use POST to create resource.");
         }
         
-        // set modified if already marked for modification
         Engagement persisted = optional.get();
         persisted.setStatus(status);
         
