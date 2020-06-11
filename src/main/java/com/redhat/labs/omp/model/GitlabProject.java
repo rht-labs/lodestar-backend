@@ -10,5 +10,5 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GitlabProject {
-	private String pathWithNamespace;
+    private String pathWithNamespace;
 }

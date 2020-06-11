@@ -18,24 +18,24 @@ import io.restassured.http.ContentType;
 @EmbeddedMongoTest
 @QuarkusTest
 public class StatusResourceTest {
-	
-	@Inject
-	EngagementService engagementService;
-	
-	
-	
-	@BeforeEach
-	public void seed() {
-		Engagement engagement = Engagement.builder().customerName("jello").projectName("exists").build();
-		engagementService.create(engagement);
-	}
-	
-	
-	@Test
+    
+    @Inject
+    EngagementService engagementService;
+    
+    
+    
+    @BeforeEach
+    public void seed() {
+        Engagement engagement = Engagement.builder().customerName("jello").projectName("exists").build();
+        engagementService.create(engagement);
+    }
+    
+    
+    @Test
     public void testStatusValid() {
-		
-		String body = ResourceLoader.load("StatusReqValid.json");
-				
+        
+        String body = ResourceLoader.load("StatusReqValid.json");
+                
         given()
         .when()
             .contentType(ContentType.JSON)
@@ -45,23 +45,23 @@ public class StatusResourceTest {
         .then()
             .statusCode(200);
     } 
-	
-	@Test
+    
+    @Test
     public void testStatusNoStatusUpdate() {
-		
-		String body = ResourceLoader.load("StatusReqValidNoUpdate.json");
-		
+        
+        String body = ResourceLoader.load("StatusReqValidNoUpdate.json");
+        
         given()
         .when()
-        	.contentType(ContentType.JSON)
-        	.body(body)
-        	.header("x-gitlab-token", "ttttt")
+            .contentType(ContentType.JSON)
+            .body(body)
+            .header("x-gitlab-token", "ttttt")
             .post("/status/hook")
         .then()
             .statusCode(200);
     } 
 
-	@Test
+    @Test
     public void testStatusNoToken() {
         given()
         .when()

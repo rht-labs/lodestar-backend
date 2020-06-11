@@ -27,20 +27,20 @@ import com.redhat.labs.omp.service.EngagementService;
 @Path("/status")
 @Produces(MediaType.APPLICATION_JSON)
 public class StatusResource {
-	private static final Logger LOGGER = LoggerFactory.getLogger(StatusResource.class);
-	
-	@ConfigProperty(name = "webhook.token")
-	String token;
-	
-	@ConfigProperty(name = "status.file")
-	String statusFile;
-	
-	@Inject
-	@RestClient
-	OMPGitLabAPIService gitApi;
-	
-	@Inject
-	EngagementService engagementService;
+    private static final Logger LOGGER = LoggerFactory.getLogger(StatusResource.class);
+    
+    @ConfigProperty(name = "webhook.token")
+    String token;
+    
+    @ConfigProperty(name = "status.file")
+    String statusFile;
+    
+    @Inject
+    @RestClient
+    OMPGitLabAPIService gitApi;
+    
+    @Inject
+    EngagementService engagementService;
 
     @POST
     @PermitAll
@@ -50,20 +50,20 @@ public class StatusResource {
             @APIResponse(responseCode = "200", description = "Configuration file data has been returned.") })
     @Operation(summary = "Entry point for update notifications")
     public Response fetchConfigData(@HeaderParam(value = "x-gitlab-token") String gitLabToken, Hook hook) {
-    	
-    	if(!token.equals(gitLabToken)) {
-    		LOGGER.error("Invalid token used");
-    		return Response.status(Status.UNAUTHORIZED).build();
-    	}
-    	
-    	LOGGER.debug("Status updated {}", hook.didFileChange(statusFile));
-    	
-    	if(hook.didFileChange(statusFile)) {
-    		
-    		LOGGER.debug("Hook for {}", hook.getProject().getPathWithNamespace());
-    		engagementService.updateStatus(hook.getCustomerName(), hook.getEngagementName());
-    	}
+        
+        if(!token.equals(gitLabToken)) {
+            LOGGER.error("Invalid token used");
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+        
+        LOGGER.debug("Status updated {}", hook.didFileChange(statusFile));
+        
+        if(hook.didFileChange(statusFile)) {
+            
+            LOGGER.debug("Hook for {}", hook.getProject().getPathWithNamespace());
+            engagementService.updateStatus(hook.getCustomerName(), hook.getEngagementName());
+        }
         return Response.ok(hook).build();
     }
-	
+    
 }

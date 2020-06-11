@@ -12,15 +12,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Commit {
-	private String message;
-	private String title;
-	
-	private List<String> added;
-	private List<String> modified;
-	private List<String> removed;
-	
-	
-	public boolean didFileChange(String fileName) {
-		return added.contains(fileName) || modified.contains(fileName) || removed.contains(fileName);
-	}
+    private String message;
+    private String title;
+    
+    private List<String> added;
+    private List<String> modified;
+    private List<String> removed;
+    
+    
+    public boolean didFileChange(String fileName) {
+        return added.contains(fileName) || modified.contains(fileName) || removed.contains(fileName);
+    }
 }

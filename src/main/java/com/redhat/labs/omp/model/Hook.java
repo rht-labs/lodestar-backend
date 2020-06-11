@@ -13,30 +13,30 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Hook {
 
-	private String objectKind;
-	private String eventName;
-	private List<Commit> commits;
-	private GitlabProject project;
-	
-	private static final String regex = "(.*)\\/(.*)\\/(.*)\\/iac";
-	
-	public boolean didFileChange(String fileName) {
-		for(Commit commit : commits) {
-			if(commit.didFileChange(fileName)) {
-				return true;	
-			}
-		}
-		
-		return false;
-	}
-	
-	public String getCustomerName() {
-		return project.getPathWithNamespace().replaceAll(regex, "$2");
-		
-	}
-	
-	public String getEngagementName() {
-		return project.getPathWithNamespace().replaceAll(regex, "$3");
-	}
-	
+    private String objectKind;
+    private String eventName;
+    private List<Commit> commits;
+    private GitlabProject project;
+    
+    private static final String regex = "(.*)\\/(.*)\\/(.*)\\/iac";
+    
+    public boolean didFileChange(String fileName) {
+        for(Commit commit : commits) {
+            if(commit.didFileChange(fileName)) {
+                return true;    
+            }
+        }
+        
+        return false;
+    }
+    
+    public String getCustomerName() {
+        return project.getPathWithNamespace().replaceAll(regex, "$2");
+        
+    }
+    
+    public String getEngagementName() {
+        return project.getPathWithNamespace().replaceAll(regex, "$3");
+    }
+    
 }

@@ -120,10 +120,10 @@ public class EngagementService {
     
     //Status comes from gitlab so it does not need to to be sync'd
     public Engagement updateStatus(String customerName, String projectName) {
-    	
-    	Status status = gitApi.getStatus(customerName, projectName);
-    	
-    	Optional<Engagement> optional = get(customerName, projectName);
+        
+        Status status = gitApi.getStatus(customerName, projectName);
+        
+        Optional<Engagement> optional = get(customerName, projectName);
         if (!optional.isPresent()) {
             throw new ResourceNotFoundException("no engagement found.  use POST to create resource.");
         }
@@ -153,7 +153,7 @@ public class EngagementService {
         Optional<Engagement> optional = Optional.empty();
         
         if(LOGGER.isDebugEnabled()) {
-        	repository.listAll().stream().forEach( engagement -> LOGGER.debug("E {} {}", engagement.getCustomerName(), engagement.getProjectName()));
+            repository.listAll().stream().forEach( engagement -> LOGGER.debug("E {} {}", engagement.getCustomerName(), engagement.getProjectName()));
         }
         // check db
         Engagement persistedEngagement = repository.findByCustomerNameAndProjectName(customerName, projectName);
