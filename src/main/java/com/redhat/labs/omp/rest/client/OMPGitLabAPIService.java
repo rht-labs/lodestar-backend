@@ -10,8 +10,10 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
+import org.jboss.resteasy.annotations.jaxrs.PathParam;
 
 import com.redhat.labs.omp.model.Engagement;
+import com.redhat.labs.omp.model.Status;
 import com.redhat.labs.omp.model.Version;
 
 @RegisterRestClient(configKey = "omp.gitlab.api")
@@ -27,6 +29,11 @@ public interface OMPGitLabAPIService {
     @Produces("application/json")
     Response createOrUpdateEngagement(Engagement engagement, @QueryParam("username") String username,
             @QueryParam("userEmail") String userEmail);
+    
+    @GET
+    @Path("/api/v1/engagements/customer/{customer}/{engagement}/status")
+    @Produces("application/json")
+    Status getStatus(@PathParam("customer") String customer, @PathParam("engagement") String engagement);
 
     @GET
     @Path("/api/v1/config")

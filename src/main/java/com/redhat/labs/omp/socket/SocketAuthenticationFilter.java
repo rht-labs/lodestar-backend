@@ -62,7 +62,7 @@ public class SocketAuthenticationFilter implements Filter {
 
         } catch (ParseException e) {
 
-            LOGGER.debug("failed to parse token {}", token);
+            LOGGER.debug("failed to parse token {} {}", token, e);
             returnForbiddenError(servletResponse, "Invalid access token");
 
         }
