@@ -19,4 +19,4 @@ jobs:
       with:
         java-version: 13.0.1
     - name: Build with Maven & Quarkus
-      run: mvn test
+      run: mvn test -q

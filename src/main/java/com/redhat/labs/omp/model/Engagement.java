@@ -71,6 +71,8 @@ public class Engagement extends PanacheMongoEntityBase {
     private Launch launch;
     @JsonbProperty("engagement_users")
     private List<EngagementUser> engagementUsers;
+    
+    private Status status;
 
     @JsonbTransient
     private FileAction action;

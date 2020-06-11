@@ -10,6 +10,7 @@ import javax.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import com.redhat.labs.omp.model.Engagement;
+import com.redhat.labs.omp.model.Status;
 import com.redhat.labs.omp.model.Version;
 
 import io.quarkus.test.Mock;
@@ -85,5 +86,13 @@ public class MockOMPGitLabAPIService implements OMPGitLabAPIService {
         Version v = Version.builder().gitCommit("abcdef").gitTag("v1.1").build();
         return v;
     }
+
+	@Override
+	public Status getStatus(String customer, String engagement) {
+		if("exists".equals(engagement)) {
+			return Status.builder().status("green").build();
+		}
+		return null;
+	}
 
 }
