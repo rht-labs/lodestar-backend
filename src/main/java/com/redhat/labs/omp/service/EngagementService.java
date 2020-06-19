@@ -351,6 +351,7 @@ public class EngagementService {
     @ConsumeEvent(value = ENGAGEMENTS_UPDATED_ADDRESS, local = false)
     void consumeEngagementsUpdatedEvent(String message) {
 
+        LOGGER.debug("consumed engagements updated event, {}", message);
         // send to socket
         socket.broadcast(message);
 
