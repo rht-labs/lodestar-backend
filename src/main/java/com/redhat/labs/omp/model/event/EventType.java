@@ -6,7 +6,8 @@ public enum EventType {
     DB_REFRESH(Constants.DB_REFRESH_ADDRESS),
     PUSH_TO_GIT_REQUESTED(Constants.PUSH_TO_GIT_REQUESTED_ADDRESS),
     UPDATE_ENGAGEMENTS_IN_DB_REQUESTED(Constants.UPDATE_ENGAGEMENTS_IN_DB_REQUESTED_ADDRESS),
-    UPDATE_ENGAGEMENTS_IN_GIT_REQUESTED(Constants.UPDATE_ENGAGEMENTS_IN_GIT_REQUESTED_ADDRESS);
+    UPDATE_ENGAGEMENTS_IN_GIT_REQUESTED(Constants.UPDATE_ENGAGEMENTS_IN_GIT_REQUESTED_ADDRESS),
+    ENGAGEMENTS_UPDATED(Constants.ENGAGEMENTS_UPDATED_ADDRESS);
 
     private String eventBusAddress;
 
@@ -25,7 +26,8 @@ public enum EventType {
         public static final String PUSH_TO_GIT_REQUESTED_ADDRESS = "push.to.git.requested.event";
         public static final String UPDATE_ENGAGEMENTS_IN_DB_REQUESTED_ADDRESS = "update.engagements.in.db.requested.event";
         public static final String UPDATE_ENGAGEMENTS_IN_GIT_REQUESTED_ADDRESS = "update.engagements.in.git.requested.event";
+        public static final String ENGAGEMENTS_UPDATED_ADDRESS = "engagements.updated.event";
 
     }
 
-} 
+}
