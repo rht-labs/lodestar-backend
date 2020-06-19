@@ -170,6 +170,7 @@
 		</profile>
 		<profile>
 			<id>openshift</id>
+			<!-- add kubernetes dependency -->
 			<dependencies>
 				<dependency>
 					<groupId>com.hazelcast</groupId>
@@ -177,7 +178,7 @@
 					<version>${hazelcast-kubernetes-plugin.version}</version>
 				</dependency>
 			</dependencies>
-
+			<!-- Copy cluster.xml file into classes directory -->
 			<build>
 				<plugins>
 					<plugin>

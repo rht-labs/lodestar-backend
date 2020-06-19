@@ -39,8 +39,4 @@ public class BackendEvent {
                 .engagementList(engagementList).build();
     }
 
-    public static BackendEvent createEngagementsUpdatedEvent(List<Engagement> engagementList) {
-        return BackendEvent.builder().eventType(EventType.ENGAGEMENTS_UPDATED).engagementList(engagementList).build();
-    }
-
 }

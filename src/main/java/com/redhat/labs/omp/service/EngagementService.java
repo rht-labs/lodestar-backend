@@ -28,13 +28,13 @@ import com.redhat.labs.omp.rest.client.OMPGitLabAPIService;
 import com.redhat.labs.omp.socket.EngagementEventSocket;
 
 import io.quarkus.vertx.ConsumeEvent;
-import io.vertx.core.json.JsonObject;
 import io.vertx.mutiny.core.eventbus.EventBus;
 
 @ApplicationScoped
 public class EngagementService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EngagementService.class);
+    private static final String ENGAGEMENTS_UPDATED_ADDRESS = "engagements.updated.event";
 
     @ConfigProperty(name = "engagement.file.name", defaultValue = "engagement.json")
     String engagementFileName;
@@ -337,7 +337,7 @@ public class EngagementService {
     void sendEngagementEvent(List<Engagement> engagementList) {
 
         LOGGER.debug("emitting engagements updated event");
-        eventBus.publish(EventType.Constants.ENGAGEMENTS_UPDATED_ADDRESS, jsonb.toJson(engagementList));
+        eventBus.publish(ENGAGEMENTS_UPDATED_ADDRESS, jsonb.toJson(engagementList));
 
     }
 
@@ -348,7 +348,7 @@ public class EngagementService {
      * 
      * @param event
      */
-    @ConsumeEvent(value = EventType.Constants.ENGAGEMENTS_UPDATED_ADDRESS, local = false)
+    @ConsumeEvent(value = ENGAGEMENTS_UPDATED_ADDRESS, local = false)
     void consumeEngagementsUpdatedEvent(String message) {
 
         // send to socket
