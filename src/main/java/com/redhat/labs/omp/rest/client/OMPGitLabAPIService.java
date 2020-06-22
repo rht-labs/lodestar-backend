@@ -12,6 +12,7 @@ import javax.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
 
+import com.redhat.labs.omp.model.Commit;
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.model.Status;
 import com.redhat.labs.omp.model.Version;
@@ -34,6 +35,11 @@ public interface OMPGitLabAPIService {
     @Path("/api/v1/engagements/customer/{customer}/{engagement}/status")
     @Produces("application/json")
     Status getStatus(@PathParam("customer") String customer, @PathParam("engagement") String engagement);
+    
+    @GET
+    @Path("/api/v1/engagements/customer/{customer}/{engagement}/commits")
+    @Produces("application/json")
+    List<Commit> getCommits(@PathParam("customer") String customer, @PathParam("engagement") String engagement);
 
     @GET
     @Path("/api/v1/config")

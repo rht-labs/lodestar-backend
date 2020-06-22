@@ -32,9 +32,6 @@ public class StatusResource {
     @ConfigProperty(name = "webhook.token")
     String token;
     
-    @ConfigProperty(name = "status.file")
-    String statusFile;
-    
     @Inject
     @RestClient
     OMPGitLabAPIService gitApi;
@@ -55,14 +52,10 @@ public class StatusResource {
             LOGGER.error("Invalid token used");
             return Response.status(Status.UNAUTHORIZED).build();
         }
-        
-        LOGGER.debug("Status updated {}", hook.didFileChange(statusFile));
-        
-        if(hook.didFileChange(statusFile)) {
             
-            LOGGER.debug("Hook for {}", hook.getProject().getPathWithNamespace());
-            engagementService.updateStatus(hook.getCustomerName(), hook.getEngagementName());
-        }
+        LOGGER.debug("Hook for {}", hook.getProject().getPathWithNamespace());
+        engagementService.updateStatusAndCommits(hook);
+
         return Response.ok(hook).build();
     }
     

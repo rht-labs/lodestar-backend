@@ -9,6 +9,7 @@ import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
+import com.redhat.labs.omp.model.Commit;
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.model.Status;
 import com.redhat.labs.omp.model.Version;
@@ -92,6 +93,11 @@ public class MockOMPGitLabAPIService implements OMPGitLabAPIService {
 		if("exists".equals(engagement)) {
 			return Status.builder().status("green").build();
 		}
+		return null;
+	}
+
+	@Override
+	public List<Commit> getCommits(String customer, String engagement) {
 		return null;
 	}
 
