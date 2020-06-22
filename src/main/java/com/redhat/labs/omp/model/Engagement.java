@@ -73,6 +73,7 @@ public class Engagement extends PanacheMongoEntityBase {
     private List<EngagementUser> engagementUsers;
     
     private Status status;
+    private List<Commit> commits;
 
     @JsonbTransient
     private FileAction action;

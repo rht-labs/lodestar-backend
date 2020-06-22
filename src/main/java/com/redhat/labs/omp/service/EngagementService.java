@@ -16,8 +16,10 @@ import org.slf4j.LoggerFactory;
 import com.redhat.labs.omp.exception.InvalidRequestException;
 import com.redhat.labs.omp.exception.ResourceAlreadyExistsException;
 import com.redhat.labs.omp.exception.ResourceNotFoundException;
+import com.redhat.labs.omp.model.Commit;
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.model.FileAction;
+import com.redhat.labs.omp.model.Hook;
 import com.redhat.labs.omp.model.Launch;
 import com.redhat.labs.omp.model.Status;
 import com.redhat.labs.omp.model.event.BackendEvent;
@@ -40,6 +42,8 @@ public class EngagementService {
     String engagementFileBranch;
     @ConfigProperty(name = "engagement.file.commit.message", defaultValue = "updated by omp backend")
     String engagementFileCommitMessage;
+    @ConfigProperty(name = "status.file")
+    String statusFile;
 
     @Inject
     Jsonb jsonb;
@@ -119,17 +123,22 @@ public class EngagementService {
     }
     
     //Status comes from gitlab so it does not need to to be sync'd
-    public Engagement updateStatus(String customerName, String projectName) {
-        
-        Status status = gitApi.getStatus(customerName, projectName);
-        
-        Optional<Engagement> optional = get(customerName, projectName);
+    public Engagement updateStatusAndCommits(Hook hook) {
+
+        Optional<Engagement> optional = get(hook.getCustomerName(), hook.getEngagementName());
         if (!optional.isPresent()) {
-            throw new ResourceNotFoundException("no engagement found.  use POST to create resource.");
+            throw new ResourceNotFoundException("no engagement found. unable to update from hook.");
         }
         
         Engagement persisted = optional.get();
-        persisted.setStatus(status);
+        
+        if(hook.didFileChange(statusFile)) {
+            Status status = gitApi.getStatus(hook.getCustomerName(), hook.getEngagementName());
+            persisted.setStatus(status);
+        }
+
+        List<Commit> commits = gitApi.getCommits(hook.getCustomerName(), hook.getEngagementName());
+        persisted.setCommits(commits);
         
         // update in db
         repository.update(persisted);
@@ -180,7 +189,7 @@ public class EngagementService {
      */
     void deleteAll() {
         long count = repository.deleteAll();
-        LOGGER.info("removed '" + count + "' engagements from the data store.");
+        LOGGER.info("removed '{}' engagements from the data store.", count);
     }
 
     /**
@@ -268,7 +277,7 @@ public class EngagementService {
     @ConsumeEvent(EventType.Constants.DB_REFRESH_ADDRESS)
     void consumeDbRefreshRequestedEvent(BackendEvent event) {
 
-        if (!event.isForceUpdate() && getAll().size() > 0) {
+        if (!event.isForceUpdate() && getAll().isEmpty()) {
             LOGGER.debug(
                     "engagements already exist in db and force is not set.  doing nothing for db refresh request.");
             return;
@@ -314,7 +323,7 @@ public class EngagementService {
 
         List<Engagement> modifiedList = getModifiedEngagements();
 
-        if (modifiedList.size() == 0) {
+        if (modifiedList.isEmpty()) {
             LOGGER.debug("no modified engagements to process");
             return;
         }
