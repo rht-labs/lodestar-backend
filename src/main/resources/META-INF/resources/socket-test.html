@@ -197,7 +197,7 @@ input[type=button], input[type=submit], input[type=reset] {
               var content = document.getElementById("content");
               var pre = document.createElement("pre");
               var json = JSON.parse(m.data);
-              pre.innerHTML = json.status.overall_status;
+              pre.innerHTML = json;
               content.appendChild(pre);
               changeColor();
           };
