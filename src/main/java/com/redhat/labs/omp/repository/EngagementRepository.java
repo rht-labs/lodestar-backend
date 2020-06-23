@@ -27,5 +27,16 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
     public List<Engagement> findByModified() {
         return find("action is not null").list();
     }
+    
+    /**
+     * A case insensitive string to match against customer names.
+     * @param input
+     * @return
+     */
+    public List<Engagement> findCustomerSuggestions(String input) {
+        String queryInput = String.format("(?i)%s", input);
+
+        return find("customerName like ?1", queryInput).list();
+    }
 
 }

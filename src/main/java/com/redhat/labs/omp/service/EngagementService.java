@@ -1,8 +1,11 @@
 package com.redhat.labs.omp.service;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.TreeSet;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -68,6 +71,7 @@ public class EngagementService {
      * @param engagement
      * @return
      */
+    
     public Engagement create(Engagement engagement) {
 
         // check if engagement exists
@@ -182,6 +186,20 @@ public class EngagementService {
     public List<Engagement> getAll() {
         return repository.listAll();
     }
+    
+    /**
+     * Returns a {@link List} of all customer names in the data store that match the input
+     * @param subString - A string to match the customer name on. Can be all or part. case-insensitive
+     * @return a {@link List} of all customer names in the data store that match the input
+     */
+    public Collection<String> getSuggestions(String subString) {
+		List<Engagement> allEngagements = repository.findCustomerSuggestions(subString);
+		
+		Set<String> customers = new TreeSet<>();
+		allEngagements.stream().forEach(engagement -> customers.add(engagement.getCustomerName()));
+		
+		return customers;
+	}
 
     /**
      * Used by the {@link GitSyncService} to delete all {@link Engagement} from the
