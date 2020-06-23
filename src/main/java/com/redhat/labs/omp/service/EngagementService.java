@@ -1,7 +1,6 @@
 package com.redhat.labs.omp.service;
 
 import java.time.LocalDateTime;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,7 +35,6 @@ import io.vertx.mutiny.core.eventbus.EventBus;
 public class EngagementService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EngagementService.class);
-    private static final String ENGAGEMENTS_UPDATED_ADDRESS = "engagements.updated.event";
 
     @ConfigProperty(name = "engagement.file.name", defaultValue = "engagement.json")
     String engagementFileName;
@@ -58,7 +56,7 @@ public class EngagementService {
 
     @Inject
     EngagementEventSocket socket;
-
+    
     @Inject
     @RestClient
     OMPGitLabAPIService gitApi;
@@ -123,8 +121,7 @@ public class EngagementService {
         return engagement;
 
     }
- 
-  
+    
     //Status comes from gitlab so it does not need to to be sync'd
     public Engagement updateStatusAndCommits(Hook hook) {
 
@@ -146,7 +143,7 @@ public class EngagementService {
         // update in db
         repository.update(persisted);
         
-        sendEngagementEvent(Arrays.asList(persisted));
+        sendEngagementEvent(jsonb.toJson(persisted));
         
         return persisted;
     }
@@ -162,10 +159,9 @@ public class EngagementService {
     public Optional<Engagement> get(String customerName, String projectName) {
 
         Optional<Engagement> optional = Optional.empty();
-
-        if (LOGGER.isDebugEnabled()) {
-            repository.listAll().stream().forEach(
-                    engagement -> LOGGER.debug("E {} {}", engagement.getCustomerName(), engagement.getProjectName()));
+        
+        if(LOGGER.isDebugEnabled()) {
+            repository.listAll().stream().forEach( engagement -> LOGGER.debug("E {} {}", engagement.getCustomerName(), engagement.getProjectName()));
         }
         // check db
         Engagement persistedEngagement = repository.findByCustomerNameAndProjectName(customerName, projectName);
@@ -229,7 +225,7 @@ public class EngagementService {
         insertEngagementListInRepository(engagementList);
 
         // send event to socket with modified engagements
-        sendEngagementEvent(engagementList);
+        sendEngagementEvent(jsonb.toJson(engagementList));
 
     }
 
@@ -339,32 +335,12 @@ public class EngagementService {
     }
 
     /**
-     * Publishes the message to the {@link EventBus} so that all registered
-     * consumers receive the event.
+     * Sends the given message to the configured socket sessions
      * 
      * @param message
      */
-    void sendEngagementEvent(List<Engagement> engagementList) {
-
-        LOGGER.debug("emitting engagements updated event");
-        eventBus.publish(ENGAGEMENTS_UPDATED_ADDRESS, jsonb.toJson(engagementList));
-
-    }
-
-    /**
-     * Consumes the {@link BackendEvent}, converts the {@link List} of modified
-     * {@link Engagement} to a JSON {@link String}, and sends it to be broadcast to
-     * all the web socket sessions.
-     * 
-     * @param event
-     */
-    @ConsumeEvent(value = ENGAGEMENTS_UPDATED_ADDRESS, local = false)
-    void consumeEngagementsUpdatedEvent(String message) {
-
-        LOGGER.debug("consumed engagements updated event and sending to socket for broadcasting.");
-        // send to socket
+    void sendEngagementEvent(String message) {
         socket.broadcast(message);
-
     }
 
 }
