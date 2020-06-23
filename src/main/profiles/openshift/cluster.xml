@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<hazelcast xmlns="http://www.hazelcast.com/schema/config"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.hazelcast.com/schema/config hazelcast-config-3.12.xsd">
+
+	<properties>
+		<property name="hazelcast.discovery.enabled">true</property>
+	</properties>
+
+	<network>
+		<join>
+			<!-- deactivate normal discovery -->
+			<multicast enabled="false" />
+			<tcp-ip enabled="false" />
+
+			<!-- activate the Kubernetes plugin -->
+			<discovery-strategies>
+				<discovery-strategy enabled="true"
+					class="com.hazelcast.kubernetes.HazelcastKubernetesDiscoveryStrategy">
+
+					<properties>
+						<!-- configure discovery service API lookup -->
+						<property name="service-name">omp-backend</property>
+					</properties>
+				</discovery-strategy>
+			</discovery-strategies>
+		</join>
+	</network>
+</hazelcast>

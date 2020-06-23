@@ -33,6 +33,10 @@ spec:
         env:
         - name: OMP_BACKEND_GIT_TAG
           value: {{ .Values.imageTag }}
+        - name: BACKEND_POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
         image: {{ .Values.name }}:{{ .Values.imageTag }}
         imagePullPolicy: Always
         name: {{ .Values.name }}

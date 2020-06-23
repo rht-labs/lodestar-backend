@@ -49,7 +49,7 @@ public class EngagementEventSocket {
 
     public void broadcast(String message) {
 
-        LOG.debug("current session count {}", sessions.size());
+        LOG.debug("broadcasting message to socket {}", message);
 
         sessions.values().forEach(s -> {
             s.getAsyncRemote().sendObject(message, result -> {
