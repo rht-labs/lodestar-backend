@@ -826,7 +826,7 @@ public class EngagementResourceTest {
 
     }
 
-    private Engagement mockEngagement() {
+    public Engagement mockEngagement() {
 
         Engagement engagement = Engagement.builder().customerName("TestCustomer").projectName("TestProject")
                 .description("Test Description").location("Raleigh, NC").startDate("20170501").endDate("20170708")

@@ -1,11 +1,13 @@
 package com.redhat.labs.omp.resource;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -13,6 +15,7 @@ import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -121,6 +124,20 @@ public class EngagementResource {
     @Operation(summary = "Returns all engagement resources from the database.  Can be empty list if none found.")
     public List<Engagement> getAll() {
         return engagementService.getAll();
+    }
+    
+    @GET
+    @Path("/customers/suggest")
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @APIResponses(value = { 
+            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "200", description = "Customer data has been returned.") })
+    @Operation(summary = "Returns customers list")
+    public Response findCustomers(@NotBlank @QueryParam("suggest") String match) {
+        
+        Collection<String> customerSuggestions = engagementService.getSuggestions(match);
+        
+        return Response.ok(customerSuggestions).build();
     }
 
     @PUT
