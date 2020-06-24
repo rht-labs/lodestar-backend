@@ -1,5 +1,6 @@
 package com.redhat.labs.omp.model;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import javax.json.bind.annotation.JsonbProperty;
@@ -74,6 +75,8 @@ public class Engagement extends PanacheMongoEntityBase {
     
     private Status status;
     private List<Commit> commits;
+    @JsonbProperty("creation_details")
+    private CreationDetails creationDetails;
 
     @JsonbTransient
     private FileAction action;

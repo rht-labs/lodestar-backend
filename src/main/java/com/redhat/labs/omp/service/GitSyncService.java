@@ -1,5 +1,6 @@
 package com.redhat.labs.omp.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -11,6 +12,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.redhat.labs.omp.model.CreationDetails;
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.model.FileAction;
 import com.redhat.labs.omp.model.event.BackendEvent;
@@ -116,6 +118,11 @@ public class GitSyncService {
 
             try {
 
+                // set creation details for create actions
+                if (FileAction.create == engagement.getAction()) {
+                    setCreationDetails(engagement);
+                }
+
                 // call git api
                 Response response = gitApiClient.createOrUpdateEngagement(engagement, engagement.getLastUpdateByName(),
                         engagement.getLastUpdateByEmail());
@@ -160,6 +167,15 @@ public class GitSyncService {
 
         // update engagement id
         engagement.setProjectId(Integer.valueOf(id));
+
+    }
+
+    private void setCreationDetails(Engagement engagement) {
+
+        // set creation details
+        CreationDetails creationDetails = CreationDetails.builder().createdByUser(engagement.getLastUpdateByName())
+                .createdByEmail(engagement.getLastUpdateByEmail()).createdOn(LocalDateTime.now()).build();
+        engagement.setCreationDetails(creationDetails);
 
     }
 
