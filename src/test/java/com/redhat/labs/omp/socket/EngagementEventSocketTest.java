@@ -19,6 +19,7 @@ import javax.ws.rs.core.UriBuilder;
 
 import org.eclipse.microprofile.jwt.Claims;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,6 +96,7 @@ public class EngagementEventSocketTest {
 
     }
     
+    @Disabled
     @Test
     public void testWebsocketEvents() throws Exception {
 
