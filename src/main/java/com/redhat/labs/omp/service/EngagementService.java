@@ -1,6 +1,7 @@
 package com.redhat.labs.omp.service;
 
-import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -271,7 +272,7 @@ public class EngagementService {
         }
 
         // create new launch data for engagement
-        engagement.setLaunch(Launch.builder().launchedDateTime(LocalDateTime.now())
+        engagement.setLaunch(Launch.builder().launchedDateTime(ZonedDateTime.now(ZoneId.of("Z")).toString())
                 .launchedBy(engagement.getLastUpdateByName()).build());
 
         // update db

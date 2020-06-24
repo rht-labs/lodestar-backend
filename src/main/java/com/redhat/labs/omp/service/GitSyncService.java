@@ -1,6 +1,7 @@
 package com.redhat.labs.omp.service;
 
-import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -61,8 +62,7 @@ public class GitSyncService {
 
         }).subscribe().with(item -> {
             // create refresh event
-            BackendEvent refreshDbEvent = BackendEvent.createDatabaseRefreshEvent(item,
-                    event.isForceUpdate());
+            BackendEvent refreshDbEvent = BackendEvent.createDatabaseRefreshEvent(item, event.isForceUpdate());
             // send event to bus for processing
             eventBus.sendAndForget(refreshDbEvent.getEventType().getEventBusAddress(), refreshDbEvent);
         }, failure -> {
@@ -174,7 +174,8 @@ public class GitSyncService {
 
         // set creation details
         CreationDetails creationDetails = CreationDetails.builder().createdByUser(engagement.getLastUpdateByName())
-                .createdByEmail(engagement.getLastUpdateByEmail()).createdOn(LocalDateTime.now()).build();
+                .createdByEmail(engagement.getLastUpdateByEmail())
+                .createdOn(ZonedDateTime.now(ZoneId.of("Z")).toString()).build();
         engagement.setCreationDetails(creationDetails);
 
     }
