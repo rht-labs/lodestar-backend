@@ -41,7 +41,7 @@ import com.redhat.labs.omp.service.EngagementService;
 @SecurityScheme(securitySchemeName = "jwt", type = SecuritySchemeType.HTTP, scheme = "bearer", bearerFormat = "JWT")
 public class EngagementResource {
 
-    private static final String USERNAME_CLAIM = "preferred_username";
+    private static final String NAME_CLAIM = "name";
     private static final String USER_EMAIL_CLAIM = "email";
 
     public static final String DEFAULT_USERNAME = "omp-user";
@@ -158,8 +158,8 @@ public class EngagementResource {
     }
 
     private String getUsernameFromToken() {
-        Optional<String> optional = jwt.claim(USERNAME_CLAIM);
-        return optional.isPresent() ? optional.get() : DEFAULT_USERNAME;
+        Optional<String> optional = jwt.claim(NAME_CLAIM);
+        return optional.isPresent() ? optional.get() : getUserEmailFromToken();
     }
 
     private String getUserEmailFromToken() {
