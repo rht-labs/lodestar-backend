@@ -101,4 +101,12 @@ public class MockOMPGitLabAPIService implements OMPGitLabAPIService {
 		return null;
 	}
 
+	@Override
+	public Engagement getEngagementByNamespace(String namespace) {
+		if("/nope/nada/iac".equals(namespace)) {
+			return Engagement.builder().customerName("nope").projectName("nada").build();
+		}
+		return null;
+	}
+
 }

@@ -115,17 +115,14 @@ public class GitSyncService {
                 LOGGER.debug("...performing {} on engagement {} using Git API.", engagement.getAction().name(),
                         engagement);
             }
+            
+            // set creation details for create actions
+            if (FileAction.create == engagement.getAction()) {
+                setCreationDetails(engagement);
+            }
 
-            try {
-
-                // set creation details for create actions
-                if (FileAction.create == engagement.getAction()) {
-                    setCreationDetails(engagement);
-                }
-
-                // call git api
-                Response response = gitApiClient.createOrUpdateEngagement(engagement, engagement.getLastUpdateByName(),
-                        engagement.getLastUpdateByEmail());
+            try (Response response = gitApiClient.createOrUpdateEngagement(engagement, engagement.getLastUpdateByName(),
+                        engagement.getLastUpdateByEmail())) {
 
                 // update id for create actions
                 if (FileAction.create == engagement.getAction()) {

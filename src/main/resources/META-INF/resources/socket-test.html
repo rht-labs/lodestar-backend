@@ -134,8 +134,21 @@ input[type=button], input[type=submit], input[type=reset] {
       <input type="checkbox" name="insecure" id="insecure" onchange="secure()">
       <span class="checkmark"></span>
     </label>
+    <label class="container">This server
+      <input type="checkbox" name="thisHost" id="thisHost" onchange="setHost()">
+      <span class="checkmark"></span>
+    </label>
+    <label class="container">Show Commits
+      <input type="checkbox" name="commits" id="commits" onchange="radioIt('commits')">
+      <span class="checkmark"></span>
+    </label>
+    <label class="container">Show Status
+      <input type="checkbox" name="status" id="status" onchange="radioIt('status')">
+      <span class="checkmark"></span>
+    </label>
     <input type="button" onclick="connect()" value="Connect"/>
     <input type="button" onclick="simulate()" value="Simulate"/>
+    <input type="button" onclick="emptyIt()" value="Clear"/>
   </form>
   
   <div class="socketMessages" id="socketMessages">
@@ -197,16 +210,55 @@ input[type=button], input[type=submit], input[type=reset] {
               var content = document.getElementById("content");
               var pre = document.createElement("pre");
               var json = JSON.parse(m.data);
-              pre.innerHTML = json.status.overall_status;
+              contentDisplay(pre, json);
+              //pre.innerHTML = json.status.overall_status;
               content.appendChild(pre);
               changeColor();
           };
           
+      }window.location.host
+
+      function emptyIt() {
+        var content = document.getElementById("content");
+        content.innerHTML = ''
+      }
+
+      function contentDisplay(pre, json) {
+        if(document.getElementById("commits").checked) {
+          console.log("show commits");
+          var output = "<table><tr><td>Message</td><td>Committer</td></tr>";
+          for(i=0; i< json.commits.length; i++) {
+            output += "<tr><td>" + json.commits[i].message + "</td><td>" + json.commits[i].author_name + "</td></tr>";
+          }
+          output += "</table>";
+          pre.innerHTML = output;
+          
+        } else if(document.getElementById("status").checked) {
+          console.log("status");
+          pre.innerHTML = JSON.stringify(json.status, undefined, 2);
+        } else {
+          console.log("everything");
+          pre.innerHTML = JSON.stringify(json, undefined, 2);
+        }
       }
 
       function hostChange() {
         console.log("host.change");
         document.getElementById("insecure").checked = document.getElementById("host").value == "localhost:8081"
+      }
+
+      // function thisHost() {
+      //   document.getElementById("host").value = window.location.host;
+      //   secure();
+      // }
+
+      function setHost() {
+        //document.getElementById("insecure").checked = document.getElementById("host").value != "localhost:8081"
+        console.log("host");
+        document.getElementById("host").value = window.location.host;
+        if(window.location.host == "localhost:8081") {
+          document.getElementById("insecure").checked = true
+        }
       }
 
       function secure() {
@@ -236,6 +288,14 @@ input[type=button], input[type=submit], input[type=reset] {
         pre.innerHTML = json.overall_status;
         content.appendChild(pre);
         changeColor();
+      }
+
+      function radioIt(which) {
+        if(which == "commits") {
+          document.getElementById("status").checked = false
+        } else if (which == "status") {
+          document.getElementById("commits").checked = false
+        }
       }
   
   </script>
