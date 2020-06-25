@@ -1,7 +1,5 @@
 package com.redhat.labs.omp.model;
 
-import java.time.LocalDateTime;
-
 import javax.json.bind.annotation.JsonbProperty;
 
 import lombok.AllArgsConstructor;
@@ -20,6 +18,6 @@ public class CreationDetails {
     @JsonbProperty("created_by_email")
     private String createdByEmail;
     @JsonbProperty("created_on")
-    private LocalDateTime createdOn;
+    private String createdOn;
 
 }

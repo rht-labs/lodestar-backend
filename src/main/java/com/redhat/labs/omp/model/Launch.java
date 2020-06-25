@@ -1,7 +1,5 @@
 package com.redhat.labs.omp.model;
 
-import java.time.LocalDateTime;
-
 import javax.json.bind.annotation.JsonbProperty;
 
 import lombok.AllArgsConstructor;
@@ -16,7 +14,7 @@ import lombok.NoArgsConstructor;
 public class Launch {
 
     @JsonbProperty("launched_date_time")
-    private LocalDateTime launchedDateTime;
+    private String launchedDateTime;
     @JsonbProperty("launched_by")
     private String launchedBy;
 
