@@ -4,6 +4,7 @@
     "sub": "jdoe-using-jwt-rbac",
     "upn": "jdoe@quarkus.io",
     "preferred_username": "jdoe",
+    "name": "John Doe",
     "aud": "using-jwt-rbac",
     "birthdate": "2001-07-13",
     "roleMappings": {

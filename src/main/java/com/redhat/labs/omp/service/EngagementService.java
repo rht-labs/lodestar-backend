@@ -60,7 +60,7 @@ public class EngagementService {
 
     @Inject
     EngagementEventSocket socket;
-    
+
     @Inject
     @RestClient
     OMPGitLabAPIService gitApi;
@@ -72,7 +72,7 @@ public class EngagementService {
      * @param engagement
      * @return
      */
-    
+
     public Engagement create(Engagement engagement) {
 
         // check if engagement exists
@@ -120,14 +120,32 @@ public class EngagementService {
         // set engagement id in case it was updated before the consumer refreshed
         engagement.setProjectId(persisted.getProjectId());
 
+        // set creation details
+        engagement.setCreationDetails(persisted.getCreationDetails());
+
+        // set launch details
+        if (null != persisted.getLaunch()) {
+            engagement.setLaunch(persisted.getLaunch());
+        }
+
+        // set commits
+        if (null != persisted.getCommits()) {
+            engagement.setCommits(persisted.getCommits());
+        }
+
+        // set status
+        if (null != persisted.getStatus()) {
+            engagement.setStatus(persisted.getStatus());
+        }
+
         // update in db
         repository.update(engagement);
 
         return engagement;
 
     }
-    
-    //Status comes from gitlab so it does not need to to be sync'd
+
+    // Status comes from gitlab so it does not need to to be sync'd
     public Engagement updateStatusAndCommits(Hook hook) {
     	LOGGER.debug("Hook for {} {}", hook.getCustomerName(), hook.getEngagementName());
    	
@@ -136,22 +154,22 @@ public class EngagementService {
         	//try gitlab in case of special chars
         	optional = getEngagementFromNamespace(hook);
         }
-        
+
         Engagement persisted = optional.get();
-        
-        if(hook.didFileChange(statusFile)) {
+
+        if (hook.didFileChange(statusFile)) {
             Status status = gitApi.getStatus(hook.getCustomerName(), hook.getEngagementName());
             persisted.setStatus(status);
         }
 
         List<Commit> commits = gitApi.getCommits(hook.getCustomerName(), hook.getEngagementName());
         persisted.setCommits(commits);
-        
+
         // update in db
         repository.update(persisted);
-        
+
         sendEngagementEvent(jsonb.toJson(persisted));
-        
+
         return persisted;
     }
     
@@ -176,9 +194,10 @@ public class EngagementService {
     public Optional<Engagement> get(String customerName, String projectName) {
 
         Optional<Engagement> optional = Optional.empty();
-        
-        if(LOGGER.isDebugEnabled()) {
-            repository.listAll().stream().forEach( engagement -> LOGGER.debug("E {} {}", engagement.getCustomerName(), engagement.getProjectName()));
+
+        if (LOGGER.isDebugEnabled()) {
+            repository.listAll().stream().forEach(
+                    engagement -> LOGGER.debug("E {} {}", engagement.getCustomerName(), engagement.getProjectName()));
         }
         // check db
         Engagement persistedEngagement = repository.findByCustomerNameAndProjectName(customerName, projectName);
@@ -199,20 +218,24 @@ public class EngagementService {
     public List<Engagement> getAll() {
         return repository.listAll();
     }
-    
+
     /**
-     * Returns a {@link List} of all customer names in the data store that match the input
-     * @param subString - A string to match the customer name on. Can be all or part. case-insensitive
-     * @return a {@link List} of all customer names in the data store that match the input
+     * Returns a {@link List} of all customer names in the data store that match the
+     * input
+     * 
+     * @param subString - A string to match the customer name on. Can be all or
+     *                  part. case-insensitive
+     * @return a {@link List} of all customer names in the data store that match the
+     *         input
      */
     public Collection<String> getSuggestions(String subString) {
-		List<Engagement> allEngagements = repository.findCustomerSuggestions(subString);
-		
-		Set<String> customers = new TreeSet<>();
-		allEngagements.stream().forEach(engagement -> customers.add(engagement.getCustomerName()));
-		
-		return customers;
-	}
+        List<Engagement> allEngagements = repository.findCustomerSuggestions(subString);
+
+        Set<String> customers = new TreeSet<>();
+        allEngagements.stream().forEach(engagement -> customers.add(engagement.getCustomerName()));
+
+        return customers;
+    }
 
     /**
      * Used by the {@link GitSyncService} to delete all {@link Engagement} from the
@@ -285,7 +308,8 @@ public class EngagementService {
 
         // create new launch data for engagement
         engagement.setLaunch(Launch.builder().launchedDateTime(ZonedDateTime.now(ZoneId.of("Z")).toString())
-                .launchedBy(engagement.getLastUpdateByName()).build());
+                .launchedBy(engagement.getLastUpdateByName()).launchedByEmail(engagement.getLastUpdateByEmail())
+                .build());
 
         // update db
         Engagement updated = update(engagement.getCustomerName(), engagement.getProjectName(), engagement);

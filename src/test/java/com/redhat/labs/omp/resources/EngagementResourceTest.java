@@ -798,7 +798,7 @@ public class EngagementResourceTest {
              .then()
                  .statusCode(200)
                  .body("launch.launched_date_time", notNullValue())
-                 .body("launch.launched_by", equalTo("jdoe"));
+                 .body("launch.launched_by", equalTo("John Doe"));
 
     }
 
