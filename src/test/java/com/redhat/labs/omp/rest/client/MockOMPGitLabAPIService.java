@@ -67,8 +67,8 @@ public class MockOMPGitLabAPIService implements OMPGitLabAPIService {
 
     @Override
     public Response getConfigFileV2() {
-		String json = "{ \"hello\" : \"world\" }";
-		return Response.ok(json).build();
+        String json = "{ \"hello\" : \"world\" }";
+        return Response.ok(json).build();
     }
 
     @Override
@@ -88,25 +88,25 @@ public class MockOMPGitLabAPIService implements OMPGitLabAPIService {
         return v;
     }
 
-	@Override
-	public Status getStatus(String customer, String engagement) {
-		if("exists".equals(engagement)) {
-			return Status.builder().status("green").build();
-		}
-		return null;
-	}
+    @Override
+    public Status getStatus(String customer, String engagement) {
+        if("exists".equals(engagement)) {
+            return Status.builder().status("green").build();
+        }
+        return null;
+    }
 
-	@Override
-	public List<Commit> getCommits(String customer, String engagement) {
-		return null;
-	}
+    @Override
+    public List<Commit> getCommits(String customer, String engagement) {
+        return null;
+    }
 
-	@Override
-	public Engagement getEngagementByNamespace(String namespace) {
-		if("/nope/nada/iac".equals(namespace)) {
-			return Engagement.builder().customerName("nope").projectName("nada").build();
-		}
-		return null;
-	}
+    @Override
+    public Engagement getEngagementByNamespace(String namespace) {
+        if("/nope/nada/iac".equals(namespace)) {
+            return Engagement.builder().customerName("nope").projectName("nada").build();
+        }
+        return null;
+    }
 
 }
