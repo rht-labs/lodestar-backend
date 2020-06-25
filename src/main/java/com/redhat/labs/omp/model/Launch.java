@@ -17,5 +17,7 @@ public class Launch {
     private String launchedDateTime;
     @JsonbProperty("launched_by")
     private String launchedBy;
+    @JsonbProperty("launched_by_email")
+    private String launchedByEmail;
 
 }
