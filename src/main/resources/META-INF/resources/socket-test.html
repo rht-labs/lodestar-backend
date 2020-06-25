@@ -211,7 +211,6 @@ input[type=button], input[type=submit], input[type=reset] {
               var pre = document.createElement("pre");
               var json = JSON.parse(m.data);
               contentDisplay(pre, json);
-              //pre.innerHTML = json.status.overall_status;
               content.appendChild(pre);
               changeColor();
           };
@@ -247,13 +246,7 @@ input[type=button], input[type=submit], input[type=reset] {
         document.getElementById("insecure").checked = document.getElementById("host").value == "localhost:8081"
       }
 
-      // function thisHost() {
-      //   document.getElementById("host").value = window.location.host;
-      //   secure();
-      // }
-
       function setHost() {
-        //document.getElementById("insecure").checked = document.getElementById("host").value != "localhost:8081"
         console.log("host");
         document.getElementById("host").value = window.location.host;
         if(window.location.host == "localhost:8081") {
@@ -262,7 +255,6 @@ input[type=button], input[type=submit], input[type=reset] {
       }
 
       function secure() {
-        //document.getElementById("insecure").checked = document.getElementById("host").value != "localhost:8081"
         console.log("secure");
         if(document.getElementById("insecure").checked) {
           document.getElementById("host").value = "localhost:8081"
