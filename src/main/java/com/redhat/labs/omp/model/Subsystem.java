@@ -2,8 +2,6 @@ package com.redhat.labs.omp.model;
 
 import java.util.List;
 
-import javax.json.bind.annotation.JsonbProperty;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,11 +11,15 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Status {
+public class Subsystem {
 
-    @JsonbProperty("overall_status")
+    private String name;
     private String status;
+    private String state;
+    private String info;
+    private String updated;
+    private String webConsole;
+    private String api;
     private List<Message> messages;
-    private List<Subsystem> subsystems;
 
 }
