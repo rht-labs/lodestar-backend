@@ -2,6 +2,7 @@ package com.redhat.labs.omp.rest.client;
 
 import java.util.List;
 
+import javax.ws.rs.Encoded;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -24,6 +25,11 @@ public interface OMPGitLabAPIService {
     @Path("/api/v1/engagements")
     @Produces("application/json")
     List<Engagement> getEngagments();
+    
+    @GET
+    @Path("/api/v1/engagements/namespace/{namespace}")
+    @Produces("application/json")
+    Engagement getEngagementByNamespace(@PathParam("namespace") @Encoded String namespace);
 
     @POST
     @Path("/api/v1/engagements")

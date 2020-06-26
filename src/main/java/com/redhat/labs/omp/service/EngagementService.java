@@ -147,10 +147,12 @@ public class EngagementService {
 
     // Status comes from gitlab so it does not need to to be sync'd
     public Engagement updateStatusAndCommits(Hook hook) {
-
+    	LOGGER.debug("Hook for {} {}", hook.getCustomerName(), hook.getEngagementName());
+   	
         Optional<Engagement> optional = get(hook.getCustomerName(), hook.getEngagementName());
         if (!optional.isPresent()) {
-            throw new ResourceNotFoundException("no engagement found. unable to update from hook.");
+        	//try gitlab in case of special chars
+        	optional = getEngagementFromNamespace(hook);
         }
 
         Engagement persisted = optional.get();
@@ -169,6 +171,16 @@ public class EngagementService {
         sendEngagementEvent(jsonb.toJson(persisted));
 
         return persisted;
+    }
+    
+    private Optional<Engagement> getEngagementFromNamespace(Hook hook) {
+    	//Need the translated customer name if using special chars
+    	Engagement gitEngagement = gitApi.getEngagementByNamespace(hook.getProject().getPathWithNamespace());
+    	Optional<Engagement> optional = get(gitEngagement.getCustomerName(), gitEngagement.getProjectName());
+        if (!optional.isPresent()) {
+            throw new ResourceNotFoundException("no engagement found. unable to update from hook.");
+        }
+    	return optional;
     }
 
     /**
@@ -353,7 +365,7 @@ public class EngagementService {
     @ConsumeEvent(EventType.Constants.PUSH_TO_GIT_REQUESTED_ADDRESS)
     void consumePushToGitRequestedEvent(BackendEvent event) {
 
-        LOGGER.debug("consuming process time elapsed event.");
+        LOGGER.trace("consuming process time elapsed event.");
 
         sendEngagementsModifiedEvent();
     }

@@ -3,6 +3,7 @@ package com.redhat.labs.omp.resource;
 import javax.annotation.security.PermitAll;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -26,6 +27,7 @@ import com.redhat.labs.omp.service.EngagementService;
 @RequestScoped
 @Path("/status")
 @Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
 public class StatusResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(StatusResource.class);
     

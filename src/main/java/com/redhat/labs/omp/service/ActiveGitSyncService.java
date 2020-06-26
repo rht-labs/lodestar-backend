@@ -86,7 +86,7 @@ public class ActiveGitSyncService {
         // if i created the record, update the time stamp
         if (uuid.equals(sync.getUuid())) {
 
-            LOGGER.debug("i {} am active, updating check in timestamp.", uuid);
+            LOGGER.trace("i {} am active, updating check in timestamp.", uuid);
             // i am active, update time stamp
             sync.setLastUpdated(LocalDateTime.now());
             activeSyncRepository.update(sync);
@@ -132,7 +132,7 @@ public class ActiveGitSyncService {
 
         if (active) {
 
-            LOGGER.debug("{} emitting a process time elapsed event.", uuid);
+            LOGGER.trace("{} emitting a process time elapsed event.", uuid);
             BackendEvent event = BackendEvent.createPushToGitRequestedEvent();
             eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
 
