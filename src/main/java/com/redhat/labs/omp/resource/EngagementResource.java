@@ -42,10 +42,11 @@ import com.redhat.labs.omp.service.EngagementService;
 public class EngagementResource {
 
     private static final String NAME_CLAIM = "name";
+    private static final String PREFERRED_USERNAME_CLAIM = "preferred_username";
     private static final String USER_EMAIL_CLAIM = "email";
 
-    public static final String DEFAULT_USERNAME = "omp-user";
-    public static final String DEFAULT_EMAIL = "omp-email";
+    public static final String DEFAULT_USERNAME = "lodestar-user";
+    public static final String DEFAULT_EMAIL = "lodestar-email";
 
     @Inject
     JsonWebToken jwt;
@@ -55,10 +56,9 @@ public class EngagementResource {
 
     @POST
     @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = {
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "409", description = "Engagement resource already exists"),
-            @APIResponse(responseCode = "201", description = "Engagement stored in database")})
+            @APIResponse(responseCode = "201", description = "Engagement stored in database") })
     @Operation(summary = "Creates the engagement resource in the database.")
     public Response post(@Valid Engagement engagement, @Context UriInfo uriInfo) {
 
@@ -79,10 +79,9 @@ public class EngagementResource {
     @PUT
     @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/customers/{customerName}/projects/{projectName}")
-    @APIResponses(value = {
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "404", description = "Engagement resource not found to update"),
-            @APIResponse(responseCode = "200", description = "Engagement updated in the database")})
+            @APIResponse(responseCode = "200", description = "Engagement updated in the database") })
     @Operation(summary = "Updates the engagement resource in the database.")
     public Engagement put(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName,
             @Valid Engagement engagement) {
@@ -98,10 +97,9 @@ public class EngagementResource {
     @GET
     @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/customers/{customerName}/projects/{projectName}")
-    @APIResponses(value = {
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "404", description = "Engagement resource with customer and project names does not exist"),
-            @APIResponse(responseCode = "200", description = "Engagement resource found and returned")})
+            @APIResponse(responseCode = "200", description = "Engagement resource found and returned") })
     @Operation(summary = "Returns the engagement resource for the given customer and project names.")
     public Engagement get(@PathParam("customerName") String customerName,
             @PathParam("projectName") String projectName) {
@@ -118,34 +116,31 @@ public class EngagementResource {
 
     @GET
     @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = {
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
-            @APIResponse(responseCode = "200", description = "A list or empty list of engagement resources returned")})
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "200", description = "A list or empty list of engagement resources returned") })
     @Operation(summary = "Returns all engagement resources from the database.  Can be empty list if none found.")
     public List<Engagement> getAll() {
         return engagementService.getAll();
     }
-    
+
     @GET
     @Path("/customers/suggest")
     @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = { 
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "Customer data has been returned.") })
     @Operation(summary = "Returns customers list")
     public Response findCustomers(@NotBlank @QueryParam("suggest") String match) {
-        
+
         Collection<String> customerSuggestions = engagementService.getSuggestions(match);
-        
+
         return Response.ok(customerSuggestions).build();
     }
 
     @PUT
     @Path("/launch")
     @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = {
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
-            @APIResponse(responseCode = "200", description = "Launch data added to engagement resource and persisted to git")})
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "200", description = "Launch data added to engagement resource and persisted to git") })
     @Operation(summary = "Adds launch data to the engagement resource and immediately persists it to git.")
     public Engagement launch(@Valid Engagement engagement) {
 
@@ -158,13 +153,58 @@ public class EngagementResource {
     }
 
     private String getUsernameFromToken() {
-        Optional<String> optional = jwt.claim(NAME_CLAIM);
-        return optional.isPresent() ? optional.get() : getUserEmailFromToken();
+
+        // Use `name` claim first
+        Optional<String> optional = claimIsValid(NAME_CLAIM);
+
+        if(optional.isPresent()) {
+            return optional.get();
+        }
+
+        // use `preferred_username` claim if `name` not valid
+        optional = claimIsValid(PREFERRED_USERNAME_CLAIM);
+
+        if(optional.isPresent()) {
+            return optional.get();
+        }
+
+        // use `email` if username not valid
+        return getUserEmailFromToken();
+
     }
 
     private String getUserEmailFromToken() {
-        Optional<String> optional = jwt.claim(USER_EMAIL_CLAIM);
-        return optional.isPresent() ? optional.get() : DEFAULT_EMAIL;
+
+        Optional<String >optional = claimIsValid(USER_EMAIL_CLAIM);
+
+        if(optional.isPresent()) {
+            return optional.get();
+        }
+
+        return DEFAULT_EMAIL;
+
+    }
+
+    private Optional<String> claimIsValid(String claimName) {
+
+        // get claim by name
+        Optional<String> optional = jwt.claim(claimName);
+
+        // return if no value found
+        if (!optional.isPresent()) {
+            return optional;
+        }
+
+        String value = optional.get();
+
+        // return empty optional if value is whitespace
+        if (value.trim().equals("")) {
+            return Optional.empty();
+        }
+
+        // valid return
+        return optional;
+
     }
 
 }
