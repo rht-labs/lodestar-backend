@@ -8,6 +8,7 @@ import javax.json.bind.annotation.JsonbTransient;
 import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.types.ObjectId;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.redhat.labs.omp.validation.ValidName;
 
 import io.quarkus.mongodb.panache.PanacheMongoEntityBase;
@@ -68,6 +69,8 @@ public class Engagement extends PanacheMongoEntityBase {
     private String ocpPersistentStorageSize;
     @JsonbProperty("ocp_cluster_size")
     private String ocpClusterSize;
+    @JsonProperty("additional_details")
+    private String additionalDetails;
     private Launch launch;
     @JsonbProperty("engagement_users")
     private List<EngagementUser> engagementUsers;
