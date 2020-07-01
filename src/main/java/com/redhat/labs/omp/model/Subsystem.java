@@ -1,6 +1,9 @@
 package com.redhat.labs.omp.model;
 
 import java.util.List;
+import java.util.Map;
+
+import javax.json.bind.annotation.JsonbProperty;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -18,8 +21,8 @@ public class Subsystem {
     private String state;
     private String info;
     private String updated;
-    private String webConsole;
-    private String api;
     private List<Message> messages;
+    @JsonbProperty("access_urls")
+    private List<Map<String, Object>> accessUrls;
 
 }
