@@ -56,7 +56,8 @@ public class EngagementResource {
 
     @POST
     @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { 
+            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "409", description = "Engagement resource already exists"),
             @APIResponse(responseCode = "201", description = "Engagement stored in database") })
     @Operation(summary = "Creates the engagement resource in the database.")
@@ -79,7 +80,8 @@ public class EngagementResource {
     @PUT
     @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/customers/{customerName}/projects/{projectName}")
-    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { 
+            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "404", description = "Engagement resource not found to update"),
             @APIResponse(responseCode = "200", description = "Engagement updated in the database") })
     @Operation(summary = "Updates the engagement resource in the database.")
@@ -97,7 +99,8 @@ public class EngagementResource {
     @GET
     @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/customers/{customerName}/projects/{projectName}")
-    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { 
+            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "404", description = "Engagement resource with customer and project names does not exist"),
             @APIResponse(responseCode = "200", description = "Engagement resource found and returned") })
     @Operation(summary = "Returns the engagement resource for the given customer and project names.")
@@ -116,7 +119,8 @@ public class EngagementResource {
 
     @GET
     @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { 
+            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "A list or empty list of engagement resources returned") })
     @Operation(summary = "Returns all engagement resources from the database.  Can be empty list if none found.")
     public List<Engagement> getAll() {
@@ -126,7 +130,8 @@ public class EngagementResource {
     @GET
     @Path("/customers/suggest")
     @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { 
+            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "Customer data has been returned.") })
     @Operation(summary = "Returns customers list")
     public Response findCustomers(@NotBlank @QueryParam("suggest") String match) {
@@ -139,7 +144,8 @@ public class EngagementResource {
     @PUT
     @Path("/launch")
     @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { 
+            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "Launch data added to engagement resource and persisted to git") })
     @Operation(summary = "Adds launch data to the engagement resource and immediately persists it to git.")
     public Engagement launch(@Valid Engagement engagement) {
