@@ -131,6 +131,8 @@ public class GitSyncService {
 
                 // reset modified
                 engagement.setAction(null);
+                // make sure the connection is closed
+                response.close();
 
             } catch (WebApplicationException e) {
                 // rest call returned and 400 or above http code
