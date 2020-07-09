@@ -1,0 +1,13 @@
+{
+    "object_kind": "push",
+    "event_name": "project_deleted",
+    "project": {
+        "path_with_namespace": "butter/chomp/sandbox/jello/doesnotexist/iac",
+        "name_with_namespace": "butter / chomp / sandbox / jello / doesnotexist / iac"
+    },
+    "commits": [{
+        "added": ["status.json"],
+        "modified": [],
+        "removed": []
+    }]
+}

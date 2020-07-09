@@ -70,4 +70,56 @@ public class StatusResourceTest {
         .then()
             .statusCode(401);
     } 
+    
+    @Test
+    public void testDeletedHook() {
+        String body = ResourceLoader.load("StatusDeleted.json");
+        
+        given()
+        .when()
+            .contentType(ContentType.JSON)
+            .body(body)
+            .header("x-notification-token", "CLEANUP")
+            .post("/status/deleted")
+        .then()
+            .statusCode(204);
+    }
+    
+    @Test
+    public void testDeletedWrongEventType() {
+        String body = ResourceLoader.load("StatusReqValid.json");
+        
+        given()
+        .when()
+            .contentType(ContentType.JSON)
+            .body(body)
+            .header("x-notification-token", "CLEANUP")
+            .post("/status/deleted")
+        .then()
+            .statusCode(200);
+    }
+    
+    @Test
+    public void testDeletedNoEngagement() {
+        String body = ResourceLoader.load("StatusDeletedNoEngagement.json");
+        
+        given()
+        .when()
+            .contentType(ContentType.JSON)
+            .body(body)
+            .header("x-notification-token", "CLEANUP")
+            .post("/status/deleted")
+        .then()
+            .statusCode(204);
+    }
+    
+    @Test
+    public void testDeletedNoToken() {
+        given()
+        .when()
+            .contentType(ContentType.JSON)
+            .post("/status/hook")
+        .then()
+            .statusCode(401);
+    }
 }

@@ -17,8 +17,7 @@ public class Hook {
     private String eventName;
     private List<Commit> commits;
     private GitlabProject project;
-    
-    private static final String regex = "(.*)\\/(.*)\\/(.*)\\/iac";
+    private String groupId;
     
     public boolean didFileChange(String fileName) {
         for(Commit commit : commits) {
@@ -31,12 +30,16 @@ public class Hook {
     }
     
     public String getCustomerName() {
-        return project.getPathWithNamespace().replaceAll(regex, "$2");
+        return project.getCustomerNameFromName();
         
     }
     
     public String getEngagementName() {
-        return project.getPathWithNamespace().replaceAll(regex, "$3");
+        return project.getEngagementNameFromName();
+    }
+
+    public boolean wasProjectDeleted() {
+        return "project_deleted".equals(eventName);
     }
     
 }
