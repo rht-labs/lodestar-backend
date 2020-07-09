@@ -28,7 +28,7 @@ class EngagementServiceTest {
 	EngagementService engagementService;
 	
 	@Test void testUpdateStatusInvalidProject() {
-		Hook hook = Hook.builder().project(GitlabProject.builder().pathWithNamespace("/nope/nada/iac").build()).build();
+		Hook hook = Hook.builder().project(GitlabProject.builder().pathWithNamespace("/nope/nada/iac").nameWithNamespace("/ nope / nada / iac").build()).build();
 		
 		Exception ex = assertThrows(ResourceNotFoundException.class, ()-> {
 			engagementService.updateStatusAndCommits(hook);

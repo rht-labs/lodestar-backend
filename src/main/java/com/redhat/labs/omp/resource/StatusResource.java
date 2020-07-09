@@ -32,7 +32,10 @@ public class StatusResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(StatusResource.class);
     
     @ConfigProperty(name = "webhook.token")
-    String token;
+    String statusToken;
+    
+    @ConfigProperty(name = "cleanup.token")
+    String cleanupToken;
     
     @Inject
     @RestClient
@@ -48,10 +51,10 @@ public class StatusResource {
             @APIResponse(responseCode = "401", description = "Invalid Gitlab Token"),
             @APIResponse(responseCode = "200", description = "Returns the hook given.") })
     @Operation(summary = "Entry point for update notifications")
-    public Response fetchConfigData(@HeaderParam(value = "x-gitlab-token") String gitLabToken, Hook hook) {
+    public Response statusUpdate(@HeaderParam(value = "x-gitlab-token") String gitLabToken, Hook hook) {
         
-        if(!token.equals(gitLabToken)) {
-            LOGGER.error("Invalid token used");
+        if(!statusToken.equals(gitLabToken)) {
+            LOGGER.error("Invalid status token used");
             return Response.status(Status.UNAUTHORIZED).build();
         }
             
@@ -61,4 +64,26 @@ public class StatusResource {
         return Response.ok(hook).build();
     }
     
+    @POST
+    @PermitAll
+    @Path("/deleted")
+    @APIResponses(value = {
+            @APIResponse(responseCode = "401", description = "Invalid Token"),
+            @APIResponse(responseCode = "200", description = "Returns the hook given.") })
+    @Operation(summary = "Entry point for removing engagements")
+    public Response removeEngagement(@HeaderParam(value = "x-notification-token") String secretTokenHeader, Hook hook) {
+        
+        if(!cleanupToken.equals(secretTokenHeader) || cleanupToken.equals("OFF")) {
+            LOGGER.error("Invalid cleanup token used");
+            return Response.status(Status.UNAUTHORIZED).build();
+        }
+        
+        if(hook.wasProjectDeleted()) {
+            LOGGER.debug("Remove engagement cust {} proj {}", hook.getCustomerName(), hook.getEngagementName());
+            engagementService.delete(hook.getCustomerName(), hook.getEngagementName());
+            return Response.status(204).build();
+        }
+
+        return Response.ok().build();
+    }
 }

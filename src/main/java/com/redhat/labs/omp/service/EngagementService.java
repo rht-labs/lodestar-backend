@@ -195,9 +195,9 @@ public class EngagementService {
 
         Optional<Engagement> optional = Optional.empty();
 
-        if (LOGGER.isDebugEnabled()) {
+        if (LOGGER.isTraceEnabled()) {
             repository.listAll().stream().forEach(
-                    engagement -> LOGGER.debug("E {} {}", engagement.getCustomerName(), engagement.getProjectName()));
+                    engagement -> LOGGER.trace("E {} {}", engagement.getCustomerName(), engagement.getProjectName()));
         }
         // check db
         Engagement persistedEngagement = repository.findByCustomerNameAndProjectName(customerName, projectName);
@@ -244,6 +244,19 @@ public class EngagementService {
     void deleteAll() {
         long count = repository.deleteAll();
         LOGGER.info("removed '{}' engagements from the data store.", count);
+    }
+
+    /**
+     * This should also update clients about the delete. Need infra here
+     * @param customerName
+     * @param engagementName
+     */
+    public void delete(String customerName, String engagementName) {
+        Optional<Engagement> engagement = get(customerName, engagementName);
+        if(engagement.isPresent()) {
+            LOGGER.debug("Deleting engagement {} for customer {}", engagementName, customerName);
+            repository.delete(engagement.get());
+        }
     }
 
     /**
