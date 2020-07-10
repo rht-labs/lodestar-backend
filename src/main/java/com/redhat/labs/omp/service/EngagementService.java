@@ -11,7 +11,9 @@ import java.util.TreeSet;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.json.bind.Jsonb;
+import javax.ws.rs.WebApplicationException;
 
+import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
@@ -111,6 +113,9 @@ public class EngagementService {
         // set modified if already marked for modification
         Engagement persisted = optional.get();
 
+        // validate last update
+        validateLastUpdate(engagement, persisted);
+
         // mark as updated, if action not already assigned
         engagement.setAction((null != persisted.getAction()) ? persisted.getAction() : FileAction.update);
 
@@ -138,21 +143,48 @@ public class EngagementService {
             engagement.setStatus(persisted.getStatus());
         }
 
-        // update in db
-        repository.update(engagement);
+        // save the current last updated value and reset
+        String currentLastUpdated = engagement.getLastUpdate();
+        engagement.setLastUpdate(ZonedDateTime.now(ZoneId.of("Z")).toString());
 
-        return engagement;
+        // update in db
+        optional = repository.replaceEngagementIfLastUpdateMatched(engagement, currentLastUpdated);
+        if (!optional.isPresent()) {
+            throw new WebApplicationException(
+                    "Failed to modify engagement because request contained stale data.  Please refresh and try again.",
+                    HttpStatus.SC_CONFLICT);
+        }
+
+        return optional.get();
+
+    }
+
+    /**
+     * Throws a {@link WebApplicationException} if the {@link Engagement} was
+     * modified by another update call.
+     * 
+     * @param toUpdate
+     * @param existing
+     */
+    private void validateLastUpdate(Engagement toUpdate, Engagement existing) {
+
+        if ((null == toUpdate.getLastUpdate() && null != existing.getLastUpdate())
+                || null != toUpdate.getLastUpdate() && toUpdate.getLastUpdate().equals(existing.getLastUpdate())) {
+            throw new WebApplicationException(
+                    "Resource was modified and data in request is stale.  Please refresh before updating.",
+                    HttpStatus.SC_CONFLICT);
+        }
 
     }
 
     // Status comes from gitlab so it does not need to to be sync'd
     public Engagement updateStatusAndCommits(Hook hook) {
-    	LOGGER.debug("Hook for {} {}", hook.getCustomerName(), hook.getEngagementName());
-   	
+        LOGGER.debug("Hook for {} {}", hook.getCustomerName(), hook.getEngagementName());
+
         Optional<Engagement> optional = get(hook.getCustomerName(), hook.getEngagementName());
         if (!optional.isPresent()) {
-        	//try gitlab in case of special chars
-        	optional = getEngagementFromNamespace(hook);
+            // try gitlab in case of special chars
+            optional = getEngagementFromNamespace(hook);
         }
 
         Engagement persisted = optional.get();
@@ -172,15 +204,15 @@ public class EngagementService {
 
         return persisted;
     }
-    
+
     private Optional<Engagement> getEngagementFromNamespace(Hook hook) {
-    	//Need the translated customer name if using special chars
-    	Engagement gitEngagement = gitApi.getEngagementByNamespace(hook.getProject().getPathWithNamespace());
-    	Optional<Engagement> optional = get(gitEngagement.getCustomerName(), gitEngagement.getProjectName());
+        // Need the translated customer name if using special chars
+        Engagement gitEngagement = gitApi.getEngagementByNamespace(hook.getProject().getPathWithNamespace());
+        Optional<Engagement> optional = get(gitEngagement.getCustomerName(), gitEngagement.getProjectName());
         if (!optional.isPresent()) {
             throw new ResourceNotFoundException("no engagement found. unable to update from hook.");
         }
-    	return optional;
+        return optional;
     }
 
     /**
@@ -248,12 +280,13 @@ public class EngagementService {
 
     /**
      * This should also update clients about the delete. Need infra here
+     * 
      * @param customerName
      * @param engagementName
      */
     public void delete(String customerName, String engagementName) {
         Optional<Engagement> engagement = get(customerName, engagementName);
-        if(engagement.isPresent()) {
+        if (engagement.isPresent()) {
             LOGGER.debug("Deleting engagement {} for customer {}", engagementName, customerName);
             repository.delete(engagement.get());
         }

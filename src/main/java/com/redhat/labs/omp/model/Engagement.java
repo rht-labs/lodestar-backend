@@ -83,6 +83,8 @@ public class Engagement extends PanacheMongoEntityBase {
     private String lastUpdateByName;
     @JsonbProperty("last_update_by_email")
     private String lastUpdateByEmail;
+    @JsonbProperty("last_update")
+    private String lastUpdate;
 
 
     @JsonbTransient

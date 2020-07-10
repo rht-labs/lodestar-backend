@@ -131,6 +131,8 @@ public class GitSyncService {
 
                 // reset modified
                 engagement.setAction(null);
+                // reset last update
+                engagement.setLastUpdate(ZonedDateTime.now(ZoneId.of("Z")).toString());
 
             } catch (WebApplicationException e) {
                 // rest call returned and 400 or above http code
