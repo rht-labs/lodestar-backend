@@ -86,6 +86,9 @@ public class EngagementService {
         // set modified info
         engagement.setAction(FileAction.create);
 
+        // set last update
+        engagement.setLastUpdate(getZuluTimeAsString());
+
         // persist to db
         repository.persist(engagement);
 
@@ -113,42 +116,18 @@ public class EngagementService {
         // set modified if already marked for modification
         Engagement persisted = optional.get();
 
-        // validate last update
-        validateLastUpdate(engagement, persisted);
-
         // mark as updated, if action not already assigned
         engagement.setAction((null != persisted.getAction()) ? persisted.getAction() : FileAction.update);
 
-        // set id to persisted id
-        engagement.setMongoId(persisted.getMongoId());
-
-        // set engagement id in case it was updated before the consumer refreshed
-        engagement.setProjectId(persisted.getProjectId());
-
-        // set creation details
-        engagement.setCreationDetails(persisted.getCreationDetails());
-
-        // set launch details
-        if (null != persisted.getLaunch()) {
-            engagement.setLaunch(persisted.getLaunch());
-        }
-
-        // set commits
-        if (null != persisted.getCommits()) {
-            engagement.setCommits(persisted.getCommits());
-        }
-
-        // set status
-        if (null != persisted.getStatus()) {
-            engagement.setStatus(persisted.getStatus());
-        }
-
         // save the current last updated value and reset
         String currentLastUpdated = engagement.getLastUpdate();
-        engagement.setLastUpdate(ZonedDateTime.now(ZoneId.of("Z")).toString());
+        engagement.setLastUpdate(getZuluTimeAsString());
+
+        // determine if launching
+        boolean skipLaunch = (null != persisted.getLaunch());
 
         // update in db
-        optional = repository.replaceEngagementIfLastUpdateMatched(engagement, currentLastUpdated);
+        optional = repository.updateEngagementIfLastUpdateMatched(engagement, currentLastUpdated, skipLaunch);
         if (!optional.isPresent()) {
             throw new WebApplicationException(
                     "Failed to modify engagement because request contained stale data.  Please refresh and try again.",
@@ -156,24 +135,6 @@ public class EngagementService {
         }
 
         return optional.get();
-
-    }
-
-    /**
-     * Throws a {@link WebApplicationException} if the {@link Engagement} was
-     * modified by another update call.
-     * 
-     * @param toUpdate
-     * @param existing
-     */
-    private void validateLastUpdate(Engagement toUpdate, Engagement existing) {
-
-        if ((null == toUpdate.getLastUpdate() && null != existing.getLastUpdate())
-                || null != toUpdate.getLastUpdate() && toUpdate.getLastUpdate().equals(existing.getLastUpdate())) {
-            throw new WebApplicationException(
-                    "Resource was modified and data in request is stale.  Please refresh before updating.",
-                    HttpStatus.SC_CONFLICT);
-        }
 
     }
 
@@ -196,6 +157,9 @@ public class EngagementService {
 
         List<Commit> commits = gitApi.getCommits(hook.getCustomerName(), hook.getEngagementName());
         persisted.setCommits(commits);
+
+        // set last update
+        persisted.setLastUpdate(getZuluTimeAsString());
 
         // update in db
         repository.update(persisted);
@@ -298,6 +262,10 @@ public class EngagementService {
      * @param engagementList
      */
     void insertEngagementListInRepository(List<Engagement> engagementList) {
+
+        String lastUpdate = getZuluTimeAsString();
+        engagementList.stream().forEach(engagement -> engagement.setLastUpdate(lastUpdate));
+
         repository.persist(engagementList);
     }
 
@@ -307,7 +275,10 @@ public class EngagementService {
      * @param engagementList
      */
     void updateEngagementListInRepository(List<Engagement> engagementList) {
+
+        // don't update last update already done as part of update
         repository.update(engagementList);
+
     }
 
     /**
@@ -442,6 +413,15 @@ public class EngagementService {
      */
     void sendEngagementEvent(String message) {
         socket.broadcast(message);
+    }
+
+    /**
+     * Returns {@link String} representation of the current Zulu time.
+     * 
+     * @return
+     */
+    private String getZuluTimeAsString() {
+        return ZonedDateTime.now(ZoneId.of("Z")).toString();
     }
 
 }
