@@ -5,6 +5,8 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.HashMap;
 
@@ -296,22 +298,28 @@ public class EngagementResourceTest {
         String body = quarkusJsonb.toJson(engagement);
 
         // POST engagement
-        given()
+        Response response = given()
             .when()
                 .auth()
                 .oauth2(token)
                 .body(body)
                 .contentType(ContentType.JSON)
-                .post("/engagements")
-            .then()
-                .statusCode(201)
-                .body("customer_name", equalTo(engagement.getCustomerName()))
-                .body("project_name", equalTo(engagement.getProjectName()))
-                .body("project_id", nullValue());
+                .post("/engagements");
+
+        assertEquals(201, response.getStatusCode());
+
+        String responseBody = response.getBody().asString();
+        Engagement created = quarkusJsonb.fromJson(responseBody, Engagement.class);
+
+        assertEquals(engagement.getCustomerName(), created.getCustomerName());
+        assertEquals(engagement.getProjectName(), created.getProjectName());
+        assertNull(created.getProjectId());
+        assertNotNull(created.getLastUpdate());
 
         // update description
-        engagement.setDescription("updated");
-        body = quarkusJsonb.toJson(engagement);
+        created.setDescription("updated");
+
+        body = quarkusJsonb.toJson(created);
 
         given()
             .when()
@@ -322,10 +330,10 @@ public class EngagementResourceTest {
                 .put("/engagements/customers/" + engagement.getCustomerName() + "/projects/" + engagement.getProjectName())
             .then()
                 .statusCode(200)
-                .body("customer_name", equalTo(engagement.getCustomerName()))
-                .body("project_name", equalTo(engagement.getProjectName()))
+                .body("customer_name", equalTo(created.getCustomerName()))
+                .body("project_name", equalTo(created.getProjectName()))
                 .body("project_id", nullValue())
-                .body("description", equalTo(engagement.getDescription()));
+                .body("description", equalTo(created.getDescription()));
 
     }
 
@@ -774,18 +782,25 @@ public class EngagementResourceTest {
         String body = quarkusJsonb.toJson(engagement);
 
         // POST engagement
-        given()
+        Response response = given()
             .when()
                 .auth()
                 .oauth2(token)
                 .body(body)
                 .contentType(ContentType.JSON)
-                .post("/engagements")
-            .then()
-                .statusCode(201)
-                .body("customer_name", equalTo(engagement.getCustomerName()))
-                .body("project_name", equalTo(engagement.getProjectName()))
-                .body("project_id", nullValue());
+                .post("/engagements");
+
+        assertEquals(201, response.getStatusCode());
+
+        String responseBody = response.getBody().asString();
+        Engagement created = quarkusJsonb.fromJson(responseBody, Engagement.class);
+
+        assertEquals(engagement.getCustomerName(), created.getCustomerName());
+        assertEquals(engagement.getProjectName(), created.getProjectName());
+        assertNull(created.getProjectId());
+        assertNotNull(created.getLastUpdate());
+
+        body = quarkusJsonb.toJson(created);
 
         // Launch engagement
         given()
