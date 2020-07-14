@@ -134,6 +134,9 @@ public class EngagementService {
                     HttpStatus.SC_CONFLICT);
         }
 
+        // send updated engagement to socket
+        sendEngagementEvent(jsonb.toJson(persisted));
+
         return optional.get();
 
     }
