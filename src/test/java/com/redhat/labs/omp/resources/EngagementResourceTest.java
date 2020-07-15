@@ -1158,6 +1158,62 @@ public class EngagementResourceTest {
 
     }
 
+    @Test
+    public void testHeadEngagementWithAuthAndRoleSuccess() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Engagement engagement = mockEngagement();
+        engagement.setDescription(SCENARIO.SUCCESS.getValue());
+
+        String body = quarkusJsonb.toJson(engagement);
+
+        // POST engagement
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .body(body)
+                .contentType(ContentType.JSON)
+                .post("/engagements")
+            .then()
+                .statusCode(201)
+                .body("customer_name", equalTo(engagement.getCustomerName()))
+                .body("project_name", equalTo(engagement.getProjectName()))
+                .body("project_id", nullValue());
+
+        // HEAD
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .head("/engagements/customers/" + engagement.getCustomerName() + "/projects/" + engagement.getProjectName())
+            .then()
+                .statusCode(200)
+                .header("last-update", notNullValue());
+
+    }
+
+    @Test
+    public void testHeadEngagementWithAuthAndRoleNptFound() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Engagement engagement = mockEngagement();
+
+        // HEAD
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .head("/engagements/customers/" + engagement.getCustomerName() + "/projects/" + engagement.getProjectName())
+            .then()
+                .statusCode(404);
+
+    }
+
     public Engagement mockEngagement() {
 
         Engagement engagement = Engagement.builder().customerName("TestCustomer").projectName("TestProject")

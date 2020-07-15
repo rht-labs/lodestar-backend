@@ -10,6 +10,7 @@ import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HEAD;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -47,6 +48,8 @@ public class EngagementResource {
 
     public static final String DEFAULT_USERNAME = "lodestar-user";
     public static final String DEFAULT_EMAIL = "lodestar-email";
+
+    public static final String LAST_UPDATE_HEADER = "last-update";
 
     @Inject
     JsonWebToken jwt;
@@ -104,13 +107,35 @@ public class EngagementResource {
             @APIResponse(responseCode = "404", description = "Engagement resource with customer and project names does not exist"),
             @APIResponse(responseCode = "200", description = "Engagement resource found and returned") })
     @Operation(summary = "Returns the engagement resource for the given customer and project names.")
-    public Engagement get(@PathParam("customerName") String customerName,
+    public Response get(@PathParam("customerName") String customerName,
             @PathParam("projectName") String projectName) {
 
         Optional<Engagement> optional = engagementService.get(customerName, projectName);
 
         if (optional.isPresent()) {
-            return optional.get();
+            Engagement engagement = optional.get();
+            return Response.ok(engagement).header(LAST_UPDATE_HEADER, engagement.getLastUpdate()).build();
+        }
+
+        throw new ResourceNotFoundException("no resource found.");
+
+    }
+
+    @HEAD
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @Path("/customers/{customerName}/projects/{projectName}")
+    @APIResponses(value = { 
+            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "404", description = "Engagement resource with customer and project names does not exist"),
+            @APIResponse(responseCode = "200", description = "Engagement resource found and metadata returned in headers") })
+    @Operation(summary = "Returns metadata regarding the engagement resource for the given customer and project names.")
+    public Response head(@PathParam("customerName") String customerName,
+            @PathParam("projectName") String projectName) {
+
+        Optional<Engagement> optional = engagementService.get(customerName, projectName);
+
+        if (optional.isPresent()) {
+            return Response.ok().header(LAST_UPDATE_HEADER, optional.get().getLastUpdate()).build();
         }
 
         throw new ResourceNotFoundException("no resource found.");
