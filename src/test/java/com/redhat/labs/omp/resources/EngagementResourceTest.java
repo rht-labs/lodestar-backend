@@ -1191,7 +1191,8 @@ public class EngagementResourceTest {
                 .head("/engagements/customers/" + engagement.getCustomerName() + "/projects/" + engagement.getProjectName())
             .then()
                 .statusCode(200)
-                .header("last-update", notNullValue());
+                .header("last-update", notNullValue())
+                .header("Access-Control-Expose-Headers", "last-update");
 
     }
 

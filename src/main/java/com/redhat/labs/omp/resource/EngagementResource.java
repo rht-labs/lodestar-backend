@@ -49,6 +49,7 @@ public class EngagementResource {
     public static final String DEFAULT_USERNAME = "lodestar-user";
     public static final String DEFAULT_EMAIL = "lodestar-email";
 
+    public static final String ACCESS_CONTROL_EXPOSE_HEADER = "Access-Control-Expose-Headers";
     public static final String LAST_UPDATE_HEADER = "last-update";
 
     @Inject
@@ -114,7 +115,10 @@ public class EngagementResource {
 
         if (optional.isPresent()) {
             Engagement engagement = optional.get();
-            return Response.ok(engagement).header(LAST_UPDATE_HEADER, engagement.getLastUpdate()).build();
+            return Response.ok(engagement)
+                    .header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
+                    .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER)
+                    .build();
         }
 
         throw new ResourceNotFoundException("no resource found.");
@@ -135,7 +139,10 @@ public class EngagementResource {
         Optional<Engagement> optional = engagementService.get(customerName, projectName);
 
         if (optional.isPresent()) {
-            return Response.ok().header(LAST_UPDATE_HEADER, optional.get().getLastUpdate()).build();
+            return Response.ok()
+                    .header(LAST_UPDATE_HEADER, optional.get().getLastUpdate())
+                    .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER)
+                    .build();
         }
 
         throw new ResourceNotFoundException("no resource found.");
