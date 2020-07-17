@@ -4,6 +4,8 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
@@ -50,19 +52,23 @@ public class GitSyncResourceTest {
         String body = quarkusJsonb.toJson(engagement);
 
         // POST engagement - create
-        given()
+        Response response = given()
             .when()
                 .auth()
                 .oauth2(token)
                 .body(body)
                 .contentType(ContentType.JSON)
-                .post("/engagements")
-            .then()
-                .statusCode(201)
-                .body("customer_name", equalTo(engagement.getCustomerName()))
-                .body("project_name", equalTo(engagement.getProjectName()))
-                .body("project_id", nullValue());
+                .post("/engagements");
 
+        assertEquals(201, response.getStatusCode());
+
+        String responseBody = response.getBody().asString();
+        Engagement created = quarkusJsonb.fromJson(responseBody, Engagement.class);
+
+        assertEquals(engagement.getCustomerName(), created.getCustomerName());
+        assertEquals(engagement.getProjectName(), created.getProjectName());
+        assertNull(created.getProjectId());
+        assertNotNull(created.getLastUpdate());
 
         // process created
         given()
@@ -78,8 +84,9 @@ public class GitSyncResourceTest {
         TimeUnit.SECONDS.sleep(1);
 
         // update description
-        engagement.setDescription("updated");
-        body = quarkusJsonb.toJson(engagement);
+        created.setDescription("updated");
+
+        body = quarkusJsonb.toJson(created);
 
         // PUT engagement - update
         given()
@@ -91,10 +98,10 @@ public class GitSyncResourceTest {
                 .put("/engagements/customers/" + engagement.getCustomerName() + "/projects/" + engagement.getProjectName())
             .then()
                 .statusCode(200)
-                .body("customer_name", equalTo(engagement.getCustomerName()))
-                .body("project_name", equalTo(engagement.getProjectName()))
+                .body("customer_name", equalTo(created.getCustomerName()))
+                .body("project_name", equalTo(created.getProjectName()))
                 .body("project_id", equalTo(1234))
-                .body("description", equalTo(engagement.getDescription()));
+                .body("description", equalTo(created.getDescription()));
 
         // process updated
         given()
@@ -120,23 +127,27 @@ public class GitSyncResourceTest {
         String body = quarkusJsonb.toJson(engagement);
 
         // POST engagement - create
-        given()
+        Response response = given()
             .when()
                 .auth()
                 .oauth2(token)
                 .body(body)
                 .contentType(ContentType.JSON)
-                .post("/engagements")
-            .then()
-                .statusCode(201)
-                .body("customer_name", equalTo(engagement.getCustomerName()))
-                .body("project_name", equalTo(engagement.getProjectName()))
-                .body("project_id", nullValue());
+                .post("/engagements");
 
+        assertEquals(201, response.getStatusCode());
+
+        String responseBody = response.getBody().asString();
+        Engagement created = quarkusJsonb.fromJson(responseBody, Engagement.class);
+
+        assertEquals(engagement.getCustomerName(), created.getCustomerName());
+        assertEquals(engagement.getProjectName(), created.getProjectName());
+        assertNull(created.getProjectId());
+        assertNotNull(created.getLastUpdate());
 
         // update description
-        engagement.setEngagementLeadName("mr.el");
-        body = quarkusJsonb.toJson(engagement);
+        created.setEngagementLeadName("mr.el");
+        body = quarkusJsonb.toJson(created);
 
         // PUT engagement - update
         given()
@@ -148,11 +159,11 @@ public class GitSyncResourceTest {
                 .put("/engagements/customers/" + engagement.getCustomerName() + "/projects/" + engagement.getProjectName())
             .then()
                 .statusCode(200)
-                .body("customer_name", equalTo(engagement.getCustomerName()))
-                .body("project_name", equalTo(engagement.getProjectName()))
+                .body("customer_name", equalTo(created.getCustomerName()))
+                .body("project_name", equalTo(created.getProjectName()))
                 .body("project_id", nullValue())
-                .body("description", equalTo(engagement.getDescription()))
-                .body("engagement_lead_name", equalTo(engagement.getEngagementLeadName()));
+                .body("description", equalTo(created.getDescription()))
+                .body("engagement_lead_name", equalTo(created.getEngagementLeadName()));
 
         // process updated
         given()
