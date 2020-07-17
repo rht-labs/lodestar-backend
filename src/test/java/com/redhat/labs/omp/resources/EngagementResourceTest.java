@@ -1192,7 +1192,7 @@ public class EngagementResourceTest {
             .then()
                 .statusCode(200)
                 .header("last-update", notNullValue())
-                .header("Access-Control-Expose-Headers", "last-update");;
+                .header("Access-Control-Expose-Headers", "last-update");
 
     }
 
