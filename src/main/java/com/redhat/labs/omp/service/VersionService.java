@@ -42,7 +42,7 @@ public class VersionService {
 
         versionManifest.getApplications().stream().forEach(v -> {
 
-            VersionDetail version = VersionDetail.fromVersionV1(v);
+            VersionDetail version = VersionDetail.fromVersion(v);
             if(version.getName().equalsIgnoreCase(versionApplicationKey)) {
                 summary.setMainVersion(version);
             } else {

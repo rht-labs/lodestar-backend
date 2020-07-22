@@ -14,8 +14,8 @@ public class VersionDetail {
     private String name;
     private String value;
 
-    public static VersionDetail fromVersionV1(Version versionV1) {
-        return VersionDetail.builder().name(versionV1.getApplication()).value(versionV1.getVersion()).build();
+    public static VersionDetail fromVersion(Version version) {
+        return VersionDetail.builder().name(version.getApplication()).value(version.getVersion()).build();
     }
 
 }
