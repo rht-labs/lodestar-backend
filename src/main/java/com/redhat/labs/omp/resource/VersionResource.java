@@ -13,6 +13,7 @@ import org.eclipse.microprofile.metrics.annotation.Counted;
 import org.eclipse.microprofile.metrics.annotation.Timed;
 
 import com.redhat.labs.omp.model.VersionManifest;
+import com.redhat.labs.omp.model.VersionSummary;
 import com.redhat.labs.omp.service.VersionService;
 
 /**
@@ -38,4 +39,14 @@ public class VersionResource {
 
         return vm;
     }
+
+    @GET
+    @Path("/summary")
+    @Timed(name="versionSummaryResourceTimer")
+    @Counted(name="versionSummaryResourceCounter")
+    @PermitAll
+    public VersionSummary getVersionSummary() {
+        return versionService.getVersionSummary();
+    }
+
 }
