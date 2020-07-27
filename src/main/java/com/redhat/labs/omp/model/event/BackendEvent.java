@@ -13,16 +13,9 @@ public class BackendEvent {
 
     private EventType eventType;
     private List<Engagement> engagementList;
-    @Builder.Default
-    private boolean forceUpdate = false;
 
-    public static BackendEvent createDatabaseRefreshRequestedEvent(boolean forceUpdate) {
-        return BackendEvent.builder().eventType(EventType.DB_REFRESH_REQUESTED).forceUpdate(forceUpdate).build();
-    }
-
-    public static BackendEvent createDatabaseRefreshEvent(List<Engagement> engagmentList, boolean forceUpdate) {
-        return BackendEvent.builder().eventType(EventType.DB_REFRESH).engagementList(engagmentList)
-                .forceUpdate(forceUpdate).build();
+    public static BackendEvent createDatabaseRefreshRequestedEvent() {
+        return BackendEvent.builder().eventType(EventType.DB_REFRESH_REQUESTED).build();
     }
 
     public static BackendEvent createPushToGitRequestedEvent() {

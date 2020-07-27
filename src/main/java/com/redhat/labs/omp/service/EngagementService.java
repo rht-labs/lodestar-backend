@@ -2,6 +2,7 @@ package com.redhat.labs.omp.service;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -35,6 +36,7 @@ import com.redhat.labs.omp.rest.client.OMPGitLabAPIService;
 import com.redhat.labs.omp.socket.EngagementEventSocket;
 
 import io.quarkus.vertx.ConsumeEvent;
+import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.core.eventbus.EventBus;
 
 @ApplicationScoped
@@ -56,6 +58,9 @@ public class EngagementService {
 
     @Inject
     EngagementRepository repository;
+
+    @Inject
+    Vertx vertx;
 
     @Inject
     EventBus eventBus;
@@ -240,7 +245,7 @@ public class EngagementService {
      * Used by the {@link GitSyncService} to delete all {@link Engagement} from the
      * data store before re-populating from Git.
      */
-    void deleteAll() {
+    public void deleteAll() {
         long count = repository.deleteAll();
         LOGGER.info("removed '{}' engagements from the data store.", count);
     }
@@ -260,19 +265,6 @@ public class EngagementService {
     }
 
     /**
-     * Persists the {@link List} of {@link Engagement} into the data store.
-     * 
-     * @param engagementList
-     */
-    void insertEngagementListInRepository(List<Engagement> engagementList) {
-
-        String lastUpdate = getZuluTimeAsString();
-        engagementList.stream().forEach(engagement -> engagement.setLastUpdate(lastUpdate));
-
-        repository.persist(engagementList);
-    }
-
-    /**
      * Updates the {@link List} of {@link Engagement} in the data store.
      * 
      * @param engagementList
@@ -285,21 +277,69 @@ public class EngagementService {
     }
 
     /**
-     * Removes all {@link Engagement} from the data store and inserts the given
-     * {@link List} of {@link Engagement}.
+     * Retrieves the {@link List} of {@link Engagement} from the Git API and then
+     * calls the process to update the database.
+     * 
+     * @param purgeFirst
+     */
+    public void syncGitToDatabase(boolean purgeFirst) {
+
+        // get all engagements from git
+        vertx.<List<Engagement>>executeBlocking(promise -> {
+
+            try {
+                List<Engagement> engagementList = gitApi.getEngagments();
+                promise.complete(engagementList);
+            } catch (WebApplicationException wae) {
+                promise.fail(wae);
+            }
+
+        }).subscribe().with(list -> {
+
+            LOGGER.debug("found {} engagements in gitlab.", list.size());
+            syncGitToDatabase(list, purgeFirst);
+
+        }, failure -> {
+            LOGGER.warn("failed to retrieve engagements from git. {}", failure.getMessage(), failure);
+        });
+
+    }
+
+    /**
+     * Inserts all {@link Engagement} from the {@link List} that are not already in
+     * the database. If the purgeFirst flag is set, the database will be cleared
+     * before the insert. {@link List} of {@link Engagement}.
      * 
      * @param engagementList
      */
-    void refreshFromEngagementList(List<Engagement> engagementList) {
+    void syncGitToDatabase(List<Engagement> engagementList, boolean purgeFirst) {
 
-        // remove all from database
-        deleteAll();
+        if (purgeFirst) {
+
+            // remove all from database
+            deleteAll();
+
+        }
+
+        // There's probably a better way to to this all on the mongo side. Should be
+        // updated if possible.
+
+        List<Engagement> toInsert = new ArrayList<>();
+        String lastUpdate = getZuluTimeAsString();
+
+        // filter any engagements that already exist and set modified
+        engagementList.stream()
+                .filter(engagement -> !get(engagement.getCustomerName(), engagement.getProjectName()).isPresent())
+                .forEach(engagement -> {
+                    engagement.setLastUpdate(lastUpdate);
+                    toInsert.add(engagement);
+                });
+
+        LOGGER.debug("engagementList size {}, toInsert size {}", engagementList.size(), toInsert.size());
+        LOGGER.debug("inserting {} engagement into the database.", toInsert.size());
 
         // insert
-        insertEngagementListInRepository(engagementList);
-
-        // send event to socket with modified engagements
-        sendEngagementEvent(jsonb.toJson(engagementList));
+        repository.persist(toInsert);
 
     }
 
@@ -342,26 +382,17 @@ public class EngagementService {
     }
 
     /**
-     * Consumes a {@link BackendEvent}. If the force flag on the event is true or
-     * there are no {@link Engagement} currently in the database, the {@link List}
-     * of {@link Engagement}s in the event will be inserted into the database.
-     * Please note that the database will be purged before the insert happens.
+     * This method consumes a {@link BackendEvent}, which starts the process of
+     * inserting any {@link Engagement} from GitLab that are not found in the
+     * database.
      * 
      * @param event
      */
-    @ConsumeEvent(EventType.Constants.DB_REFRESH_ADDRESS)
+    @ConsumeEvent(EventType.Constants.DB_REFRESH_REQUESTED_ADDRESS)
     void consumeDbRefreshRequestedEvent(BackendEvent event) {
 
-        if (!event.isForceUpdate() && getAll().isEmpty()) {
-            LOGGER.debug(
-                    "engagements already exist in db and force is not set.  doing nothing for db refresh request.");
-            return;
-        }
-
-        LOGGER.debug("purging existing engagements from db and inserting from event list {}",
-                event.getEngagementList());
-        // refresh the db
-        refreshFromEngagementList(event.getEngagementList());
+        LOGGER.debug("consumed database refresh requested event.");
+        syncGitToDatabase(false);
 
     }
 
