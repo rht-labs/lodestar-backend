@@ -335,8 +335,7 @@ public class EngagementService {
                     toInsert.add(engagement);
                 });
 
-        LOGGER.debug("engagementList size {}, toInsert size {}", engagementList.size(), toInsert.size());
-        LOGGER.debug("inserting {} engagement into the database.", toInsert.size());
+        LOGGER.debug("inserting {} engagements of {} into the database.", toInsert.size(), engagementList.size());
 
         // insert
         repository.persist(toInsert);
