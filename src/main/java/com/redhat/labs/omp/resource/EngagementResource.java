@@ -200,7 +200,7 @@ public class EngagementResource {
     public Response refresh(@QueryParam("purgeFirst") Boolean purgeFirst) {
 
         // start the sync process
-        engagementService.syncGitToDatabase(purgeFirst);
+        engagementService.syncGitToDatabase((null == purgeFirst) ? false : purgeFirst);
         return Response.accepted().build();
 
     }

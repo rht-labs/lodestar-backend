@@ -7,8 +7,10 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.json.bind.Jsonb;
@@ -1212,6 +1214,167 @@ public class EngagementResourceTest {
                 .head("/engagements/customers/" + engagement.getCustomerName() + "/projects/" + engagement.getProjectName())
             .then()
                 .statusCode(404);
+
+    }
+
+    /*
+     * GIT 2 Backend Refresh
+     *  - create 1, then run sync
+     *  - git api returns 1 or 2 engagements, updates mongo 
+     *  - do get all (should match what is returned from git api)
+     */
+    @Test
+    public void testRefreshFromGit() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Engagement engagement = mockEngagement();
+        engagement.setDescription(SCENARIO.SUCCESS.getValue());
+
+        String body = quarkusJsonb.toJson(engagement);
+
+        // POST engagement
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .body(body)
+                .contentType(ContentType.JSON)
+                .post("/engagements")
+            .then()
+                .statusCode(201)
+                .body("customer_name", equalTo(engagement.getCustomerName()))
+                .body("project_name", equalTo(engagement.getProjectName()))
+                .body("project_id", nullValue());
+
+        // GET
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .get("/engagements/customers/" + engagement.getCustomerName() + "/projects/" + engagement.getProjectName())
+            .then()
+                .statusCode(200)
+                .body("customer_name", equalTo(engagement.getCustomerName()))
+                .body("project_name", equalTo(engagement.getProjectName()))
+                .body("project_id", nullValue());
+
+        // Run sync
+        given()
+            .when()
+            .auth()
+            .oauth2(token)
+            .put("/engagements/refresh")
+        .then()
+            .statusCode(202);
+
+        // make sure the async processes finish
+        TimeUnit.SECONDS.sleep(1);
+
+        // GET all engagement
+        Response response = 
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .contentType(ContentType.JSON)
+                .get("/engagements");
+
+        assertEquals(200, response.getStatusCode());
+        Engagement[] engagements = quarkusJsonb.fromJson(response.getBody().asString(), Engagement[].class);
+        assertEquals(2, engagements.length);
+
+        for(Engagement e : engagements) {
+
+            if(e.getCustomerName().equals("TestCustomer")) {
+
+                assertEquals("TestCustomer", e.getCustomerName());
+                assertEquals("TestProject", e.getProjectName());
+
+
+            } else if(e.getCustomerName().equals("anotherCustomer")) {
+
+                assertEquals(4321, e.getProjectId());
+                assertEquals("anotherCustomer", e.getCustomerName());
+                assertEquals("anotherProject", e.getProjectName());
+
+            } else {
+                fail("unknown customer found in response. " + e.getCustomerName());
+            }
+
+        }
+
+    }
+
+    @Test
+    public void testRefreshFromGitWithPurgeFirst() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Engagement engagement = mockEngagement();
+        engagement.setDescription(SCENARIO.SUCCESS.getValue());
+
+        String body = quarkusJsonb.toJson(engagement);
+
+        // POST engagement
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .body(body)
+                .contentType(ContentType.JSON)
+                .post("/engagements")
+            .then()
+                .statusCode(201)
+                .body("customer_name", equalTo(engagement.getCustomerName()))
+                .body("project_name", equalTo(engagement.getProjectName()))
+                .body("project_id", nullValue());
+
+        // GET
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .get("/engagements/customers/" + engagement.getCustomerName() + "/projects/" + engagement.getProjectName())
+            .then()
+                .statusCode(200)
+                .body("customer_name", equalTo(engagement.getCustomerName()))
+                .body("project_name", equalTo(engagement.getProjectName()))
+                .body("project_id", nullValue());
+
+        // Run sync
+        given()
+            .when()
+            .auth()
+            .oauth2(token)
+            .queryParam("purgeFirst", true)
+            .put("/engagements/refresh")
+        .then()
+            .statusCode(202);
+
+        // make sure the async processes finish
+        TimeUnit.SECONDS.sleep(1);
+
+        // GET all engagement
+        Response response = 
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .contentType(ContentType.JSON)
+                .get("/engagements");
+
+        assertEquals(200, response.getStatusCode());
+        Engagement[] engagements = quarkusJsonb.fromJson(response.getBody().asString(), Engagement[].class);
+        assertEquals(1, engagements.length);
+
+        Engagement e = engagements[0];
+
+        assertEquals(4321, e.getProjectId());
+        assertEquals("anotherCustomer", e.getCustomerName());
+        assertEquals("anotherProject", e.getProjectName());
 
     }
 
