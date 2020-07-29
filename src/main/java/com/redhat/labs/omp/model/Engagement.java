@@ -86,6 +86,11 @@ public class Engagement extends PanacheMongoEntityBase {
     @JsonbProperty("last_update")
     private String lastUpdate;
 
+    @JsonbProperty("engagement_region")
+    private String region;
+    @JsonbProperty("engagement_type")
+    private String type;
+
 
     @JsonbTransient
     private FileAction action;

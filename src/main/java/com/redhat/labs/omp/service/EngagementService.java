@@ -82,6 +82,10 @@ public class EngagementService {
 
     public Engagement create(Engagement engagement) {
 
+        // trim whitespace from customer and project names
+        engagement.setCustomerName(engagement.getCustomerName().trim());
+        engagement.setProjectName(engagement.getProjectName().trim());
+
         // check if engagement exists
         Optional<Engagement> optional = get(engagement.getCustomerName(), engagement.getProjectName());
         if (optional.isPresent()) {
