@@ -32,22 +32,6 @@ public class GitSyncResource {
     JsonWebToken jwt;
 
     @PUT
-    @Path("/refresh")
-    @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = {
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
-            @APIResponse(responseCode = "200", description = "Git data successfully refreshed database.")})
-    @Operation(summary = "Purges the database and refreshes it with data in git.")
-    public Response refresh() {
-
-        // send request event with force set to true
-        BackendEvent event = BackendEvent.createDatabaseRefreshRequestedEvent(true);
-        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
-        return Response.ok().build();
-
-    }
-
-    @PUT
     @Path("/process/modified")
     @SecurityRequirement(name = "jwt", scopes = {})
     @APIResponses(value = {

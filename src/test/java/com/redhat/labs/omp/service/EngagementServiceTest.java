@@ -1,7 +1,6 @@
 package com.redhat.labs.omp.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import javax.inject.Inject;
@@ -14,7 +13,6 @@ import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.model.GitlabProject;
 import com.redhat.labs.omp.model.Hook;
 import com.redhat.labs.omp.model.Launch;
-import com.redhat.labs.omp.model.event.BackendEvent;
 import com.redhat.labs.utils.EmbeddedMongoTest;
 
 import io.quarkus.test.junit.QuarkusTest;
@@ -47,11 +45,4 @@ class EngagementServiceTest {
 		assertEquals("engagement has already been launched.", ex.getMessage());
 	}
 	
-	@Test void consumeDbRefreshRequestedEventEmpty() {
-		BackendEvent be = BackendEvent.builder().forceUpdate(false).build();
-		
-		engagementService.consumeDbRefreshRequestedEvent(be);
-		
-		assertFalse(be.isForceUpdate());
-	}
 }

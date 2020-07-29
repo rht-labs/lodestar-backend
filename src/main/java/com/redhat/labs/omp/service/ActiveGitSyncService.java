@@ -46,13 +46,6 @@ public class ActiveGitSyncService {
         // try to set active flag
         checkIfActive();
 
-        // sync mongo with git if no engagements found in mongo
-        if (active) {
-            LOGGER.debug("populating database from git...");
-            BackendEvent refreshDbEvent = BackendEvent.createDatabaseRefreshRequestedEvent(false);
-            eventBus.sendAndForget(refreshDbEvent.getEventType().getEventBusAddress(), refreshDbEvent);
-        }
-
     }
 
     /**
@@ -135,6 +128,19 @@ public class ActiveGitSyncService {
             LOGGER.trace("{} emitting a process time elapsed event.", uuid);
             BackendEvent event = BackendEvent.createPushToGitRequestedEvent();
             eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
+
+        }
+
+    }
+
+    @Scheduled(cron = "{auto.repopulate.cron.expr}")
+    void repopulateDbIfEmpty() {
+
+        // sync mongo with git if no engagements found in mongo
+        if (active) {
+
+            BackendEvent refreshDbEvent = BackendEvent.createDatabaseRefreshRequestedEvent();
+            eventBus.sendAndForget(refreshDbEvent.getEventType().getEventBusAddress(), refreshDbEvent);
 
         }
 

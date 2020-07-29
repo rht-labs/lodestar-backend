@@ -190,6 +190,21 @@ public class EngagementResource {
 
     }
 
+    @PUT
+    @Path("/refresh")
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @APIResponses(value = {
+            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "202", description = "The request was accepted and will be processed.")})
+    @Operation(summary = "Refreshes database with data in git, purging first if the query paramater set to true.")
+    public Response refresh(@QueryParam("purgeFirst") Boolean purgeFirst) {
+
+        // start the sync process
+        engagementService.syncGitToDatabase((null == purgeFirst) ? false : purgeFirst);
+        return Response.accepted().build();
+
+    }
+
     private String getUsernameFromToken() {
 
         // Use `name` claim first

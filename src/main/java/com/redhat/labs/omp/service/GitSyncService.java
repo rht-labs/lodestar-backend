@@ -40,38 +40,6 @@ public class GitSyncService {
     EventBus eventBus;
 
     /**
-     * This method consumes a {@link BackendEvent}, enriches the event with
-     * {@link Engagement}s from Git and sends the event to the {@link EventBus} for
-     * processing.
-     * 
-     * @param event
-     */
-    @ConsumeEvent(EventType.Constants.DB_REFRESH_REQUESTED_ADDRESS)
-    void consumeDbRefreshRequestedEvent(BackendEvent event) {
-
-        LOGGER.debug("processing db refresh request event");
-
-        vertx.<List<Engagement>>executeBlocking(promise -> {
-
-            try {
-                List<Engagement> engagementList = gitApiClient.getEngagments();
-                promise.complete(engagementList);
-            } catch (WebApplicationException wae) {
-                promise.fail(wae);
-            }
-
-        }).subscribe().with(item -> {
-            // create refresh event
-            BackendEvent refreshDbEvent = BackendEvent.createDatabaseRefreshEvent(item, event.isForceUpdate());
-            // send event to bus for processing
-            eventBus.sendAndForget(refreshDbEvent.getEventType().getEventBusAddress(), refreshDbEvent);
-        }, failure -> {
-            LOGGER.warn("failed to retrieve engagements from git. {}", failure.getMessage(), failure);
-        });
-
-    }
-
-    /**
      * Consumes {@link BackendEvent} to trigger the processing of modified
      * {@link Engagement}s. Starts the processing in a separate {@link Thread} using
      * executeBlocking to prevent blocking the event loop.
