@@ -11,6 +11,7 @@ import javax.ws.rs.core.MediaType;
 
 import org.eclipse.microprofile.metrics.annotation.Counted;
 import org.eclipse.microprofile.metrics.annotation.Timed;
+import org.eclipse.microprofile.openapi.annotations.Operation;
 
 import com.redhat.labs.omp.model.Version;
 import com.redhat.labs.omp.model.VersionManifest;
@@ -36,6 +37,7 @@ public class VersionResource {
     @Counted(name="versionResourceV1Counter")
     @PermitAll
     @Deprecated
+    @Operation(deprecated = true, summary = "Returns version 1 of the manifest.")
     public VersionManifest getVersionV1() {
         VersionManifest vm = versionService.getVersionManifest();
         vm.addContainer(versionService.getGitApiVersion());
@@ -48,6 +50,7 @@ public class VersionResource {
     @Timed(name="versionResourceV2Timer")
     @Counted(name="versionResourceV2Counter")
     @PermitAll
+    @Operation(summary = "Returns the git commit/tag data for the LodeStar Backend.")
     public Version getBackendVersion() {
         return versionService.getBackendVersion();
     }
@@ -57,7 +60,8 @@ public class VersionResource {
     @Path("/v1/version/manifest")
     @Timed(name="versionManifestResourceTimer")
     @Counted(name="versionManifestResourceCounter")
-    public VersionManifestV1 getVersionDetailSummary() {
+    @Operation(summary = "Returns the Version Manifest from LodeStar Status")
+    public VersionManifestV1 getStatusVersionManifest() {
         return versionService.getVersionManifestV1FromStatusClient();
     }
 
