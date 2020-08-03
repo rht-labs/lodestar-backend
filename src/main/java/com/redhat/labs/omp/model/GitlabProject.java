@@ -10,16 +10,23 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GitlabProject {
-    private static final String REGEX = "(.*) \\/ (.*) \\/ (.*) \\/ iac";
+    private static final String NAME_REGEX = "(.*) \\/ (.*) \\/ (.*) \\/ iac";
+    private static final String PATH_REGEX = "(.*)\\/(.*)\\/(.*)\\/iac";
 
     private String pathWithNamespace;
     private String nameWithNamespace;
     
     public String getCustomerNameFromName() {
-        return nameWithNamespace.replaceAll(REGEX, "$2");
+    	if(nameWithNamespace == null) {
+    		return pathWithNamespace.replaceAll(PATH_REGEX, "$2");
+    	}
+        return nameWithNamespace.replaceAll(NAME_REGEX, "$2");
     }
     
     public String getEngagementNameFromName() {
-        return nameWithNamespace.replaceAll(REGEX, "$3");
+    	if(nameWithNamespace == null) {
+    		return pathWithNamespace.replaceAll(PATH_REGEX, "$3");
+    	}
+        return nameWithNamespace.replaceAll(NAME_REGEX, "$3");
     }
 }
