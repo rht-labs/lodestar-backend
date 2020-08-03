@@ -1,0 +1,12 @@
+{
+    "component_versions": [
+        {
+            "name": "launcher",
+            "value": "v1.1"
+        }
+    ],
+    "main_version": {
+        "name": "ball",
+        "value": "v2.0"
+    }
+}

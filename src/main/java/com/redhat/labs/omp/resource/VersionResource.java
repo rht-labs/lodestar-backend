@@ -12,7 +12,9 @@ import javax.ws.rs.core.MediaType;
 import org.eclipse.microprofile.metrics.annotation.Counted;
 import org.eclipse.microprofile.metrics.annotation.Timed;
 
+import com.redhat.labs.omp.model.Version;
 import com.redhat.labs.omp.model.VersionManifest;
+import com.redhat.labs.omp.model.status.VersionManifestV1;
 import com.redhat.labs.omp.service.VersionService;
 
 /**
@@ -21,7 +23,7 @@ import com.redhat.labs.omp.service.VersionService;
  *
  */
 @RequestScoped
-@Path("/api/v1/version")
+@Path("/api")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class VersionResource {
@@ -29,13 +31,34 @@ public class VersionResource {
     VersionService versionService;
     
     @GET
-    @Timed(name="versionResourceTimer")
-    @Counted(name="versionResourceCounter")
+    @Path("/v1/version")
+    @Timed(name="versionResourceV1Timer")
+    @Counted(name="versionResourceV1Counter")
     @PermitAll
-    public VersionManifest getVersion() {
+    @Deprecated
+    public VersionManifest getVersionV1() {
         VersionManifest vm = versionService.getVersionManifest();
         vm.addContainer(versionService.getGitApiVersion());
 
         return vm;
     }
+
+    @GET
+    @Path("/v2/version")
+    @Timed(name="versionResourceV2Timer")
+    @Counted(name="versionResourceV2Counter")
+    @PermitAll
+    public Version getBackendVersion() {
+        return versionService.getBackendVersion();
+    }
+
+    @GET
+    @PermitAll
+    @Path("/v1/version/manifest")
+    @Timed(name="versionManifestResourceTimer")
+    @Counted(name="versionManifestResourceCounter")
+    public VersionManifestV1 getVersionDetailSummary() {
+        return versionService.getVersionManifestV1FromStatusClient();
+    }
+
 }
