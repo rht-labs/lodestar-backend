@@ -1,5 +1,7 @@
 package com.redhat.labs.omp.model.status;
 
+import javax.json.bind.annotation.JsonbProperty;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,5 +15,7 @@ public class VersionV1 {
 
     private String name;
     private String value;
+    @JsonbProperty("link_address")
+    private String linkAddress;
 
 }
