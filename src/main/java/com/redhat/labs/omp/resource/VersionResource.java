@@ -74,7 +74,7 @@ public class VersionResource {
 
     @GET
     @PermitAll
-    @Path("/v1/version/manifest")
+    @Path("/version/manifest")
     @Timed(name = "versionManifestResourceTimer")
     @Counted(name = "versionManifestResourceCounter")
     @Operation(summary = "Returns the Version Manifest from LodeStar Status")

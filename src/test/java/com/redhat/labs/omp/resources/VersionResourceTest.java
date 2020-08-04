@@ -91,7 +91,7 @@ public class VersionResourceTest {
         given()
         .when()
             .contentType(ContentType.JSON)
-            .get("/api/v1/version/manifest")
+            .get("/api/version/manifest")
         .then()
             .statusCode(200)
             .body("main_version.name",is("ball"))
