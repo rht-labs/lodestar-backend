@@ -28,16 +28,60 @@ public class VersionResourceTest {
     }   
 
     @Test
+    public void testValidResourceVersion1() {
+
+        given()
+        .when()
+            .contentType(ContentType.JSON)
+            .header("Accept-version", "v1")
+            .get("/api/version")
+        .then()
+            .statusCode(200)
+            .statusCode(200)
+            .body("containers.version",hasItem("master-abcdef"))
+            .body("containers.version", hasItem("v1.1"));
+
+    }
+
+    @Test
     public void testValidResourceVersion2() {
 
         given()
         .when()
             .contentType(ContentType.JSON)
-            .get("/api/v2/version")
+            .header("Accept-version", "v2")
+            .get("/api/version")
         .then()
             .statusCode(200)
             .body("git_commit", is("abcdef"))
             .body("git_tag", is("master"));
+
+    }
+
+    @Test
+    public void testValidResourceVersionNoAcceptVersionSupplied() {
+
+        given()
+        .when()
+            .contentType(ContentType.JSON)
+            .get("/api/version")
+        .then()
+            .statusCode(200)
+            .body("git_commit", is("abcdef"))
+            .body("git_tag", is("master"));
+
+    }
+
+    @Test
+    public void testValidResourceVersionInvalidAcceptVersion() {
+
+        given()
+        .when()
+            .contentType(ContentType.JSON)
+            .header("Accept-version", "v8")
+            .get("/api/version")
+        .then()
+            .statusCode(400);
 
     }
 
