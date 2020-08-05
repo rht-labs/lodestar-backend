@@ -5,6 +5,45 @@ on:
     types: [published]
 
 jobs:
+  build-if-needed:
+    if: github.repository == 'rht-labs/lodestar-backend'
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check whether we need to build this or not
+      id: need_to_build
+      run: |
+        function image_exists() {
+            curl --silent -f -lSL https://quay.io/v1/repositories/rht-labs/omp-backend/tags/$1 > /dev/null
+        }
+        if image_exists ${{ github.event.release.tag_name }}; then
+            echo "Image exists - not building"
+            echo ::set-output name=need_to_build::0
+        else 
+            echo "Image needs to be built"
+            echo ::set-output name=need_to_build::1
+        fi
+    - uses: actions/checkout@v2
+      if: steps.need_to_build.outputs.need_to_build == 1
+    - name: Set up JDK
+      if: steps.need_to_build.outputs.need_to_build == 1
+      uses: actions/setup-java@v1
+      with:
+        java-version: 13.0.1
+    - name: SonarCloud Static Analysis
+      if: steps.need_to_build.outputs.need_to_build == 1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      run: mvn verify sonar:sonar -Dsonar.login=${{ secrets.SONAR_TOKEN }} -q
+    - uses: redhat-cop/github-actions/s2i@v2
+      if: steps.need_to_build.outputs.need_to_build == 1
+      with:
+        base: registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift:1.8
+        output_image: "quay.io/rht-labs/omp-backend:${{ github.event.release.tag_name }}"
+        image_push_registry: quay.io
+        image_push_username: ${{ secrets.QUAY_USERNAME }}
+        image_push_password: ${{ secrets.QUAY_PASSWORD }}
+
   release:
     runs-on: ubuntu-latest
     steps:
