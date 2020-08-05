@@ -170,9 +170,6 @@ public class EngagementService {
         List<Commit> commits = gitApi.getCommits(hook.getCustomerName(), hook.getEngagementName());
         persisted.setCommits(commits);
 
-        // set last update
-        persisted.setLastUpdate(getZuluTimeAsString());
-
         // update in db
         repository.update(persisted);
 
