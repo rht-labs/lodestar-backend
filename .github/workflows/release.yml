@@ -15,7 +15,7 @@ jobs:
         function image_exists() {
             curl --silent -f -lSL https://quay.io/v1/repositories/rht-labs/omp-backend/tags/$1 > /dev/null
         }
-        if image_exists ${{ github.event.release.tag_name }}; then
+        if image_exists ${{ github.sha }}; then
             echo "Image exists - not building"
             echo ::set-output name=need_to_build::0
         else 
@@ -28,7 +28,7 @@ jobs:
       if: steps.need_to_build.outputs.need_to_build == 1
       with:
         base: registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift:1.8
-        output_image: "quay.io/rht-labs/omp-backend:${{ github.event.release.tag_name }}"
+        output_image: "quay.io/rht-labs/omp-backend:${{ github.sha }}"
         image_push_registry: quay.io
         image_push_username: ${{ secrets.QUAY_USERNAME }}
         image_push_password: ${{ secrets.QUAY_PASSWORD }}
