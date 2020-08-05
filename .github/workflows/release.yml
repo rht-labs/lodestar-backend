@@ -24,17 +24,6 @@ jobs:
         fi
     - uses: actions/checkout@v2
       if: steps.need_to_build.outputs.need_to_build == 1
-    - name: Set up JDK
-      if: steps.need_to_build.outputs.need_to_build == 1
-      uses: actions/setup-java@v1
-      with:
-        java-version: 13.0.1
-    - name: SonarCloud Static Analysis
-      if: steps.need_to_build.outputs.need_to_build == 1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      run: mvn verify sonar:sonar -Dsonar.login=${{ secrets.SONAR_TOKEN }} -q
     - uses: redhat-cop/github-actions/s2i@v2
       if: steps.need_to_build.outputs.need_to_build == 1
       with:
