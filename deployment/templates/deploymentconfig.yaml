@@ -29,9 +29,9 @@ spec:
       containers:
       - envFrom:
         - secretRef:
-            name: omp-backend-configuration
+            name: lodestar-backend-configuration
         env:
-        - name: OMP_BACKEND_GIT_TAG
+        - name: LODESTAR_BACKEND_GIT_TAG
           value: {{ .Values.imageTag }}
         image: {{ .Values.name }}:{{ .Values.imageTag }}
         imagePullPolicy: Always
