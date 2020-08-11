@@ -94,7 +94,7 @@ The following environment variables are available:
 | Name | Example Value | Required |
 |------|---------------|----------|
 | JWT_LOGGING| INFO | False |
-| OMP_BACKEND_LOGGING | INFO | False |
+| LODESTAR_BACKEND_LOGGING | INFO | False |
 
 ### JWT
 
@@ -110,7 +110,7 @@ The following environment variables are available:
 |------|---------------|----------|
 | MONGODB_USER | monguser | True |
 | MONGODB_PASSWORD | mongopassword | True |
-| DATABASE_SERVICE_NAME | omp-backend-mongodb | True |
+| DATABASE_SERVICE_NAME | lodestar-mongodb | True |
 | MONGODB_DATABASE | engagements | True |
 
 
@@ -118,15 +118,15 @@ The following environment variables are available:
 
 | Name | Example Value | Required |
 |------|---------------|----------|
-| OMP_GITLAB_API_URL   | http://lodestar-git-api:8080 | True |
+| LODESTAR_GITLAB_API_URL   | http://lodestar-git-api:8080 | True |
 
 ### Version Resource
 
 | Name | Example Value | Required |
 |------|---------------|----------|
-| OMP_BACKEND_GIT_COMMIT | not.set | False |
-| OMP_BACKEND_GIT_TAG | not.set | False |
-| OMP_BACKEND_VERSIONS_PATH | /config/version-manifest.yml | False |
+| LODESTAR_BACKEND_GIT_COMMIT | not.set | False |
+| LODESTAR_BACKEND_GIT_TAG | not.set | False |
+| LODESTAR_BACKEND_VERSIONS_PATH | /config/version-manifest.yml | False |
 
 ### Git Auto Sync
 

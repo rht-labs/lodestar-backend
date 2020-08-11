@@ -82,16 +82,16 @@ Clone the Git API repo, follow the local dev steps there and run it on port 8080
 
 ```bash
 # required
-export OMP_GITLAB_API_URL=http://localhost:8080
+export LODESTAR_GITLAB_API_URL=http://localhost:8080
 
 #some options
 # could include not default mongo values here
-export OMP_BACKEND_GIT_COMMIT=gitSHA
-export OMP_BACKED_GIT_TAG=v34.4
+export LODESTAR_BACKEND_GIT_COMMIT=gitSHA
+export LODESTAR_BACKED_GIT_TAG=v34.4
 export JWT_LOGGING=INFO
-export OMP_BACKEND_VERSIONS_PATH=$PWD/version-manifest.yml
+export LODESTAR_BACKEND_VERSIONS_PATH=$PWD/version-manifest.yml
 
-echo "OMP GIT API $OMP_GITLAB_API_URL"
+echo "LODESTAR GIT API $LODESTAR_GITLAB_API_URL"
 mvn quarkus:dev
 ```
 
