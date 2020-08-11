@@ -55,7 +55,7 @@ PUT  /engagements/refresh
 
 ### Version Resource
 
-The version resource exposes an endpoint that will allow the client to determine which versions of the backend, git api, and other components being used by OMP.
+The version resource exposes an endpoint that will allow the client to determine which versions of the backend, git api, and other components being used by Lodestar.
 
 ```
 GET  /api/v1/version

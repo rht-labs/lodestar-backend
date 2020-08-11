@@ -31,11 +31,11 @@ helm template . \
   --values values-dev.yaml \
   --set git.uri=https://github.com/rht-labs/open-management-portal-backend.git \
   --set git.ref=master \
-  --set ompGitlabApiUrl=http://omp-git-api:8080 \
+  --set lodestarGitlabApiUrl=http://lodestar-git-api:8080 \
   --set jwtPublicKeyLocation=<your-jwt-public-key-location> \
   --set jwtIssuer=https:<your-jwt-issuer> \
   --set jwtEnable=true \
-  --set mongodbServiceName=omp-backend-mongodb \
+  --set mongodbServiceName=lodestar-backend-mongodb \
   --set mongodbUser=<your-mongodb-user> \
   --set mongodbPassword=<your-mongodb-password> \
   --set mongodbDatabase=engagements \
@@ -49,7 +49,7 @@ It accepts the following variables
 |---|---|
 | `git.uri`  | The HTTPS reference to the repo (your fork!) to build  |
 | `git.ref`  | The branch name to build  |
-| `ompGitlabApiUrl`  | URL for the route or service to the Git API service  |
+| `lodestarGitlabApiUrl`  | URL for the route or service to the Git API service  |
 | `jwtVerifyPublicKeyLocation`  | The URL at which your OpenID Connect (SSO) provider exposes its public key  |
 | `jwtIssuer`  | The issuer specified JWT token|
 | `jwtEnable`  | Flag to turn on and off JWT validation  |
@@ -59,7 +59,7 @@ It accepts the following variables
 | `mongodbDatabase` | Application database name |
 | `mongodbAdminPassword` | Admin password for MongoDB |
 
-This will spin up all of the usual resources that this service needs in production, plus a `BuildConfig` configured to build it from source from the Git repository specified. To trigger this build, use `oc start-build omp-backend`.
+This will spin up all of the usual resources that this service needs in production, plus a `BuildConfig` configured to build it from source from the Git repository specified. To trigger this build, use `oc start-build lodestar-backend`.
 
 # Local Development
 

@@ -29,12 +29,12 @@ The `engagements.sh` script can be used to interact with the Backend API for eng
 
 ```
 # usage
-./enagements.sh action omp-backend-hostname
+./enagements.sh action lodestar-backend-hostname
 ```
 
 The currently defined actions are:
 
-* `get` - returns all engagements from the requested omp-backend database
+* `get` - returns all engagements from the requested lodestar-backend database
 * `create` - creates an engagement using `data/create-engagement.json`
 * `update` - updates an engagement using `data/update-engagement.json`
 * `launch` - launches an engagement using `data/launch-engagement.json`
@@ -44,6 +44,6 @@ The currently defined actions are:
 The host name can be a local or remote instance, for example:
 
 * `localhost:8080`
-* `omp-backend.at.your.domain.com`
+* `lodestar-backend.at.your.domain.com`
 
 NOTE:  If using localhost:8080 or localhost:8081, the script assumes http will be used.  Otherwise, https will be used.
