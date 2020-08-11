@@ -1,8 +1,8 @@
-![Build Container](https://github.com/rht-labs/open-management-portal-backend/workflows/Build%20Container/badge.svg)
+![Build Container](https://github.com/rht-labs/lodestar-backend/workflows/Build%20Container/badge.svg)
 
-# Open Management Portal - Backend
+# Lodestar - Backend
 
-The API for the Open Management Portal.
+The API for Lodestar.
 
 ## JSON REST APIs
 
@@ -17,7 +17,7 @@ The application, once running, also exposes a Swagger UI that will provide more 
 
 ### Config Resource
 
-The config resource exposes an API that will return the configured config file from git using the [Git API](https://github.com/rht-labs/open-management-portal-git-api).
+The config resource exposes an API that will return the configured config file from git using the [Git API](https://github.com/rht-labs/lodestar-git-api).
 
 ```
 GET /config
@@ -27,7 +27,7 @@ It's recommended to add the version header with the a version above v1. v1 retur
 
 ### Engagement Resource
 
-The engagements resource exposes an API that allows clients to create, retrieve, and delete engagement resources.  The unique key for an engagement consists of `customer_name` and `project_name`.  The following endpoints will update the configured Mongo DB and mark the records as modified so an asynchronous process can push the changes to Gitlab using the [Git API](https://github.com/rht-labs/open-management-portal-git-api).
+The engagements resource exposes an API that allows clients to create, retrieve, and delete engagement resources.  The unique key for an engagement consists of `customer_name` and `project_name`.  The following endpoints will update the configured Mongo DB and mark the records as modified so an asynchronous process can push the changes to Gitlab using the [Git API](https://github.com/rht-labs/lodestar-git-api).
 
 ```
 # create an engagement
@@ -44,7 +44,7 @@ GET  /engagements/customers/{customerId}/projects/{projectId}
 
 ### Git Sync Resource
 
-There are two exposed endpoints that will allow clients to deliberately sync data from Mongo DB to Gitlab using the [Git API](https://github.com/rht-labs/open-management-portal-git-api) or to clear the data from the Mongo DB and insert all engagements from Gitlab.
+There are two exposed endpoints that will allow clients to deliberately sync data from Mongo DB to Gitlab using the [Git API](https://github.com/rht-labs/lodestar-git-api) or to clear the data from the Mongo DB and insert all engagements from Gitlab.
 
 ```
 # push all modified resources from Mongo DB to Gitlab
@@ -77,7 +77,7 @@ GET  /engagements/events?access-token=
 
 ## Scheduled Auto Sync to Git API
 
-A configurable auto sync feature allows data that has been modified in Mongo DB to be pushed to Gitlab using the [Git API](https://github.com/rht-labs/open-management-portal-git-api).  This feature is configured using a CRON expression that can be updated in the application.properties file or overridden using environment variables.
+A configurable auto sync feature allows data that has been modified in Mongo DB to be pushed to Gitlab using the [Git API](https://github.com/rht-labs/lodestar-git-api).  This feature is configured using a CRON expression that can be updated in the application.properties file or overridden using environment variables.
 
 ```
 # defaults to sync every 30 seconds
@@ -118,7 +118,7 @@ The following environment variables are available:
 
 | Name | Example Value | Required |
 |------|---------------|----------|
-| OMP_GITLAB_API_URL   | http://omp-git-api:8080 | True |
+| OMP_GITLAB_API_URL   | http://lodestar-git-api:8080 | True |
 
 ### Version Resource
 

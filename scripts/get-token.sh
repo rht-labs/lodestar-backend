@@ -18,7 +18,7 @@ then
 
 fi
 
-json=$(curl -d "client_id=open-management-portal" -d "username=$TOKEN_USER" -d "password=$TOKEN_PASSWORD" -d "grant_type=password" $TOKEN_URL)
+json=$(curl -d "client_id=lodestar" -d "username=$TOKEN_USER" -d "password=$TOKEN_PASSWORD" -d "grant_type=password" $TOKEN_URL)
 token=$( jq -r ".access_token" <<<"$json" )
 
 # return token
