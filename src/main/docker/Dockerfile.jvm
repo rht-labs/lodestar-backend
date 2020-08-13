@@ -7,11 +7,11 @@
 #
 # Then, build the image with:
 #
-# docker build -f src/main/docker/Dockerfile.jvm -t quarkus/open-management-portal-backend-jvm .
+# docker build -f src/main/docker/Dockerfile.jvm -t quarkus/lodestar-backend-jvm .
 #
 # Then run the container using:
 #
-# docker run -i --rm -p 8080:8080 quarkus/open-management-portal-backend-jvm
+# docker run -i --rm -p 8080:8080 quarkus/lodestar-backend-jvm
 #
 ###
 FROM fabric8/java-alpine-openjdk8-jre
