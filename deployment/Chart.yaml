@@ -1,6 +1,6 @@
 apiVersion: v2
 name: backend
-description: A Helm chart to deploy the backend (coordination API) of the Open Management Portal
+description: A Helm chart to deploy the backend (coordination API) of Lodestar
 
 # A chart can be either an 'application' or a 'library' chart.
 #
