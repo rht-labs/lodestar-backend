@@ -6,6 +6,7 @@ import javax.inject.Inject;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import com.redhat.labs.omp.rest.client.OMPGitLabAPIService;
 
@@ -14,7 +15,9 @@ import com.redhat.labs.omp.rest.client.OMPGitLabAPIService;
 public class GitApiHealthCheck implements HealthCheck {
 
     private static final String NAME = "Git API";
+
     @Inject
+    @RestClient
     OMPGitLabAPIService service;
 
     @Override
