@@ -3,6 +3,7 @@ package com.redhat.labs.omp.rest.client;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.json.bind.Jsonb;
+import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
@@ -25,6 +26,12 @@ public class MockLodeStarStatusApiClient implements LodeStarStatusApiClient {
         String json = ResourceLoader.load("status-service/version-manifest.yaml");
         return jsonb.fromJson(json, VersionManifestV1.class);
 
+    }
+
+    @Override
+    public Response getComponentStatus() {
+        // TODO Auto-generated method stub
+        return null;
     }
 
 }
