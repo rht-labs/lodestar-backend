@@ -2,7 +2,7 @@ name: omp-backend
 
 servicePort: 8080
 
-imageName: "quay.io/rht-labs/omp-backend"
+imageName: "quay.io/rht-labs/lodestar-backend"
 imageTag: "latest" # This is intended to be overridden by the parent Helm chart.
 
 mongodb:
