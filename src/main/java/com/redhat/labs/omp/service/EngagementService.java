@@ -3,6 +3,7 @@ package com.redhat.labs.omp.service;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -101,6 +102,10 @@ public class EngagementService {
         // persist to db
         repository.persist(engagement);
 
+        // insert any new categories
+        BackendEvent event = BackendEvent.createInsertCategoriesInDbRequestedEvent(Arrays.asList(engagement));
+        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
+
         return engagement;
 
     }
@@ -142,6 +147,10 @@ public class EngagementService {
                     "Failed to modify engagement because request contained stale data.  Please refresh and try again.",
                     HttpStatus.SC_CONFLICT);
         }
+
+        // insert any new categories
+        BackendEvent event = BackendEvent.createInsertCategoriesInDbRequestedEvent(Arrays.asList(engagement));
+        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
 
         // send updated engagement to socket
         sendEngagementEvent(jsonb.toJson(persisted));
@@ -340,6 +349,16 @@ public class EngagementService {
 
         // insert
         repository.persist(toInsert);
+
+        BackendEvent event = null;
+        if(purgeFirst) {
+            event = BackendEvent.createPurgeAndInsertCategoriesInDbRequestedEvent(toInsert);
+        } else {
+            event = BackendEvent.createInsertCategoriesInDbRequestedEvent(toInsert);
+        }
+
+        // send engagements to bus for category processing
+        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
 
     }
 
