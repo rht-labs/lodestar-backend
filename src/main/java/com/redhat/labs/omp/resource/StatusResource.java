@@ -4,6 +4,7 @@ import javax.annotation.security.PermitAll;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
@@ -21,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.redhat.labs.omp.model.Hook;
+import com.redhat.labs.omp.rest.client.LodeStarStatusApiClient;
 import com.redhat.labs.omp.rest.client.OMPGitLabAPIService;
 import com.redhat.labs.omp.service.EngagementService;
 
@@ -40,6 +42,10 @@ public class StatusResource {
     @Inject
     @RestClient
     OMPGitLabAPIService gitApi;
+
+    @Inject
+    @RestClient
+    LodeStarStatusApiClient statusClient;
     
     @Inject
     EngagementService engagementService;
@@ -86,4 +92,14 @@ public class StatusResource {
 
         return Response.ok().build();
     }
+
+    @GET
+    @PermitAll
+    @APIResponses(value = { 
+            @APIResponse(responseCode = "200", description = "Component Status has been returned.") })
+    @Operation(summary = "Returns status of all configured components.")
+    public Response getComponentStatus() {
+        return statusClient.getComponentStatus();
+    }
+
 }

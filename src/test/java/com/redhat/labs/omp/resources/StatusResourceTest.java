@@ -1,18 +1,24 @@
 package com.redhat.labs.omp.resources;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.is;
 
 import javax.inject.Inject;
+import javax.ws.rs.core.Response;
 
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import com.redhat.labs.omp.model.Engagement;
+import com.redhat.labs.omp.rest.client.LodeStarStatusApiClient;
 import com.redhat.labs.omp.service.EngagementService;
 import com.redhat.labs.utils.EmbeddedMongoTest;
 import com.redhat.labs.utils.ResourceLoader;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.mockito.InjectMock;
 import io.restassured.http.ContentType;
 
 @EmbeddedMongoTest
@@ -22,7 +28,9 @@ public class StatusResourceTest {
     @Inject
     EngagementService engagementService;
     
-    
+    @InjectMock
+    @RestClient
+    LodeStarStatusApiClient statusClient;
     
     @BeforeEach
     public void seed() {
@@ -122,4 +130,46 @@ public class StatusResourceTest {
         .then()
             .statusCode(401);
     }
+
+    @Test
+    void testGetComponentStatusSuccess() {
+
+        String json = "{\"status\":\"UP\", \"checks\": []}";
+        Mockito.when(statusClient.getComponentStatus()).thenReturn(Response.ok(json).build());
+
+        given()
+        .when()
+            .contentType(ContentType.JSON)
+            .get("/status")
+        .then()
+            .statusCode(200)
+            .body("status", is("UP"));
+    }
+
+    @Test
+    void testGetComponentStatusErrorResponse() {
+
+        Mockito.when(statusClient.getComponentStatus()).thenReturn(Response.serverError().build());
+
+        given()
+        .when()
+            .contentType(ContentType.JSON)
+            .get("/status")
+        .then()
+            .statusCode(500);
+    }
+
+    @Test
+    void testGetComponentStatusRuntimeException() {
+
+        Mockito.when(statusClient.getComponentStatus()).thenThrow(new RuntimeException("uh-oh"));
+
+        given()
+        .when()
+            .contentType(ContentType.JSON)
+            .get("/status")
+        .then()
+            .statusCode(500);
+    }
+
 }
