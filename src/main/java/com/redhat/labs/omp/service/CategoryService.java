@@ -109,6 +109,32 @@ public class CategoryService {
     }
 
     /**
+     * Processes {@link Category} from {@link List} of {@link Engagement}.
+     * 
+     * @param purgeFirst
+     * @param event
+     */
+    void processCategoriesFromEvent(boolean purgeFirst, BackendEvent event) {
+
+        if(null != event && null != event.getEngagementList()) {
+
+            LOGGER.debug("purging and recreating categories from engagement list.");
+
+            if(purgeFirst) {
+
+                // delete all categories in data store
+                repository.deleteAll();
+
+            }
+
+            // create from engagement list
+            createFromEngagementList(event.getEngagementList());
+
+        }
+
+    }
+
+    /**
      * Consumes a {@link BackendEvent} to trigger processing of any {@link Category}
      * from the {@link List} of {@link Engagement}.
      * 
@@ -116,12 +142,7 @@ public class CategoryService {
      */
     @ConsumeEvent(EventType.Constants.INSERT_CATEGORIES_IN_DB_ADDRESS)
     void consumeCreateFromEngagementListEvent(BackendEvent event) {
-
-        if(null != event && null != event.getEngagementList()) {
-            LOGGER.debug("creating categories from engagement list.");
-            createFromEngagementList(event.getEngagementList());
-        }
-
+        processCategoriesFromEvent(false, event);
     }
 
     /**
@@ -133,19 +154,7 @@ public class CategoryService {
      */
     @ConsumeEvent(EventType.Constants.PURGE_AND_INSERT_CATEGORIES_IN_DB_ADDRESS)
     void consumePurgeAndCreateFromEngagementListEvent(BackendEvent event) {
-
-        if(null != event && null != event.getEngagementList()) {
-
-            LOGGER.debug("purging and recreating categories from engagement list.");
-
-            // delete all categories in data store
-            repository.deleteAll();
-
-            // create from engagement list
-            createFromEngagementList(event.getEngagementList());
-
-        }
-
+        processCategoriesFromEvent(true, event);
     }
 
 }
