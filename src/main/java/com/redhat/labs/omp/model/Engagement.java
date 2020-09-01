@@ -91,6 +91,8 @@ public class Engagement extends PanacheMongoEntityBase {
     @JsonbProperty("engagement_type")
     private String type;
 
+    @JsonbProperty("engagement_categories")
+    private List<Category> categories;
 
     @JsonbTransient
     private FileAction action;
