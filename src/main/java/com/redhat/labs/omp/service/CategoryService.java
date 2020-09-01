@@ -35,7 +35,7 @@ public class CategoryService {
      * @param matchCase
      * @return
      */
-    public Optional<Category> get(String name, boolean matchCase) {
+    Optional<Category> get(String name, boolean matchCase) {
         return repository.findCategory(name, matchCase);
     }
 
@@ -65,8 +65,8 @@ public class CategoryService {
      * 
      * @param categoryList
      */
-    public void create(List<Category> categoryList) {
-        categoryList.stream().forEach(name -> create(name));
+    void create(List<Category> categoryList) {
+        categoryList.stream().forEach(category -> create(category));
     }
 
     /**
@@ -74,7 +74,7 @@ public class CategoryService {
      * 
      * @param name
      */
-    public void create(Category category) {
+    void create(Category category) {
 
         Optional<Category> optional = get(category.getName(), false);
         if (optional.isEmpty()) {
@@ -90,15 +90,15 @@ public class CategoryService {
      * 
      * @param engagementList
      */
-    public void createFromEngagementList(List<Engagement> engagementList) {
+    void createFromEngagementList(List<Engagement> engagementList) {
 
         LOGGER.debug("engagement list size {}", engagementList.size());
 
         // aggregate category lists from engagements
         List<Category> categoryList =
             engagementList.stream()
-                .map(engagement -> engagement.getCategories())
-                .flatMap(list -> list.stream())
+                .filter(engagement -> null != engagement.getCategories())
+                .flatMap(engagement -> engagement.getCategories().stream())
                 .collect(Collectors.toList());
 
         LOGGER.debug("creating categories from list {}", categoryList);
