@@ -1,4 +1,4 @@
-name: omp-backend
+name: lodestar-backend
 
 servicePort: 8080
 

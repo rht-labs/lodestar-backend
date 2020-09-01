@@ -1,4 +1,4 @@
-name: omp-backend
+name: lodestar-backend
 development: true
 
 servicePort: 8080
@@ -13,11 +13,11 @@ git:
   uri: https://github.com/rht-labs/lodestar-backend.git
   ref: master
 
-ompGitlabApiUrl: http://omp-git-api:8080
+lodestarGitlabApiUrl: http://lodestar-git-api:8080
 jwtPublicKeyLocation: false
 jwtIssuer: false
 jwtEnable: true
-mongodbServiceName: omp-backend-mongodb
+mongodbServiceName: lodestar-backend-mongodb
 mongodbUser: mongouser
 mongodbPassword: mongopassword
 mongodbDatabase: engagements

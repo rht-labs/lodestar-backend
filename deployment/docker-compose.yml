@@ -2,7 +2,7 @@ version: '3'
 services: 
   database: 
     image: 'mongo'
-    container_name: 'omp-mongo'
+    container_name: 'lodestar-mongo'
     environment:
       - MONGO_INITDB_DATABASE=engagement
       - MONGO_INITDB_ROOT_USERNAME=mongouser

@@ -1,12 +1,12 @@
 #!/bin/bash
 
 command=$1
-omphost=$2
+lodestarhost=$2
 
-if [ -z "$command" -o -z "$omphost" ]
+if [ -z "$command" -o -z "$lodestarhost" ]
 then
   echo "usage:"
-  echo "enagement.sh (refresh|create|update|get|process|launch|toggle) omp-backend-host[:port]"
+  echo "enagement.sh (refresh|create|update|get|process|launch|toggle) lodestar-backend-host[:port]"
   exit
 fi
 
@@ -19,11 +19,11 @@ then
   exit
 fi
 
-if [ "localhost:8080" == "$omphost" -o "localhost:8081" == "$omphost" ]
+if [ "localhost:8080" == "$lodestarhost" -o "localhost:8081" == "$lodestarhost" ]
 then
-  host=http://${omphost}
+  host=http://${lodestarhost}
 else
-  host=https://${omphost}
+  host=https://${lodestarhost}
 fi
 
 if [ "refresh" == "$command" ]

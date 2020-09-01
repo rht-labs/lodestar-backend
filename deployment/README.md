@@ -31,11 +31,11 @@ helm template . \
   --values values-dev.yaml \
   --set git.uri=https://github.com/rht-labs/lodestar-backend.git \
   --set git.ref=master \
-  --set ompGitlabApiUrl=http://omp-git-api:8080 \
+  --set lodestarGitlabApiUrl=http://lodestar-git-api:8080 \
   --set jwtPublicKeyLocation=<your-jwt-public-key-location> \
   --set jwtIssuer=https:<your-jwt-issuer> \
   --set jwtEnable=true \
-  --set mongodbServiceName=omp-backend-mongodb \
+  --set mongodbServiceName=lodestar-backend-mongodb \
   --set mongodbUser=<your-mongodb-user> \
   --set mongodbPassword=<your-mongodb-password> \
   --set mongodbDatabase=engagements \
@@ -49,7 +49,7 @@ It accepts the following variables
 |---|---|
 | `git.uri`  | The HTTPS reference to the repo (your fork!) to build  |
 | `git.ref`  | The branch name to build  |
-| `ompGitlabApiUrl`  | URL for the route or service to the Git API service  |
+| `lodestarGitlabApiUrl`  | URL for the route or service to the Git API service  |
 | `jwtVerifyPublicKeyLocation`  | The URL at which your OpenID Connect (SSO) provider exposes its public key  |
 | `jwtIssuer`  | The issuer specified JWT token|
 | `jwtEnable`  | Flag to turn on and off JWT validation  |
@@ -59,7 +59,7 @@ It accepts the following variables
 | `mongodbDatabase` | Application database name |
 | `mongodbAdminPassword` | Admin password for MongoDB |
 
-This will spin up all of the usual resources that this service needs in production, plus a `BuildConfig` configured to build it from source from the Git repository specified. To trigger this build, use `oc start-build omp-backend`.
+This will spin up all of the usual resources that this service needs in production, plus a `BuildConfig` configured to build it from source from the Git repository specified. To trigger this build, use `oc start-build lodestar-backend`.
 
 # Local Development
 
@@ -82,16 +82,16 @@ Clone the Git API repo, follow the local dev steps there and run it on port 8080
 
 ```bash
 # required
-export OMP_GITLAB_API_URL=http://localhost:8080
+export LODESTAR_GITLAB_API_URL=http://localhost:8080
 
 #some options
 # could include not default mongo values here
-export OMP_BACKEND_GIT_COMMIT=gitSHA
-export OMP_BACKED_GIT_TAG=v34.4
+export LODESTAR_BACKEND_GIT_COMMIT=gitSHA
+export LODESTAR_BACKED_GIT_TAG=v34.4
 export JWT_LOGGING=INFO
-export OMP_BACKEND_VERSIONS_PATH=$PWD/version-manifest.yml
+export LODESTAR_BACKEND_VERSIONS_PATH=$PWD/version-manifest.yml
 
-echo "OMP GIT API $OMP_GITLAB_API_URL"
+echo "LODESTAR GIT API $LODESTAR_GITLAB_API_URL"
 mvn quarkus:dev
 ```
 
