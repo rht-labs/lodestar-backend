@@ -7,7 +7,8 @@ public enum EventType {
     UPDATE_ENGAGEMENTS_IN_DB_REQUESTED(Constants.UPDATE_ENGAGEMENTS_IN_DB_REQUESTED_ADDRESS),
     UPDATE_ENGAGEMENTS_IN_GIT_REQUESTED(Constants.UPDATE_ENGAGEMENTS_IN_GIT_REQUESTED_ADDRESS),
     INSERT_CATEGORIES_IN_DB_REQUESTED(Constants.INSERT_CATEGORIES_IN_DB_ADDRESS),
-    PURGE_AND_INSERT_CATEGORIES_IN_DB_REQUESTED(Constants.PURGE_AND_INSERT_CATEGORIES_IN_DB_ADDRESS);
+    PURGE_AND_INSERT_CATEGORIES_IN_DB_REQUESTED(Constants.PURGE_AND_INSERT_CATEGORIES_IN_DB_ADDRESS),
+    DECREMENT_CATEGORY_COUNTS_REQUESTED(Constants.DECREMENT_CATEGORY_COUNTS_ADDRESS);
 
     private String eventBusAddress;
 
@@ -27,6 +28,7 @@ public enum EventType {
         public static final String UPDATE_ENGAGEMENTS_IN_GIT_REQUESTED_ADDRESS = "update.engagements.in.git.requested.event";
         public static final String INSERT_CATEGORIES_IN_DB_ADDRESS = "insert.categories.in.db.requested.event";
         public static final String PURGE_AND_INSERT_CATEGORIES_IN_DB_ADDRESS = "purge.and.insert.categories.in.db.requested.event";
+        public static final String DECREMENT_CATEGORY_COUNTS_ADDRESS = "decrement.category.counts.requested.event";
 
     }
 

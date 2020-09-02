@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.redhat.labs.omp.exception.InvalidRequestException;
 import com.redhat.labs.omp.exception.ResourceAlreadyExistsException;
 import com.redhat.labs.omp.exception.ResourceNotFoundException;
+import com.redhat.labs.omp.model.Category;
 import com.redhat.labs.omp.model.Commit;
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.model.FileAction;
@@ -152,10 +154,48 @@ public class EngagementService {
         BackendEvent event = BackendEvent.createInsertCategoriesInDbRequestedEvent(Arrays.asList(engagement));
         eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
 
+        // decrement any categories removed
+        decrementCategoriesIfRemoved(persisted.getCategories(), engagement.getCategories());
+        
+
         // send updated engagement to socket
         sendEngagementEvent(jsonb.toJson(persisted));
 
         return optional.get();
+
+    }
+
+    /**
+     * Determines which {@link Category} should have their count decremented.  If the {@link Category} in 
+     * the {@link List} from the DB, does not exist in the {@link List} from the updated {@link Engagement}.
+     * 
+     * @param persistedList
+     * @param updatedList
+     */
+    private void decrementCategoriesIfRemoved(List<Category> persistedList, List<Category> updatedList) {
+
+        List<Category> toDecrement = 
+            persistedList.stream()
+                .filter(category -> {
+
+                    // updated list not initialized
+                    if(null == updatedList) {
+                        return true;
+                    }
+
+                    // validate category is not in updated list
+                    Optional<Category> optional = 
+                        updatedList.stream()
+                            .filter(uCategory -> category.getName().equalsIgnoreCase(uCategory.getName()))
+                            .findFirst();
+
+                    return optional.isEmpty();
+
+                })
+                .collect(Collectors.toList());
+
+        BackendEvent event = BackendEvent.createDecrementCategoryCountsEvent(toDecrement);
+        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
 
     }
 

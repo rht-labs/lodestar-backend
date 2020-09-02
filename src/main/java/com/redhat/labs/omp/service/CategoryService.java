@@ -79,8 +79,38 @@ public class CategoryService {
         Optional<Category> optional = get(category.getName(), false);
         if (optional.isEmpty()) {
             LOGGER.debug("category name {} not found, persisting.", category.getName());
+            category.setCount(1);
             repository.persist(category);
+        } else {
+            LOGGER.debug("category name {} found, updating count");
+            category.setCount(category.getCount() + 1);
+            repository.update(category);
         }
+
+    }
+
+    /**
+     * Decrements the count for each {@link Category} in the given {@link List}.
+     * 
+     * @param categoryList
+     */
+    void decrementCategoryCounts(List<Category> categoryList) {
+
+        categoryList.stream()
+            .forEach(category -> {
+
+                // decrement category count
+                Integer count = category.getCount();
+
+                if(null == count || 0 == count) {
+                    category.setCount(0);
+                } else {
+                    category.setCount(count++);
+                }
+
+                repository.update(category);
+
+            });
 
     }
 
@@ -155,6 +185,17 @@ public class CategoryService {
     @ConsumeEvent(EventType.Constants.PURGE_AND_INSERT_CATEGORIES_IN_DB_ADDRESS)
     void consumePurgeAndCreateFromEngagementListEvent(BackendEvent event) {
         processCategoriesFromEvent(true, event);
+    }
+
+    /**
+     * Consumes a {@link BackendEvent} to trigger process of decrementing each {@link Category}
+     * in the provided {@link List}.
+     * 
+     * @param event
+     */
+    @ConsumeEvent(EventType.Constants.DECREMENT_CATEGORY_COUNTS_ADDRESS)
+    void consumeDecrementCategoryCountsEvent(BackendEvent event) {
+        decrementCategoryCounts(event.getCategoryList());
     }
 
 }

@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 public class Category extends PanacheMongoEntity {
 
     private String name;
+    private Integer count;
 
     @JsonbTransient
     public ObjectId getId() {
