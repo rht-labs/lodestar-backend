@@ -4,16 +4,15 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.Matchers.allOf;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasItem;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -1401,46 +1400,90 @@ public class EngagementResourceTest {
         TimeUnit.SECONDS.sleep(1);
 
         // get all
+        Response r =
         given()
             .auth()
             .oauth2(token)
             .contentType(ContentType.JSON)
         .when()
-            .get("/engagements/categories")
-        .then()
-            .statusCode(200)
-            .body("$", hasItem(allOf(hasEntry("name", "c1"))))
-            .body("$", hasItem(allOf(hasEntry("name", "c2"))))
-            .body("$", hasItem(allOf(hasEntry("name", "c4"))))
-            .body("$", hasItem(allOf(hasEntry("name", "e5"))));
+            .get("/engagements/categories");
+
+        assertEquals(200, r.getStatusCode());
+        Category[] results = r.as(Category[].class);
+        assertEquals(4, results.length);
+        Map<String, Boolean> resultsMap = validateCategories(results);
+
+        assertTrue(resultsMap.containsKey("c1") && 
+                resultsMap.containsKey("c2") && 
+                resultsMap.containsKey("c4") && 
+                resultsMap.containsKey("e5"));
 
         // get suggestions
-        given()
+        r =given()
             .auth()
             .oauth2(token)
             .queryParam("suggest", "c")
             .contentType(ContentType.JSON)
         .when()
-            .get("/engagements/categories")
-        .then()
-            .statusCode(200)
-            .body("$", hasItem(allOf(hasEntry("name", "c1"))))
-            .body("$", hasItem(allOf(hasEntry("name", "c2"))))
-            .body("$", hasItem(allOf(hasEntry("name", "c4"))));
+            .get("/engagements/categories");
 
-        given()
+        assertEquals(200, r.getStatusCode());
+        results = r.as(Category[].class);
+        assertEquals(3, results.length);
+        resultsMap = validateCategories(results);
+
+        assertTrue(resultsMap.containsKey("c1") && 
+                resultsMap.containsKey("c2") && 
+                resultsMap.containsKey("c4") && 
+                !resultsMap.containsKey("e5"));
+
+        r = given()
             .auth()
             .oauth2(token)
             .queryParam("suggest", "e")
             .contentType(ContentType.JSON)
         .when()
-            .get("/engagements/categories")
-        .then()
-            .statusCode(200)
-            .body("$", hasItem(allOf(hasEntry("name", "e5"))));
+            .get("/engagements/categories");
+
+        assertEquals(200, r.getStatusCode());
+        results = r.as(Category[].class);
+        assertEquals(1, results.length);
+        resultsMap = validateCategories(results);
+
+        assertTrue(!resultsMap.containsKey("c1") && 
+                !resultsMap.containsKey("c2") && 
+                !resultsMap.containsKey("c4") && 
+                resultsMap.containsKey("e5"));
 
     }
 
+    private Map<String, Boolean> validateCategories(Category[] categories) {
+
+        Map<String, Boolean> map = new HashMap<>();
+
+        for(Category c : categories) {
+
+            if("c1".equals(c.getName()) && 1 == c.getCount()) {
+                map.put("c1", Boolean.TRUE);
+            }
+
+            if("c2".equals(c.getName()) && 2 == c.getCount()) {
+                map.put("c2", Boolean.TRUE);
+            }
+
+            if("c4".equals(c.getName()) && 1 == c.getCount()) {
+                map.put("c4", Boolean.TRUE);
+            }
+
+            if("e5".equals(c.getName()) && 1 == c.getCount()) {
+                map.put("e5", Boolean.TRUE);
+            }
+
+        }
+
+        return map;
+
+    }
     private BackendEvent mockBackendEvent() {
 
         Category c1 = mockCategory("c1");

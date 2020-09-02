@@ -83,8 +83,9 @@ public class CategoryService {
             repository.persist(category);
         } else {
             LOGGER.debug("category name {} found, updating count");
-            category.setCount(category.getCount() + 1);
-            repository.update(category);
+            Category persisted = optional.get();
+            persisted.setCount(persisted.getCount() + 1);
+            repository.update(persisted);
         }
 
     }

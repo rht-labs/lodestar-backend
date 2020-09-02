@@ -174,28 +174,32 @@ public class EngagementService {
      */
     private void decrementCategoriesIfRemoved(List<Category> persistedList, List<Category> updatedList) {
 
-        List<Category> toDecrement = 
-            persistedList.stream()
-                .filter(category -> {
+        if(null != persistedList) {
 
-                    // updated list not initialized
-                    if(null == updatedList) {
-                        return true;
-                    }
+            List<Category> toDecrement = 
+                persistedList.stream()
+                    .filter(category -> {
 
-                    // validate category is not in updated list
-                    Optional<Category> optional = 
-                        updatedList.stream()
-                            .filter(uCategory -> category.getName().equalsIgnoreCase(uCategory.getName()))
-                            .findFirst();
+                        // updated list not initialized
+                        if(null == updatedList) {
+                            return true;
+                        }
 
-                    return optional.isEmpty();
+                        // validate category is not in updated list
+                        Optional<Category> optional = 
+                            updatedList.stream()
+                                .filter(uCategory -> category.getName().equalsIgnoreCase(uCategory.getName()))
+                                .findFirst();
 
-                })
-                .collect(Collectors.toList());
+                        return optional.isEmpty();
 
-        BackendEvent event = BackendEvent.createDecrementCategoryCountsEvent(toDecrement);
-        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
+                    })
+                    .collect(Collectors.toList());
+
+            BackendEvent event = BackendEvent.createDecrementCategoryCountsEvent(toDecrement);
+            eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
+
+        }
 
     }
 
