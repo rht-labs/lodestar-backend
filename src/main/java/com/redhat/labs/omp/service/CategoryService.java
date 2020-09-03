@@ -78,11 +78,11 @@ public class CategoryService {
 
         Optional<Category> optional = get(category.getName(), false);
         if (optional.isEmpty()) {
-            LOGGER.debug("category name {} not found, persisting.", category.getName());
+            LOGGER.trace("category name {} not found, persisting.", category.getName());
             category.setCount(1);
             repository.persist(category);
         } else {
-            LOGGER.debug("category name {} found, updating count");
+            LOGGER.trace("category name {} found, updating count");
             Category persisted = optional.get();
             persisted.setCount(persisted.getCount() + 1);
             repository.update(persisted);
@@ -106,12 +106,12 @@ public class CategoryService {
                     // decrement category count
                     Category persisted = optional.get();
                     Integer count = persisted.getCount();
-                    LOGGER.info("current count is {}", count);
+                    LOGGER.trace("current count is {}", count);
 
                     count = (null == count || 0 == count) ? 0 : count - 1;
                     persisted.setCount(count);
 
-                    LOGGER.debug("updating category {}", persisted);
+                    LOGGER.trace("updating category {}", persisted);
                     repository.update(persisted);
 
                 }
@@ -128,8 +128,6 @@ public class CategoryService {
      */
     void createFromEngagementList(List<Engagement> engagementList) {
 
-        LOGGER.debug("engagement list size {}", engagementList.size());
-
         // aggregate category lists from engagements
         List<Category> categoryList =
             engagementList.stream()
@@ -137,7 +135,7 @@ public class CategoryService {
                 .flatMap(engagement -> engagement.getCategories().stream())
                 .collect(Collectors.toList());
 
-        LOGGER.debug("creating categories from list {}", categoryList);
+        LOGGER.trace("creating categories from list {}", categoryList);
 
         // create any required categories
         create(categoryList);

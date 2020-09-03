@@ -36,8 +36,7 @@ public class CategoryRepository implements PanacheMongoRepository<Category> {
     public Optional<Category> findCategory(String name, boolean matchCase) {
 
         String queryInput = matchCase ? String.format("/^%s$/", name) : String.format("/^%s$/i", name);
-        Optional<Category> o = find("name like ?1", queryInput).singleResultOptional();
-        return o;
+        return find("name like ?1", queryInput).singleResultOptional();
 
     }
 
