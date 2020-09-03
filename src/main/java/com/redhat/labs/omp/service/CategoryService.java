@@ -100,16 +100,21 @@ public class CategoryService {
         categoryList.stream()
             .forEach(category -> {
 
-                // decrement category count
-                Integer count = category.getCount();
+                Optional<Category> optional = get(category.getName(), false);
+                if(optional.isPresent()) {
 
-                if(null == count || 0 == count) {
-                    category.setCount(0);
-                } else {
-                    category.setCount(count++);
+                    // decrement category count
+                    Category persisted = optional.get();
+                    Integer count = persisted.getCount();
+                    LOGGER.info("current count is {}", count);
+
+                    count = (null == count || 0 == count) ? 0 : count - 1;
+                    persisted.setCount(count);
+
+                    LOGGER.debug("updating category {}", persisted);
+                    repository.update(persisted);
+
                 }
-
-                repository.update(category);
 
             });
 
@@ -148,8 +153,6 @@ public class CategoryService {
     void processCategoriesFromEvent(boolean purgeFirst, BackendEvent event) {
 
         if(null != event && null != event.getEngagementList()) {
-
-            LOGGER.debug("purging and recreating categories from engagement list.");
 
             if(purgeFirst) {
 
