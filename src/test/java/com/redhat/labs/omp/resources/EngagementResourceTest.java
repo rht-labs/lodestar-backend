@@ -7,9 +7,12 @@ import static org.hamcrest.Matchers.nullValue;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
@@ -17,7 +20,9 @@ import javax.json.bind.Jsonb;
 
 import org.junit.jupiter.api.Test;
 
+import com.redhat.labs.omp.model.Category;
 import com.redhat.labs.omp.model.Engagement;
+import com.redhat.labs.omp.model.event.BackendEvent;
 import com.redhat.labs.omp.rest.client.MockOMPGitLabAPIService.SCENARIO;
 import com.redhat.labs.utils.EmbeddedMongoTest;
 import com.redhat.labs.utils.TokenUtils;
@@ -25,6 +30,7 @@ import com.redhat.labs.utils.TokenUtils;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
+import io.vertx.mutiny.core.eventbus.EventBus;
 
 @EmbeddedMongoTest
 @QuarkusTest
@@ -32,6 +38,9 @@ public class EngagementResourceTest {
 
     @Inject
     Jsonb quarkusJsonb;
+
+    @Inject
+    EventBus eventBus;
 
     /*
      * POST SCENARIOS:
@@ -1376,6 +1385,128 @@ public class EngagementResourceTest {
         assertEquals("anotherCustomer", e.getCustomerName());
         assertEquals("anotherProject", e.getProjectName());
 
+    }
+
+    @Test
+    void testGetAllCategoriesAndGetSuggestion() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        BackendEvent event = mockBackendEvent();
+        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
+
+        // make sure the async processes finish
+        TimeUnit.SECONDS.sleep(1);
+
+        // get all
+        Response r =
+        given()
+            .auth()
+            .oauth2(token)
+            .contentType(ContentType.JSON)
+        .when()
+            .get("/engagements/categories");
+
+        assertEquals(200, r.getStatusCode());
+        Category[] results = r.as(Category[].class);
+        assertEquals(4, results.length);
+        Map<String, Boolean> resultsMap = validateCategories(results);
+
+        assertTrue(resultsMap.containsKey("c1") && 
+                resultsMap.containsKey("c2") && 
+                resultsMap.containsKey("c4") && 
+                resultsMap.containsKey("e5"));
+
+        // get suggestions
+        r =given()
+            .auth()
+            .oauth2(token)
+            .queryParam("suggest", "c")
+            .contentType(ContentType.JSON)
+        .when()
+            .get("/engagements/categories");
+
+        assertEquals(200, r.getStatusCode());
+        results = r.as(Category[].class);
+        assertEquals(3, results.length);
+        resultsMap = validateCategories(results);
+
+        assertTrue(resultsMap.containsKey("c1") && 
+                resultsMap.containsKey("c2") && 
+                resultsMap.containsKey("c4") && 
+                !resultsMap.containsKey("e5"));
+
+        r = given()
+            .auth()
+            .oauth2(token)
+            .queryParam("suggest", "e")
+            .contentType(ContentType.JSON)
+        .when()
+            .get("/engagements/categories");
+
+        assertEquals(200, r.getStatusCode());
+        results = r.as(Category[].class);
+        assertEquals(1, results.length);
+        resultsMap = validateCategories(results);
+
+        assertTrue(!resultsMap.containsKey("c1") && 
+                !resultsMap.containsKey("c2") && 
+                !resultsMap.containsKey("c4") && 
+                resultsMap.containsKey("e5"));
+
+    }
+
+    private Map<String, Boolean> validateCategories(Category[] categories) {
+
+        Map<String, Boolean> map = new HashMap<>();
+
+        for(Category c : categories) {
+
+            if("c1".equals(c.getName()) && 1 == c.getCount()) {
+                map.put("c1", Boolean.TRUE);
+            }
+
+            if("c2".equals(c.getName()) && 2 == c.getCount()) {
+                map.put("c2", Boolean.TRUE);
+            }
+
+            if("c4".equals(c.getName()) && 1 == c.getCount()) {
+                map.put("c4", Boolean.TRUE);
+            }
+
+            if("e5".equals(c.getName()) && 1 == c.getCount()) {
+                map.put("e5", Boolean.TRUE);
+            }
+
+        }
+
+        return map;
+
+    }
+    private BackendEvent mockBackendEvent() {
+
+        Category c1 = mockCategory("c1");
+        Category c2 = mockCategory("c2");
+
+        Engagement e1 = mockEngagement();
+        e1.setCustomerName("customer1");
+        e1.setCategories(Arrays.asList(c1, c2));
+
+        Category c3 = mockCategory("C2");
+        Category c4 = mockCategory("c4");
+        Category c5 = mockCategory("e5");
+
+        Engagement e2 = mockEngagement();
+        e2.setCustomerName("customer2");
+        e2.setCategories(Arrays.asList(c3,c4,c5));
+
+        return BackendEvent.createInsertCategoriesInDbRequestedEvent(Arrays.asList(e1, e2));
+
+    }
+
+    private Category mockCategory(String name) {
+        return Category.builder().name(name).build();
     }
 
     public Engagement mockEngagement() {
