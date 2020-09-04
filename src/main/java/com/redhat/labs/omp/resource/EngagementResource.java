@@ -187,7 +187,7 @@ public class EngagementResource {
     @Operation(summary = "Returns customers list")
     public List<Category> getAllCategories(@QueryParam("suggest") String match) {
 
-        if(null == match || "".equals(match.trim())) {
+        if(null == match || match.isBlank()) {
             return categoryService.getAll();
         } else {
             return categoryService.search(match);
