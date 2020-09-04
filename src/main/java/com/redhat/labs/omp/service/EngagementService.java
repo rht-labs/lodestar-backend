@@ -3,7 +3,6 @@ package com.redhat.labs.omp.service;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -104,8 +103,8 @@ public class EngagementService {
         // persist to db
         repository.persist(engagement);
 
-        // insert any new categories
-        BackendEvent event = BackendEvent.createInsertCategoriesInDbRequestedEvent(Arrays.asList(engagement));
+        // process categories
+        BackendEvent event = BackendEvent.createProcessCategoriesRequestedEvent(engagement.getCategories());
         eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
 
         return engagement;
@@ -150,56 +149,14 @@ public class EngagementService {
                     HttpStatus.SC_CONFLICT);
         }
 
-        // insert any new categories
-        BackendEvent event = BackendEvent.createInsertCategoriesInDbRequestedEvent(Arrays.asList(engagement));
+        // process categories
+        BackendEvent event = BackendEvent.createProcessCategoriesRequestedEvent(engagement.getCategories());
         eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
-
-        // decrement any categories removed
-        decrementCategoriesIfRemoved(persisted.getCategories(), engagement.getCategories());
-        
 
         // send updated engagement to socket
         sendEngagementEvent(jsonb.toJson(persisted));
 
         return optional.get();
-
-    }
-
-    /**
-     * Determines which {@link Category} should have their count decremented.  If the {@link Category} in 
-     * the {@link List} from the DB, does not exist in the {@link List} from the updated {@link Engagement}.
-     * 
-     * @param persistedList
-     * @param updatedList
-     */
-    private void decrementCategoriesIfRemoved(List<Category> persistedList, List<Category> updatedList) {
-
-        if(null != persistedList) {
-
-            List<Category> toDecrement = 
-                persistedList.stream()
-                    .filter(category -> {
-
-                        // updated list not initialized
-                        if(null == updatedList) {
-                            return true;
-                        }
-
-                        // validate category is not in updated list
-                        Optional<Category> optional = 
-                            updatedList.stream()
-                                .filter(uCategory -> category.getName().equalsIgnoreCase(uCategory.getName()))
-                                .findFirst();
-
-                        return optional.isEmpty();
-
-                    })
-                    .collect(Collectors.toList());
-
-            BackendEvent event = BackendEvent.createDecrementCategoryCountsEvent(toDecrement);
-            eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
-
-        }
 
     }
 
@@ -394,15 +351,8 @@ public class EngagementService {
         // insert
         repository.persist(toInsert);
 
-        BackendEvent event = null;
-        if(purgeFirst) {
-            event = BackendEvent.createPurgeAndInsertCategoriesInDbRequestedEvent(toInsert);
-        } else {
-            event = BackendEvent.createInsertCategoriesInDbRequestedEvent(toInsert);
-        }
-
-        // send engagements to bus for category processing
-        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
+        // update categories in db
+        refreshEngagementCategories(purgeFirst, toInsert);
 
     }
 
@@ -441,6 +391,41 @@ public class EngagementService {
         sendEngagementsModifiedEvent();
 
         return updated;
+
+    }
+
+    /**
+     * Creates a {@link BackendEvent} to refresh the {@link Category}s using all {@link Engagement}s.
+     * 
+     * @param purgeFirst
+     */
+    public void refreshEngagementCategories(Boolean purgeFirst) {
+        refreshEngagementCategories(purgeFirst, getAll());
+    }
+
+    /**
+     * Creates a {@link BackendEvent} to refresh the {@link Category}s using the given {@link Engagement}s.
+     * 
+     * @param purgeFirst
+     * @param engagementList
+     */
+    public void refreshEngagementCategories(Boolean purgeFirst, List<Engagement> engagementList) {
+
+        List<Category> categoryList =
+                engagementList.stream()
+                    .filter(engagement -> null != engagement.getCategories())
+                    .flatMap(engagement -> engagement.getCategories().stream())
+                    .collect(Collectors.toList());
+
+        BackendEvent event = null;
+        if(purgeFirst) {
+            event = BackendEvent.createPurgeAndProcessCategoriesRequestedEvent(categoryList);
+        } else {
+            event = BackendEvent.createProcessCategoriesRequestedEvent(categoryList);
+        }
+
+        // send engagements to bus for category processing
+        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
 
     }
 

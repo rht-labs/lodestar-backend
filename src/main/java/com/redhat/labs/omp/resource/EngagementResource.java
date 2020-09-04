@@ -183,8 +183,8 @@ public class EngagementResource {
     @SecurityRequirement(name = "jwt", scopes = {})
     @APIResponses(value = { 
             @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
-            @APIResponse(responseCode = "200", description = "Customer data has been returned.") })
-    @Operation(summary = "Returns customers list")
+            @APIResponse(responseCode = "200", description = "Category data has been returned.") })
+    @Operation(summary = "Returns category list")
     public List<Category> getAllCategories(@QueryParam("suggest") String match) {
 
         if(null == match || match.isBlank()) {
@@ -194,6 +194,21 @@ public class EngagementResource {
         }
 
     }
+
+    @PUT
+    @Path("/categories/refresh")
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @APIResponses(value = { 
+            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "202", description = "Category data refresh received.") })
+    @Operation(summary = "Category refresh requested.")
+    public Response refreshCategories(@QueryParam("purgeFirst") Boolean purgeFirst) {
+
+        engagementService.refreshEngagementCategories((null == purgeFirst) ? false : purgeFirst);
+        return Response.accepted().build();
+
+    }
+
 
     @PUT
     @Path("/launch")

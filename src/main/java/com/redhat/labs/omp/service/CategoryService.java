@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.redhat.labs.omp.model.Category;
-import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.model.event.BackendEvent;
 import com.redhat.labs.omp.model.event.EventType;
 import com.redhat.labs.omp.repository.CategoryRepository;
@@ -60,144 +59,164 @@ public class CategoryService {
     }
 
     /**
-     * Creates a {@link Category} for each category in the {@link List} if one does not
-     * already exist.
+     * Consumes a {@link BackendEvent} to trigger the purge of all {@link Category}s
+     * and then processing the {@link Category} {@link List}.
      * 
-     * @param categoryList
+     * @param event
      */
-    void create(List<Category> categoryList) {
-        categoryList.stream().forEach(category -> create(category));
+    @ConsumeEvent(EventType.Constants.PURGE_AND_PROCESS_CATEGORIES_ADDRESS)
+    void consumePurgeAndProcessCategoriesEvent(BackendEvent event) {
+        processCategoryList(event.getCategoryList(), true);
     }
 
     /**
-     * Creates a {@link Category} if it does not already exist.
+     * Consumes a {@link BackendEvent} to trigger processing of the {@link Category}
+     * {@link List}.
      * 
-     * @param name
+     * @param event
      */
-    void create(Category category) {
+    @ConsumeEvent(EventType.Constants.PROCESS_CATEGORIES_ADDRESS)
+    void consumeProcessCategoriesEvent(BackendEvent event) {
+        processCategoryList(event.getCategoryList(), false);
+    }
 
-        Optional<Category> optional = get(category.getName(), false);
-        if (optional.isEmpty()) {
-            LOGGER.trace("category name {} not found, persisting.", category.getName());
-            category.setCount(1);
-            repository.persist(category);
-        } else {
-            LOGGER.trace("category name {} found, updating count");
-            Category persisted = optional.get();
-            persisted.setCount(persisted.getCount() + 1);
-            repository.update(persisted);
+    /**
+     * Uses the existing persisted {@link Category}s to determine if a {@link Category}
+     * needs to be created, deleted, or have its count adjusted.
+     * 
+     * @param categoryList
+     * @param purgeFirst
+     */
+    void processCategoryList(List<Category> categoryList, boolean purgeFirst) {
+
+        if(purgeFirst) {
+            LOGGER.debug("purging categories before processing.");
+            repository.deleteAll();
+        }
+
+        List<Category> persisted = repository.listAll();
+
+        // create/increment list
+        Optional<List<Category>> optional = inListAButNotListB(persisted, categoryList);
+        if(optional.isPresent()) {
+
+            LOGGER.debug("processing create/increment category list {}", optional.get());
+            optional.get().stream()
+                .forEach(category -> {
+                    createOrIncrementCategory(category);
+                });
+
+        }
+
+        // delete/decrement list
+        optional = inListAButNotListB(categoryList, persisted);
+        if(optional.isPresent()) {
+
+            LOGGER.debug("processing create/increment category list {}", optional.get());
+            optional.get().stream()
+                .forEach(category -> {
+                    deleteOrDecrementCategory(category);
+                });
+
         }
 
     }
 
     /**
-     * Decrements the count for each {@link Category} in the given {@link List}.
-     * 
-     * @param categoryList
+     * Creates the {@link Category} if it does not exist.  Otherwise, increments the count by 1.
+     * @param category
      */
-    void decrementCategoryCounts(List<Category> categoryList) {
+    void createOrIncrementCategory(Category category) {
 
-        categoryList.stream()
-            .forEach(category -> {
+        // get if exists
+        Optional<Category> optional = get(category.getName(), false);
+        if(optional.isPresent()) {
 
-                Optional<Category> optional = get(category.getName(), false);
-                if(optional.isPresent()) {
+            // increment and update
+            Category c = optional.get();
+            c.setCount(c.getCount() + 1);
+            repository.update(c);
+            LOGGER.debug("incremented category {}", c);
 
-                    // decrement category count
-                    Category persisted = optional.get();
-                    Integer count = persisted.getCount();
-                    LOGGER.trace("current count is {}", count);
+        } else {
 
-                    count = (null == count || 0 == count) ? 0 : count - 1;
-                    persisted.setCount(count);
+            // create
+            category.setCount(1);
+            repository.persist(category);
+            LOGGER.debug("created category {}", category);
 
-                    LOGGER.trace("updating category {}", persisted);
-                    repository.update(persisted);
-
-                }
-
-            });
+        }
 
     }
 
     /**
-     * Aggregates the {@link Category} from the {@link List} of {@link Engagement}
-     * and persists any new {@link Category}.
-     * 
-     * @param engagementList
+     * Deletes the {@link Category} if the count becomes 0.  Otherwise decrements the count by 1.
+     *   
+     * @param category
      */
-    void createFromEngagementList(List<Engagement> engagementList) {
+    void deleteOrDecrementCategory(Category category) {
 
-        // aggregate category lists from engagements
-        List<Category> categoryList =
-            engagementList.stream()
-                .filter(engagement -> null != engagement.getCategories())
-                .flatMap(engagement -> engagement.getCategories().stream())
-                .collect(Collectors.toList());
+        // get existing category
+        Optional<Category> optional = get(category.getName(), false);
 
-        LOGGER.trace("creating categories from list {}", categoryList);
+        if(optional.isPresent()) {
 
-        // create any required categories
-        create(categoryList);
+            Category persisted = optional.get();
+            Integer adjustedCount = (null == persisted.getCount()) ? 0 : persisted.getCount() - 1;
 
-    }
+            if(adjustedCount > 0) {
 
-    /**
-     * Processes {@link Category} from {@link List} of {@link Engagement}.
-     * 
-     * @param purgeFirst
-     * @param event
-     */
-    void processCategoriesFromEvent(boolean purgeFirst, BackendEvent event) {
+                // update count
+                persisted.setCount(adjustedCount);
+                repository.update(persisted);
+                LOGGER.debug("decremented category {}", persisted);
 
-        if(null != event && null != event.getEngagementList()) {
+            } else {
 
-            if(purgeFirst) {
-
-                // delete all categories in data store
-                repository.deleteAll();
+                // remove category
+                persisted.delete();
+                LOGGER.debug("deleted category {}", category);
 
             }
 
-            // create from engagement list
-            createFromEngagementList(event.getEngagementList());
-
         }
 
     }
 
     /**
-     * Consumes a {@link BackendEvent} to trigger processing of any {@link Category}
-     * from the {@link List} of {@link Engagement}.
+     * Helper method that eturns an {@link Optional} containing a {@link List} of 
+     * {@link Category} in {@link List} A but not in {@link List} B.
      * 
-     * @param event
+     * @param a
+     * @param b
+     * @return
      */
-    @ConsumeEvent(EventType.Constants.INSERT_CATEGORIES_IN_DB_ADDRESS)
-    void consumeCreateFromEngagementListEvent(BackendEvent event) {
-        processCategoriesFromEvent(false, event);
-    }
+    private Optional<List<Category>> inListAButNotListB(List<Category> a, List<Category> b) {
 
-    /**
-     * Consumes a {@link BackendEvent} to trigger processing of any {@link Category}
-     * from the {@link List} of {@link Engagement}.  Drops existing {@link Category}
-     * first.
-     * 
-     * @param event
-     */
-    @ConsumeEvent(EventType.Constants.PURGE_AND_INSERT_CATEGORIES_IN_DB_ADDRESS)
-    void consumePurgeAndCreateFromEngagementListEvent(BackendEvent event) {
-        processCategoriesFromEvent(true, event);
-    }
+        // return if list a not instantiated
+        if (a == null) {
+            return Optional.empty();
+        }
 
-    /**
-     * Consumes a {@link BackendEvent} to trigger process of decrementing each {@link Category}
-     * in the provided {@link List}.
-     * 
-     * @param event
-     */
-    @ConsumeEvent(EventType.Constants.DECREMENT_CATEGORY_COUNTS_ADDRESS)
-    void consumeDecrementCategoryCountsEvent(BackendEvent event) {
-        decrementCategoryCounts(event.getCategoryList());
+        List<Category> results =
+
+                a.stream().filter(category -> {
+
+                    // keep if list b is not instantiated
+                    if (null == b) {
+                        return true;
+                    }
+
+                    // validate category is not in list b
+                    Optional<Category> optional = b.stream()
+                            .filter(uCategory -> category.getName().equalsIgnoreCase(uCategory.getName())).findFirst();
+
+                    return optional.isEmpty();
+
+                }).collect(Collectors.toList());
+
+        return Optional.of(results);
+
     }
 
 }
