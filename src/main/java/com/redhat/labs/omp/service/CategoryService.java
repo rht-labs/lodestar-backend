@@ -97,7 +97,7 @@ public class CategoryService {
         List<Category> persisted = repository.listAll();
 
         // create/increment list
-        Optional<List<Category>> optional = inListAButNotListB(persisted, categoryList);
+        Optional<List<Category>> optional = inListAButNotListB(categoryList, persisted);
         if(optional.isPresent()) {
 
             LOGGER.debug("processing create/increment category list {}", optional.get());
@@ -109,7 +109,7 @@ public class CategoryService {
         }
 
         // delete/decrement list
-        optional = inListAButNotListB(categoryList, persisted);
+        optional = inListAButNotListB(persisted, categoryList);
         if(optional.isPresent()) {
 
             LOGGER.debug("processing create/increment category list {}", optional.get());

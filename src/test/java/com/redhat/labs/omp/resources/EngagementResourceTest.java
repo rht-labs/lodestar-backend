@@ -1488,20 +1488,11 @@ public class EngagementResourceTest {
 
         Category c1 = mockCategory("c1");
         Category c2 = mockCategory("c2");
-
-        Engagement e1 = mockEngagement();
-        e1.setCustomerName("customer1");
-        e1.setCategories(Arrays.asList(c1, c2));
-
         Category c3 = mockCategory("C2");
         Category c4 = mockCategory("c4");
         Category c5 = mockCategory("e5");
 
-        Engagement e2 = mockEngagement();
-        e2.setCustomerName("customer2");
-        e2.setCategories(Arrays.asList(c3,c4,c5));
-
-        return BackendEvent.createInsertCategoriesInDbRequestedEvent(Arrays.asList(e1, e2));
+        return BackendEvent.createProcessCategoriesRequestedEvent(Arrays.asList(c1,c2,c3,c4,c5));
 
     }
 

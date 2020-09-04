@@ -14,7 +14,6 @@ import javax.inject.Inject;
 import org.junit.jupiter.api.Test;
 
 import com.redhat.labs.omp.model.Category;
-import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.model.event.BackendEvent;
 import com.redhat.labs.utils.EmbeddedMongoTest;
 
@@ -69,25 +68,16 @@ public class CategoryServiceTest {
 
         Category c1 = mockCategory("c1");
         Category c2 = mockCategory("c2");
-
-        Engagement e1 = mockEngagement("customer1", "customer2", Arrays.asList(c1, c2));
-
         Category c3 = mockCategory("C2");
         Category c4 = mockCategory("c4");
         Category c5 = mockCategory("e5");
 
-        Engagement e2 = mockEngagement("customer2", "project2", Arrays.asList(c3,c4,c5));
-
-        return BackendEvent.createInsertCategoriesInDbRequestedEvent(Arrays.asList(e1, e2));
+        return BackendEvent.createProcessCategoriesRequestedEvent(Arrays.asList(c1,c2,c3,c4,c5));
 
     }
 
     private Category mockCategory(String name) {
         return Category.builder().name(name).build();
-    }
-
-    private Engagement mockEngagement(String customerName, String projectName, List<Category> categories) {
-        return Engagement.builder().customerName(customerName).projectName(projectName).categories(categories).build();
     }
 
 }
