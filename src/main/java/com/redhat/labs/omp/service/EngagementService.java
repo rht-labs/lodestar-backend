@@ -3,11 +3,13 @@ package com.redhat.labs.omp.service;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -222,8 +224,17 @@ public class EngagementService {
      * 
      * @return
      */
-    public List<Engagement> getAll() {
-        return repository.listAll();
+    public List<Engagement> getAll(String categories) {
+
+        if(null == categories || categories.isBlank()) {
+            return repository.listAll();
+        }
+
+       return 
+               Arrays.stream(categories.split(","))
+                   .flatMap(category -> repository.findEngagementsByCategory(category, false).stream())
+                   .collect(Collectors.toList());
+
     }
 
     /**
