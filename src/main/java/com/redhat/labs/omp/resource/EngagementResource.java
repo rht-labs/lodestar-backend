@@ -34,7 +34,6 @@ import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 import com.redhat.labs.omp.exception.ResourceNotFoundException;
 import com.redhat.labs.omp.model.Category;
 import com.redhat.labs.omp.model.Engagement;
-import com.redhat.labs.omp.service.CategoryService;
 import com.redhat.labs.omp.service.EngagementService;
 
 @RequestScoped
@@ -59,9 +58,6 @@ public class EngagementResource {
 
     @Inject
     EngagementService engagementService;
-
-    @Inject
-    CategoryService categoryService;
 
     @POST
     @SecurityRequirement(name = "jwt", scopes = {})
@@ -187,11 +183,8 @@ public class EngagementResource {
     @Operation(summary = "Returns customers list")
     public List<Category> getAllCategories(@QueryParam("suggest") String match) {
 
-        if(null == match || match.isBlank()) {
-            return categoryService.getAll();
-        } else {
-            return categoryService.search(match);
-        }
+        Optional<String> optional = (null != match && match.isBlank()) ? Optional.empty() : Optional.ofNullable(match);
+        return engagementService.getCategories(optional);
 
     }
 

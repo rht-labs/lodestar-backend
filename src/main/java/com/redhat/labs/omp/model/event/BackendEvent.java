@@ -34,19 +34,4 @@ public class BackendEvent {
                 .engagementList(engagementList).build();
     }
 
-    public static BackendEvent createInsertCategoriesInDbRequestedEvent(List<Engagement> engagementList) {
-        return BackendEvent.builder().eventType(EventType.INSERT_CATEGORIES_IN_DB_REQUESTED)
-                .engagementList(engagementList).build();
-    }
-
-    public static BackendEvent createPurgeAndInsertCategoriesInDbRequestedEvent(List<Engagement> engagementList) {
-        return BackendEvent.builder().eventType(EventType.PURGE_AND_INSERT_CATEGORIES_IN_DB_REQUESTED)
-                .engagementList(engagementList).build();
-    }
-
-    public static BackendEvent createDecrementCategoryCountsEvent(List<Category> categoryList) {
-        return BackendEvent.builder().eventType(EventType.DECREMENT_CATEGORY_COUNTS_REQUESTED)
-                .categoryList(categoryList).build();
-    }
-
 }

@@ -3,13 +3,11 @@ package com.redhat.labs.omp.service;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -104,10 +102,6 @@ public class EngagementService {
         // persist to db
         repository.persist(engagement);
 
-        // insert any new categories
-        BackendEvent event = BackendEvent.createInsertCategoriesInDbRequestedEvent(Arrays.asList(engagement));
-        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
-
         return engagement;
 
     }
@@ -150,14 +144,6 @@ public class EngagementService {
                     HttpStatus.SC_CONFLICT);
         }
 
-        // insert any new categories
-        BackendEvent event = BackendEvent.createInsertCategoriesInDbRequestedEvent(Arrays.asList(engagement));
-        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
-
-        // decrement any categories removed
-        decrementCategoriesIfRemoved(persisted.getCategories(), engagement.getCategories());
-        
-
         // send updated engagement to socket
         sendEngagementEvent(jsonb.toJson(persisted));
 
@@ -165,43 +151,6 @@ public class EngagementService {
 
     }
 
-    /**
-     * Determines which {@link Category} should have their count decremented.  If the {@link Category} in 
-     * the {@link List} from the DB, does not exist in the {@link List} from the updated {@link Engagement}.
-     * 
-     * @param persistedList
-     * @param updatedList
-     */
-    private void decrementCategoriesIfRemoved(List<Category> persistedList, List<Category> updatedList) {
-
-        if(null != persistedList) {
-
-            List<Category> toDecrement = 
-                persistedList.stream()
-                    .filter(category -> {
-
-                        // updated list not initialized
-                        if(null == updatedList) {
-                            return true;
-                        }
-
-                        // validate category is not in updated list
-                        Optional<Category> optional = 
-                            updatedList.stream()
-                                .filter(uCategory -> category.getName().equalsIgnoreCase(uCategory.getName()))
-                                .findFirst();
-
-                        return optional.isEmpty();
-
-                    })
-                    .collect(Collectors.toList());
-
-            BackendEvent event = BackendEvent.createDecrementCategoryCountsEvent(toDecrement);
-            eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
-
-        }
-
-    }
 
     // Status comes from gitlab so it does not need to to be sync'd
     public Engagement updateStatusAndCommits(Hook hook) {
@@ -319,6 +268,23 @@ public class EngagementService {
     }
 
     /**
+     * Returns a {@link List} of {@link Category} that match the provided {@link String}.  Returns all
+     * {@link Category} if no match {@link String} provided.
+     * 
+     * @param optionalMatch
+     * @return
+     */
+    public List<Category> getCategories(Optional<String> optionalMatch) {
+
+        if(optionalMatch.isPresent()) {
+            return repository.findCategorySuggestions(optionalMatch.get());
+        }
+
+        return repository.findAllCategoryWithCounts();
+
+    }
+
+    /**
      * Updates the {@link List} of {@link Engagement} in the data store.
      * 
      * @param engagementList
@@ -393,16 +359,6 @@ public class EngagementService {
 
         // insert
         repository.persist(toInsert);
-
-        BackendEvent event = null;
-        if(purgeFirst) {
-            event = BackendEvent.createPurgeAndInsertCategoriesInDbRequestedEvent(toInsert);
-        } else {
-            event = BackendEvent.createInsertCategoriesInDbRequestedEvent(toInsert);
-        }
-
-        // send engagements to bus for category processing
-        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
 
     }
 
