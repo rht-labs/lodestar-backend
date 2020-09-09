@@ -285,13 +285,13 @@ public class EngagementService {
      * @param optionalMatch
      * @return
      */
-    public List<Category> getCategories(Optional<String> optionalMatch) {
+    public List<Category> getCategories(String match) {
 
-        if(optionalMatch.isPresent()) {
-            return repository.findCategorySuggestions(optionalMatch.get());
+        if(null == match || match.isBlank()) {
+            return repository.findAllCategoryWithCounts();
         }
 
-        return repository.findAllCategoryWithCounts();
+        return repository.findCategorySuggestions(match);
 
     }
 

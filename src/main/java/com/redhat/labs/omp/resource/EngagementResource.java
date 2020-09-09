@@ -182,10 +182,7 @@ public class EngagementResource {
             @APIResponse(responseCode = "200", description = "Customer data has been returned.") })
     @Operation(summary = "Returns customers list")
     public List<Category> getAllCategories(@QueryParam("suggest") String match) {
-
-        Optional<String> optional = (null != match && match.isBlank()) ? Optional.empty() : Optional.ofNullable(match);
-        return engagementService.getCategories(optional);
-
+        return engagementService.getCategories(match);
     }
 
     @PUT
