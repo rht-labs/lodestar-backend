@@ -296,6 +296,23 @@ public class EngagementService {
     }
 
     /**
+     * Returns a {@link List} of Artifact Types as {@link String} that match the provided 
+     * input {@link String}.  Otherwise, all Types are returned.
+     * 
+     * @param match
+     * @return
+     */
+    public List<String> getArtifactTypes(String match) {
+
+        if(null == match || match.isBlank()) {
+            return repository.findAllArtifactTypes();
+        }
+
+        return repository.findArtifactTypeSuggestions(match);
+
+    }
+
+    /**
      * Updates the {@link List} of {@link Engagement} in the data store.
      * 
      * @param engagementList

@@ -185,6 +185,17 @@ public class EngagementResource {
         return engagementService.getCategories(match);
     }
 
+    @GET
+    @Path("/artifact/types")
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @APIResponses(value = { 
+            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "200", description = "Artifact types have been returned.") })
+    @Operation(summary = "Returns artifact type list")
+    public List<String> getArtifactTypes(@QueryParam("suggest") String match) {
+        return engagementService.getArtifactTypes(match);
+    }
+
     @PUT
     @Path("/launch")
     @SecurityRequirement(name = "jwt", scopes = {})

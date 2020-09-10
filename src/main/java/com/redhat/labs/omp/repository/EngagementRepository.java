@@ -2,13 +2,13 @@ package com.redhat.labs.omp.repository;
 
 import static com.mongodb.client.model.Aggregates.addFields;
 import static com.mongodb.client.model.Aggregates.group;
+import static com.mongodb.client.model.Aggregates.match;
 import static com.mongodb.client.model.Aggregates.project;
 import static com.mongodb.client.model.Aggregates.sort;
 import static com.mongodb.client.model.Aggregates.unwind;
-import static com.mongodb.client.model.Aggregates.match;
-import static com.mongodb.client.model.Filters.regex;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.regex;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
 
@@ -32,6 +32,7 @@ import com.mongodb.client.model.Field;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.Sorts;
+import com.redhat.labs.omp.model.Artifact;
 import com.redhat.labs.omp.model.Category;
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.model.FileAction;
@@ -114,6 +115,50 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
                     ), Category.class);
 
         return StreamSupport.stream(iterable.spliterator(), false).collect(Collectors.toList());
+
+    }
+
+    /**
+     * Returns all artifact types that match the provides {@link String}.
+     * 
+     * @param input
+     * @return
+     */
+    public List<String> findArtifactTypeSuggestions(String input) {
+
+        // get all types that match the input string
+        Iterable<Artifact> iterable =
+            mongoCollection().aggregate(Arrays.asList(
+                    unwind("$artifacts"),
+                    match(regex("artifacts.type", String.format("(?i)%s", input))),
+                    addFields(new Field<>("artifacts.lower_type", new Document("$toLower", "$artifacts.type"))),
+                    group("$artifacts.lower_type"),
+                    project(new Document().append("type", "$_id")),
+                    sort(Sorts.ascending("type"))
+                    ), Artifact.class);
+
+        return StreamSupport.stream(iterable.spliterator(), false).map(artifact -> artifact.getType()).collect(Collectors.toList());
+
+    }
+
+    /**
+     * Returns all unique artifact types.
+     * 
+     * @return
+     */
+    public List<String> findAllArtifactTypes() {
+
+        // get all unique artifact types
+        Iterable<Artifact> iterable =
+            mongoCollection().aggregate(Arrays.asList(
+                    unwind("$artifacts"),
+                    addFields(new Field<>("artifacts.lower_type", new Document("$toLower", "$artifacts.type"))),
+                    group("$artifacts.lower_type"),
+                    project(new Document().append("type", "$_id")),
+                    sort(Sorts.ascending("type"))
+                    ), Artifact.class);
+
+        return StreamSupport.stream(iterable.spliterator(), false).map(artifact -> artifact.getType()).collect(Collectors.toList());
 
     }
 
