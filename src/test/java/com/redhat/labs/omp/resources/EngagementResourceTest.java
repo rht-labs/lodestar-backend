@@ -12,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -22,7 +23,6 @@ import org.junit.jupiter.api.Test;
 
 import com.redhat.labs.omp.model.Category;
 import com.redhat.labs.omp.model.Engagement;
-import com.redhat.labs.omp.model.event.BackendEvent;
 import com.redhat.labs.omp.rest.client.MockOMPGitLabAPIService.SCENARIO;
 import com.redhat.labs.utils.EmbeddedMongoTest;
 import com.redhat.labs.utils.TokenUtils;
@@ -30,7 +30,6 @@ import com.redhat.labs.utils.TokenUtils;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import io.restassured.response.Response;
-import io.vertx.mutiny.core.eventbus.EventBus;
 
 @EmbeddedMongoTest
 @QuarkusTest
@@ -38,9 +37,6 @@ public class EngagementResourceTest {
 
     @Inject
     Jsonb quarkusJsonb;
-
-    @Inject
-    EventBus eventBus;
 
     /*
      * POST SCENARIOS:
@@ -1393,11 +1389,25 @@ public class EngagementResourceTest {
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
-        BackendEvent event = mockBackendEvent();
-        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
+        // create engagements with categories
+        mockEngagementsWithCategories().stream()
+            .forEach(e -> {
 
-        // make sure the async processes finish
-        TimeUnit.SECONDS.sleep(1);
+                String body = quarkusJsonb.toJson(e);
+
+                given()
+                .when()
+                    .auth()
+                    .oauth2(token)
+                    .body(body)
+                    .contentType(ContentType.JSON)
+                    .post("/engagements")
+                .then()
+                    .statusCode(201);
+                    
+
+            });
+
 
         // get all
         Response r =
@@ -1484,7 +1494,7 @@ public class EngagementResourceTest {
         return map;
 
     }
-    private BackendEvent mockBackendEvent() {
+    private List<Engagement> mockEngagementsWithCategories() {
 
         Category c1 = mockCategory("c1");
         Category c2 = mockCategory("c2");
@@ -1501,7 +1511,7 @@ public class EngagementResourceTest {
         e2.setCustomerName("customer2");
         e2.setCategories(Arrays.asList(c3,c4,c5));
 
-        return BackendEvent.createInsertCategoriesInDbRequestedEvent(Arrays.asList(e1, e2));
+        return Arrays.asList(e1, e2);
 
     }
 

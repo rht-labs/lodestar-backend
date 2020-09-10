@@ -34,7 +34,6 @@ import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 import com.redhat.labs.omp.exception.ResourceNotFoundException;
 import com.redhat.labs.omp.model.Category;
 import com.redhat.labs.omp.model.Engagement;
-import com.redhat.labs.omp.service.CategoryService;
 import com.redhat.labs.omp.service.EngagementService;
 
 @RequestScoped
@@ -59,9 +58,6 @@ public class EngagementResource {
 
     @Inject
     EngagementService engagementService;
-
-    @Inject
-    CategoryService categoryService;
 
     @POST
     @SecurityRequirement(name = "jwt", scopes = {})
@@ -160,8 +156,8 @@ public class EngagementResource {
             @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "A list or empty list of engagement resources returned") })
     @Operation(summary = "Returns all engagement resources from the database.  Can be empty list if none found.")
-    public List<Engagement> getAll() {
-        return engagementService.getAll();
+    public List<Engagement> getAll(@QueryParam("categories") String categories) {
+        return engagementService.getAll(categories);
     }
 
     @GET
@@ -186,13 +182,7 @@ public class EngagementResource {
             @APIResponse(responseCode = "200", description = "Customer data has been returned.") })
     @Operation(summary = "Returns customers list")
     public List<Category> getAllCategories(@QueryParam("suggest") String match) {
-
-        if(null == match || match.isBlank()) {
-            return categoryService.getAll();
-        } else {
-            return categoryService.search(match);
-        }
-
+        return engagementService.getCategories(match);
     }
 
     @PUT

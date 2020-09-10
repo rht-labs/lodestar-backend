@@ -104,10 +104,6 @@ public class EngagementService {
         // persist to db
         repository.persist(engagement);
 
-        // insert any new categories
-        BackendEvent event = BackendEvent.createInsertCategoriesInDbRequestedEvent(Arrays.asList(engagement));
-        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
-
         return engagement;
 
     }
@@ -150,14 +146,6 @@ public class EngagementService {
                     HttpStatus.SC_CONFLICT);
         }
 
-        // insert any new categories
-        BackendEvent event = BackendEvent.createInsertCategoriesInDbRequestedEvent(Arrays.asList(engagement));
-        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
-
-        // decrement any categories removed
-        decrementCategoriesIfRemoved(persisted.getCategories(), engagement.getCategories());
-        
-
         // send updated engagement to socket
         sendEngagementEvent(jsonb.toJson(persisted));
 
@@ -165,43 +153,6 @@ public class EngagementService {
 
     }
 
-    /**
-     * Determines which {@link Category} should have their count decremented.  If the {@link Category} in 
-     * the {@link List} from the DB, does not exist in the {@link List} from the updated {@link Engagement}.
-     * 
-     * @param persistedList
-     * @param updatedList
-     */
-    private void decrementCategoriesIfRemoved(List<Category> persistedList, List<Category> updatedList) {
-
-        if(null != persistedList) {
-
-            List<Category> toDecrement = 
-                persistedList.stream()
-                    .filter(category -> {
-
-                        // updated list not initialized
-                        if(null == updatedList) {
-                            return true;
-                        }
-
-                        // validate category is not in updated list
-                        Optional<Category> optional = 
-                            updatedList.stream()
-                                .filter(uCategory -> category.getName().equalsIgnoreCase(uCategory.getName()))
-                                .findFirst();
-
-                        return optional.isEmpty();
-
-                    })
-                    .collect(Collectors.toList());
-
-            BackendEvent event = BackendEvent.createDecrementCategoryCountsEvent(toDecrement);
-            eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
-
-        }
-
-    }
 
     // Status comes from gitlab so it does not need to to be sync'd
     public Engagement updateStatusAndCommits(Hook hook) {
@@ -273,8 +224,17 @@ public class EngagementService {
      * 
      * @return
      */
-    public List<Engagement> getAll() {
-        return repository.listAll();
+    public List<Engagement> getAll(String categories) {
+
+        if(null == categories || categories.isBlank()) {
+            return repository.listAll();
+        }
+
+       return 
+               Arrays.stream(categories.split(","))
+                   .flatMap(category -> repository.findEngagementsByCategory(category, false).stream())
+                   .collect(Collectors.toList());
+
     }
 
     /**
@@ -316,6 +276,23 @@ public class EngagementService {
             LOGGER.debug("Deleting engagement {} for customer {}", engagementName, customerName);
             repository.delete(engagement.get());
         }
+    }
+
+    /**
+     * Returns a {@link List} of {@link Category} that match the provided {@link String}.  Returns all
+     * {@link Category} if no match {@link String} provided.
+     * 
+     * @param optionalMatch
+     * @return
+     */
+    public List<Category> getCategories(String match) {
+
+        if(null == match || match.isBlank()) {
+            return repository.findAllCategoryWithCounts();
+        }
+
+        return repository.findCategorySuggestions(match);
+
     }
 
     /**
@@ -393,16 +370,6 @@ public class EngagementService {
 
         // insert
         repository.persist(toInsert);
-
-        BackendEvent event = null;
-        if(purgeFirst) {
-            event = BackendEvent.createPurgeAndInsertCategoriesInDbRequestedEvent(toInsert);
-        } else {
-            event = BackendEvent.createInsertCategoriesInDbRequestedEvent(toInsert);
-        }
-
-        // send engagements to bus for category processing
-        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
 
     }
 

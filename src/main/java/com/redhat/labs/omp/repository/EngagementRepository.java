@@ -1,5 +1,12 @@
 package com.redhat.labs.omp.repository;
 
+import static com.mongodb.client.model.Aggregates.addFields;
+import static com.mongodb.client.model.Aggregates.group;
+import static com.mongodb.client.model.Aggregates.project;
+import static com.mongodb.client.model.Aggregates.sort;
+import static com.mongodb.client.model.Aggregates.unwind;
+import static com.mongodb.client.model.Aggregates.match;
+import static com.mongodb.client.model.Filters.regex;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Updates.combine;
@@ -10,15 +17,22 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.client.model.Accumulators;
+import com.mongodb.client.model.Field;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
+import com.mongodb.client.model.Sorts;
+import com.redhat.labs.omp.model.Category;
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.model.FileAction;
 
@@ -55,9 +69,65 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
      * @return
      */
     public List<Engagement> findCustomerSuggestions(String input) {
-        String queryInput = String.format("(?i)%s", input);
 
+        String queryInput = String.format("(?i)%s", input);
         return find("customerName like ?1", queryInput).list();
+
+    }
+
+    /**
+     * A case insensitive string to match against category names.
+     * 
+     * @param input
+     * @return
+     */
+    public List<Category> findCategorySuggestions(String input) {
+
+        Iterable<Category> iterable =
+            mongoCollection().aggregate(Arrays.asList(
+                    unwind("$categories"),
+                    match(regex("categories.name", String.format("(?i)%s", input))),
+                    addFields(new Field<>("categories.lower_name", new Document("$toLower", "$categories.name"))),
+                    group("$categories.lower_name", Accumulators.sum("count", 1)),
+                    project(new Document("_id", 0).append("name", "$_id").append("count", "$count")),
+                    sort(Sorts.descending("count"))
+                    ), Category.class);
+
+        return StreamSupport.stream(iterable.spliterator(), false).collect(Collectors.toList());
+
+    }
+
+    /**
+     * Returns all unique {@link Category} with associated counts.
+     * 
+     * @return
+     */
+    public List<Category> findAllCategoryWithCounts() {
+
+        Iterable<Category> iterable =
+            mongoCollection().aggregate(Arrays.asList(
+                    unwind("$categories"),
+                    addFields(new Field<>("categories.lower_name", new Document("$toLower", "$categories.name"))),
+                    group("$categories.lower_name", Accumulators.sum("count", 1)),
+                    project(new Document("_id", 0).append("name", "$_id").append("count", "$count")),
+                    sort(Sorts.descending("count"))
+                    ), Category.class);
+
+        return StreamSupport.stream(iterable.spliterator(), false).collect(Collectors.toList());
+
+    }
+
+    /**
+     * Find {@link Engagement} with a {@link Category} name that matches the
+     * given {@link String}.
+     * 
+     * @param name
+     * @param matchCase
+     * @return
+     */
+    public List<Engagement> findEngagementsByCategory(String name, boolean matchCase) {
+        String queryInput = matchCase ? String.format("/^%s$/", name) : String.format("/^%s$/i", name);
+        return find("categories.name like ?1", queryInput).list();
     }
 
     /**
