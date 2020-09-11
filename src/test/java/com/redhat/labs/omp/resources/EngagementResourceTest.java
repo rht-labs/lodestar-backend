@@ -4,6 +4,7 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -21,6 +22,7 @@ import javax.json.bind.Jsonb;
 
 import org.junit.jupiter.api.Test;
 
+import com.redhat.labs.omp.model.Artifact;
 import com.redhat.labs.omp.model.Category;
 import com.redhat.labs.omp.model.Engagement;
 import com.redhat.labs.omp.rest.client.MockOMPGitLabAPIService.SCENARIO;
@@ -50,7 +52,7 @@ public class EngagementResourceTest {
      */
 
     @Test
-    public void testPostEngagementWithWrongRole() throws Exception {
+    void testPostEngagementWithWrongRole() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsReader.json", timeClaims);
@@ -70,7 +72,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPostEngagementWithAuthAndRoleSuccess() throws Exception {
+    void testPostEngagementWithAuthAndRoleSuccess() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -98,7 +100,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPostEngagementWithAuthAndRoleInvalidCustomerNameWhitespace() throws Exception {
+    void testPostEngagementWithAuthAndRoleInvalidCustomerNameWhitespace() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -123,7 +125,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPostEngagementWithAuthAndRoleInvalidCustomerNameNull() throws Exception {
+    void testPostEngagementWithAuthAndRoleInvalidCustomerNameNull() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -148,7 +150,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPostEngagementWithAuthAndRoleInvalidCustomerNameEmptyString() throws Exception {
+    void testPostEngagementWithAuthAndRoleInvalidCustomerNameEmptyString() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -173,7 +175,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPostEngagementWithAuthAndRoleInvalidProjectNameWhitespace() throws Exception {
+    void testPostEngagementWithAuthAndRoleInvalidProjectNameWhitespace() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -198,7 +200,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPostEngagementWithAuthAndRoleInvalidProjectNameNull() throws Exception {
+    void testPostEngagementWithAuthAndRoleInvalidProjectNameNull() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -223,7 +225,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPostEngagementWithAuthAndRoleInvalidProjectNameEmptyString() throws Exception {
+    void testPostEngagementWithAuthAndRoleInvalidProjectNameEmptyString() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -248,7 +250,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPostEngagementWithAuthAndRoleEngagemenntAlreadyExists() throws Exception {
+    void testPostEngagementWithAuthAndRoleEngagemenntAlreadyExists() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -294,7 +296,7 @@ public class EngagementResourceTest {
      */
 
     @Test
-    public void testPutEngagementWithAuthAndRoleSuccess() throws Exception {
+    void testPutEngagementWithAuthAndRoleSuccess() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -345,7 +347,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPutEngagementWithAuthAndRoleInvalidCustomerNameWhitespace() throws Exception {
+    void testPutEngagementWithAuthAndRoleInvalidCustomerNameWhitespace() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -387,7 +389,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPutEngagementWithAuthAndRoleInvalidCustomerNameEmpty() throws Exception {
+    void testPutEngagementWithAuthAndRoleInvalidCustomerNameEmpty() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -429,7 +431,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPutEngagementWithAuthAndRoleInvalidCustomerNameNull() throws Exception {
+    void testPutEngagementWithAuthAndRoleInvalidCustomerNameNull() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -471,7 +473,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPutEngagementWithAuthAndRoleInvalidProjectNameWhitespace() throws Exception {
+    void testPutEngagementWithAuthAndRoleInvalidProjectNameWhitespace() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -513,7 +515,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPutEngagementWithAuthAndRoleInvalidProjectNameEmpty() throws Exception {
+    void testPutEngagementWithAuthAndRoleInvalidProjectNameEmpty() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -555,7 +557,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPutEngagementWithAuthAndRoleInvalidProjectNameNull() throws Exception {
+    void testPutEngagementWithAuthAndRoleInvalidProjectNameNull() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -597,7 +599,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPutEngagementWithAuthAndRoleEngagementDoesNotExist() throws Exception {
+    void testPutEngagementWithAuthAndRoleEngagementDoesNotExist() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -628,7 +630,7 @@ public class EngagementResourceTest {
      */
 
     @Test
-    public void testGetEngagementWithAuthAndRoleSuccess() throws Exception {
+    void testGetEngagementWithAuthAndRoleSuccess() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -667,7 +669,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testGetEngagementWithAuthAndRoleDoesNotExist() throws Exception {
+    void testGetEngagementWithAuthAndRoleDoesNotExist() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -709,7 +711,7 @@ public class EngagementResourceTest {
      *   - get, engagements, List
      */
     @Test
-    public void testGetEngagementWithAuthAndRoleSuccessNoEngagements() throws Exception {
+    void testGetEngagementWithAuthAndRoleSuccessNoEngagements() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -730,7 +732,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testGetEngagementWithAuthAndRoleSuccessEngagments() throws Exception {
+    void testGetEngagementWithAuthAndRoleSuccessEngagments() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -778,7 +780,7 @@ public class EngagementResourceTest {
      */
 
     @Test
-    public void testLaunchEngagementWithAuthAndRoleSuccess() throws Exception {
+    void testLaunchEngagementWithAuthAndRoleSuccess() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -825,7 +827,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testLaunchEngagementWithAuthAndRoleEngagementNotFound() throws Exception {
+    void testLaunchEngagementWithAuthAndRoleEngagementNotFound() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -866,7 +868,7 @@ public class EngagementResourceTest {
      * 
      */
     @Test
-    public void testPostEngagementWithAuthAndRoleHasUserClaim() throws Exception {
+    void testPostEngagementWithAuthAndRoleHasUserClaim() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/jwt/user-claims/JwtClaimsAllWithNameClaim.json", timeClaims);
@@ -896,7 +898,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPostEngagementWithAuthAndRoleHasNoUserClaim() throws Exception {
+    void testPostEngagementWithAuthAndRoleHasNoUserClaim() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/jwt/user-claims/JwtClaimsAllWithNoNameClaim.json", timeClaims);
@@ -926,7 +928,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPostEngagementWithAuthAndRoleHasEmptyUserClaim() throws Exception {
+    void testPostEngagementWithAuthAndRoleHasEmptyUserClaim() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/jwt/user-claims/JwtClaimsAllWithEmptyNameClaim.json", timeClaims);
@@ -956,7 +958,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPostEngagementWithAuthAndRoleHasBlankUserClaim() throws Exception {
+    void testPostEngagementWithAuthAndRoleHasBlankUserClaim() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/jwt/user-claims/JwtClaimsAllWithBlankNameClaim.json", timeClaims);
@@ -986,7 +988,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPostEngagementWithAuthAndRoleHasNoUsernameClaim() throws Exception {
+    void testPostEngagementWithAuthAndRoleHasNoUsernameClaim() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/jwt/user-claims/JwtClaimsAllNoNameNoUsername.json", timeClaims);
@@ -1016,7 +1018,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPostEngagementWithAuthAndRoleHasEmptyUsernameClaim() throws Exception {
+    void testPostEngagementWithAuthAndRoleHasEmptyUsernameClaim() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/jwt/user-claims/JwtClaimsAllNoNameEmptyUsername.json", timeClaims);
@@ -1046,7 +1048,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPostEngagementWithAuthAndRoleHasBlankUsernameClaim() throws Exception {
+    void testPostEngagementWithAuthAndRoleHasBlankUsernameClaim() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/jwt/user-claims/JwtClaimsAllNoNameBlankUsername.json", timeClaims);
@@ -1076,7 +1078,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPostEngagementWithAuthAndRoleHasNoEmailClaim() throws Exception {
+    void testPostEngagementWithAuthAndRoleHasNoEmailClaim() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/jwt/user-claims/JwtClaimsAllNoNameNoUsernameNoEmail.json", timeClaims);
@@ -1106,7 +1108,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPostEngagementWithAuthAndRoleHasEmptyEmailClaim() throws Exception {
+    void testPostEngagementWithAuthAndRoleHasEmptyEmailClaim() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/jwt/user-claims/JwtClaimsAllNoNameNoUsernameEmptyEmail.json", timeClaims);
@@ -1136,7 +1138,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testPostEngagementWithAuthAndRoleHasBlankEmailClaim() throws Exception {
+    void testPostEngagementWithAuthAndRoleHasBlankEmailClaim() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/jwt/user-claims/JwtClaimsAllNoNameNoUsernameBlankEmail.json", timeClaims);
@@ -1166,7 +1168,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testHeadEngagementWithAuthAndRoleSuccess() throws Exception {
+    void testHeadEngagementWithAuthAndRoleSuccess() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -1204,7 +1206,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testHeadEngagementWithAuthAndRoleNptFound() throws Exception {
+    void testHeadEngagementWithAuthAndRoleNptFound() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -1229,7 +1231,7 @@ public class EngagementResourceTest {
      *  - do get all (should match what is returned from git api)
      */
     @Test
-    public void testRefreshFromGit() throws Exception {
+    void testRefreshFromGit() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -1313,7 +1315,7 @@ public class EngagementResourceTest {
     }
 
     @Test
-    public void testRefreshFromGitWithPurgeFirst() throws Exception {
+    void testRefreshFromGitWithPurgeFirst() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -1467,6 +1469,82 @@ public class EngagementResourceTest {
 
     }
 
+    @Test
+    void testGetArtifactTypes() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        // create engagements with artifacts
+        mockEngagementWithArtifacts().stream()
+            .forEach(e -> {
+
+                String body = quarkusJsonb.toJson(e);
+
+                given()
+                .when()
+                    .auth()
+                    .oauth2(token)
+                    .body(body)
+                    .contentType(ContentType.JSON)
+                    .post("/engagements")
+                .then()
+                    .statusCode(201);
+
+
+            });
+
+        // get all artifact types
+        given()
+            .auth()
+            .oauth2(token)
+            .contentType(ContentType.JSON)
+        .when()
+            .get("/engagements/artifact/types")
+        .then()
+            .statusCode(200)
+            .body(containsString("demo"))
+            .body(containsString("report"))
+            .body(containsString("note"));
+
+        // get all artifact types by suggestion
+        given()
+            .auth()
+            .oauth2(token)
+            .contentType(ContentType.JSON)
+            .queryParam("suggest", "de")
+        .when()
+            .get("/engagements/artifact/types")
+        .then()
+            .statusCode(200)
+            .body(containsString("demo"));
+
+        given()
+            .auth()
+            .oauth2(token)
+            .contentType(ContentType.JSON)
+            .queryParam("suggest", "rE")
+        .when()
+            .get("/engagements/artifact/types")
+        .then()
+            .statusCode(200)
+            .body(containsString("report"));
+
+        given()
+            .auth()
+            .oauth2(token)
+            .contentType(ContentType.JSON)
+            .queryParam("suggest", "E")
+        .when()
+            .get("/engagements/artifact/types")
+        .then()
+            .statusCode(200)
+            .body(containsString("demo"))
+            .body(containsString("report"))
+            .body(containsString("note"));
+
+    }
+
     private Map<String, Boolean> validateCategories(Category[] categories) {
 
         Map<String, Boolean> map = new HashMap<>();
@@ -1494,6 +1572,33 @@ public class EngagementResourceTest {
         return map;
 
     }
+
+    private List<Engagement> mockEngagementWithArtifacts() {
+
+        Artifact a1 = mockArtifact("E1 Week 1 Report", "report", "http://report-week-1");
+        Artifact a2 = mockArtifact("E1 Demo Week 1", "demo", "http://demo-week-1");
+        Artifact a3 = mockArtifact("E1 Demo Week 2", "demo", "http://demo-week-2");
+
+        Engagement e1 = mockEngagement();
+        e1.setCustomerName("customer1");
+        e1.setArtifacts(Arrays.asList(a1, a2, a3));
+
+        Artifact a4 = mockArtifact("E2 Week 1 Report", "report", "http://report-week-1");
+        Artifact a5 = mockArtifact("E2 Demo Week 1", "demo", "http://demo-week-1");
+        Artifact a6 = mockArtifact("E2 Demo Week 2", "demo", "http://demo-week-2");
+        Artifact a7 = mockArtifact("E2 Notes", "note", "http://notes");
+
+        Engagement e2 = mockEngagement();
+        e2.setCustomerName("customer2");
+        e2.setArtifacts(Arrays.asList(a4, a5, a6, a7));
+
+        return Arrays.asList(e1, e2);
+    }
+
+    private Artifact mockArtifact(String title, String type, String link) {
+        return Artifact.builder().title(title).type(type).linkAddress(link).build();
+    }
+
     private List<Engagement> mockEngagementsWithCategories() {
 
         Category c1 = mockCategory("c1");
