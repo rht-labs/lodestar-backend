@@ -140,7 +140,7 @@ public class EngagementService {
             String existing = persisted.getCommitMessage();
 
             // if another message on current request, append to existing message
-            String message = (null != engagement.getCommitMessage()) ? existing
+            String message = (null == engagement.getCommitMessage()) ? existing
                     : new StringBuilder().append("\n\n").append(existing).toString();
 
             // set the message on the engagement before persisting
@@ -148,8 +148,6 @@ public class EngagementService {
 
             LOGGER.debug("set commit message to - {}", message);
 
-        } else {
-            LOGGER.debug("no persisted commit message, using {}", engagement.getCommitMessage());
         }
 
         // save the current last updated value and reset
