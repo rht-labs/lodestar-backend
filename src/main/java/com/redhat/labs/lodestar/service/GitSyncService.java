@@ -99,6 +99,7 @@ public class GitSyncService {
 
                 // reset modified
                 engagement.setAction(null);
+                engagement.setCommitMessage(null);
 
             } catch (WebApplicationException e) {
                 // rest call returned and 400 or above http code
