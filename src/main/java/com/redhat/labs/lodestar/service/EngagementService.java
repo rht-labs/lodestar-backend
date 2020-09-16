@@ -135,13 +135,13 @@ public class EngagementService {
         if (null != persisted.getCommitMessage()) {
 
             LOGGER.debug("persisted commit message found. {}", persisted.getCommitMessage());
-            
+
             // get existing message
             String existing = persisted.getCommitMessage();
 
             // if another message on current request, append to existing message
             String message = (null == engagement.getCommitMessage()) ? existing
-                    : new StringBuilder().append("\n\n").append(existing).toString();
+                    : new StringBuilder(existing).append("\n\n").append(engagement.getCommitMessage()).toString();
 
             // set the message on the engagement before persisting
             engagement.setCommitMessage(message);
