@@ -95,6 +95,7 @@ public class Engagement extends PanacheMongoEntityBase {
     private List<Category> categories;
 
     private List<Artifact> artifacts;
+    private String commitMessage;
 
     @JsonbTransient
     private FileAction action;
