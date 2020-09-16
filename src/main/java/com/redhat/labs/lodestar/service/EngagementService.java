@@ -131,6 +131,21 @@ public class EngagementService {
         // mark as updated, if action not already assigned
         engagement.setAction((null != persisted.getAction()) ? persisted.getAction() : FileAction.update);
 
+        // aggregate commit messages if already set
+        if (null != persisted.getCommitMessage()) {
+
+            // get existing message
+            String existing = persisted.getCommitMessage();
+
+            // if another message on current request, append to existing message
+            String message = (null != engagement.getCommitMessage()) ? existing
+                    : new StringBuilder().append("\n\n").append(existing).toString();
+
+            // set the message on the engagement before persisting
+            engagement.setCommitMessage(message);
+
+        }
+
         // save the current last updated value and reset
         String currentLastUpdated = engagement.getLastUpdate();
         engagement.setLastUpdate(getZuluTimeAsString());
@@ -152,7 +167,6 @@ public class EngagementService {
         return optional.get();
 
     }
-
 
     // Status comes from gitlab so it does not need to to be sync'd
     public Engagement updateStatusAndCommits(Hook hook) {
@@ -226,14 +240,13 @@ public class EngagementService {
      */
     public List<Engagement> getAll(String categories) {
 
-        if(null == categories || categories.isBlank()) {
+        if (null == categories || categories.isBlank()) {
             return repository.listAll();
         }
 
-       return 
-               Arrays.stream(categories.split(","))
-                   .flatMap(category -> repository.findEngagementsByCategory(category, false).stream())
-                   .collect(Collectors.toList());
+        return Arrays.stream(categories.split(","))
+                .flatMap(category -> repository.findEngagementsByCategory(category, false).stream())
+                .collect(Collectors.toList());
 
     }
 
@@ -279,15 +292,16 @@ public class EngagementService {
     }
 
     /**
-     * Returns a {@link List} of {@link Category} that match the provided {@link String}.  Returns all
-     * {@link Category} if no match {@link String} provided.
+     * Returns a {@link List} of {@link Category} that match the provided
+     * {@link String}. Returns all {@link Category} if no match {@link String}
+     * provided.
      * 
      * @param optionalMatch
      * @return
      */
     public List<Category> getCategories(String match) {
 
-        if(null == match || match.isBlank()) {
+        if (null == match || match.isBlank()) {
             return repository.findAllCategoryWithCounts();
         }
 
@@ -296,15 +310,15 @@ public class EngagementService {
     }
 
     /**
-     * Returns a {@link List} of Artifact Types as {@link String} that match the provided 
-     * input {@link String}.  Otherwise, all Types are returned.
+     * Returns a {@link List} of Artifact Types as {@link String} that match the
+     * provided input {@link String}. Otherwise, all Types are returned.
      * 
      * @param match
      * @return
      */
     public List<String> getArtifactTypes(String match) {
 
-        if(null == match || match.isBlank()) {
+        if (null == match || match.isBlank()) {
             return repository.findAllArtifactTypes();
         }
 
