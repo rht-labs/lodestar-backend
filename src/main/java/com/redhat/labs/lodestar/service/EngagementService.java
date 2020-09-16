@@ -134,6 +134,8 @@ public class EngagementService {
         // aggregate commit messages if already set
         if (null != persisted.getCommitMessage()) {
 
+            LOGGER.debug("persisted commit message found. {}", persisted.getCommitMessage());
+            
             // get existing message
             String existing = persisted.getCommitMessage();
 
@@ -144,6 +146,10 @@ public class EngagementService {
             // set the message on the engagement before persisting
             engagement.setCommitMessage(message);
 
+            LOGGER.debug("set commit message to - {}", message);
+
+        } else {
+            LOGGER.debug("no persisted commit message, using {}", engagement.getCommitMessage());
         }
 
         // save the current last updated value and reset
