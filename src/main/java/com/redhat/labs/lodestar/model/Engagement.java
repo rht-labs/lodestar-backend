@@ -95,6 +95,8 @@ public class Engagement extends PanacheMongoEntityBase {
     private List<Category> categories;
 
     private List<Artifact> artifacts;
+
+    @JsonbProperty("commit_message")
     private String commitMessage;
 
     @JsonbTransient
