@@ -11,8 +11,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Artifact {
 
+    private String id;
     private String title;
+    private String description;
     private String type;
     private String linkAddress;
+
 
 }
