@@ -69,6 +69,8 @@ public class Engagement extends PanacheMongoEntityBase {
     private String ocpPersistentStorageSize;
     @JsonbProperty("ocp_cluster_size")
     private String ocpClusterSize;
+    @JsonbProperty("public_reference")
+    private boolean publicReference;
     @JsonProperty("additional_details")
     private String additionalDetails;
     private Launch launch;
