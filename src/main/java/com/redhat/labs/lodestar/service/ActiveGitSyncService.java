@@ -46,6 +46,12 @@ public class ActiveGitSyncService {
         // try to set active flag
         checkIfActive();
 
+        if(active) {
+            // check for null uuids only once
+            BackendEvent setUuidEvent = BackendEvent.createSetNullUuidRequestedEvent();
+            eventBus.sendAndForget(setUuidEvent.getEventType().getEventBusAddress(), event);
+        }
+
     }
 
     /**

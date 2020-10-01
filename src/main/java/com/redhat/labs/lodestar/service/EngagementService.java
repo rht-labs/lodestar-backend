@@ -351,6 +351,22 @@ public class EngagementService {
     }
 
     /**
+     * Sets a generated UUID value for each {@link Engagement} in the data store
+     * that does not have a UUID.
+     */
+    public void setNullUuids() {
+
+        // get all engagements with null UUID
+        List<Engagement> engagementList = repository.findByNullUuid().stream().map(e -> {
+            e.setUuid(UUID.randomUUID().toString());
+            return e;
+        }).collect(Collectors.toList());
+
+        updateEngagementListInRepository(engagementList);
+
+    }
+
+    /**
      * Retrieves the {@link List} of {@link Engagement} from the Git API and then
      * calls the process to update the database.
      * 

@@ -34,4 +34,8 @@ public class BackendEvent {
                 .engagementList(engagementList).build();
     }
 
+    public static BackendEvent createSetNullUuidRequestedEvent() {
+        return BackendEvent.builder().eventType(EventType.SET_NULL_UUID_REQUESTED).build();
+    }
+
 }

@@ -63,6 +63,10 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
         return find("action is not null").list();
     }
 
+    public List<Engagement> findByNullUuid() {
+        return find("uuid is null").list();
+    }
+
     /**
      * A case insensitive string to match against customer names.
      * 

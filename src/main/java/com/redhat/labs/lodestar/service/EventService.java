@@ -62,4 +62,15 @@ public class EventService {
 
     }
 
+    /**
+     * Consumes the {@link BackendEvent} and triggers the processing of
+     * {@link Engagement}s with a null UUID.
+     * 
+     * @param event
+     */
+    @ConsumeEvent(EventType.Constants.SET_NULL_UUID_REQUESTED_ADDRESS)
+    void consumeSetNullUuidRequestedEvent(BackendEvent event) {
+        engagementService.setNullUuids();
+    }
+
 }
