@@ -84,7 +84,7 @@ public class EngagementService {
 
     }
 
-    private void setBeforeInsert(Engagement engagement) {
+    void setBeforeInsert(Engagement engagement) {
 
         // set uuid
         engagement.setUuid(UUID.randomUUID().toString());
@@ -97,7 +97,7 @@ public class EngagementService {
 
     }
 
-    private void cleanEngagement(Engagement engagement) {
+    void cleanEngagement(Engagement engagement) {
 
         // trim whitespace from customer and project names
         engagement.setCustomerName(engagement.getCustomerName().trim());
@@ -105,7 +105,7 @@ public class EngagementService {
 
     }
 
-    private Optional<Engagement> getByIdOrName(Engagement engagement) {
+    Optional<Engagement> getByIdOrName(Engagement engagement) {
 
         if (null == engagement.getUuid()) {
             return repository.findByCustomerNameAndProjectName(engagement.getCustomerName(),
@@ -144,7 +144,7 @@ public class EngagementService {
 
     }
 
-    private void setBeforeUpdate(Engagement engagement) {
+    void setBeforeUpdate(Engagement engagement) {
 
         // mark as updated, if action not already assigned
         engagement.setAction((null != engagement.getAction()) ? engagement.getAction() : FileAction.update);
@@ -166,7 +166,7 @@ public class EngagementService {
 
     }
 
-    private String setLastUpdate(Engagement engagement) {
+    String setLastUpdate(Engagement engagement) {
 
         String currentLastUpdated = engagement.getLastUpdate();
         engagement.setLastUpdate(getZuluTimeAsString());
@@ -175,7 +175,7 @@ public class EngagementService {
 
     }
 
-    private boolean skipLaunch(Engagement engagement) {
+    boolean skipLaunch(Engagement engagement) {
         return (null != engagement.getLaunch());
     }
 
@@ -206,7 +206,7 @@ public class EngagementService {
         return persisted;
     }
 
-    private Engagement getEngagementFromNamespace(Hook hook) {
+    Engagement getEngagementFromNamespace(Hook hook) {
         // Need the translated customer name if using special chars
         Engagement gitEngagement = gitApi.getEngagementByNamespace(hook.getProject().getPathWithNamespace());
         return getByIdOrName(gitEngagement)
@@ -277,7 +277,7 @@ public class EngagementService {
      * Used by the {@link GitSyncService} to delete all {@link Engagement} from the
      * data store before re-populating from Git.
      */
-    private void deleteAll() {
+    void deleteAll() {
         repository.deleteAll();
     }
 
@@ -372,7 +372,7 @@ public class EngagementService {
      * 
      * @param engagementList
      */
-    private void syncGitToDatabase(List<Engagement> engagementList, boolean purgeFirst) {
+    void syncGitToDatabase(List<Engagement> engagementList, boolean purgeFirst) {
 
         if (purgeFirst) {
 
@@ -433,12 +433,12 @@ public class EngagementService {
 
     }
 
-    private Launch createLaunchInstance(String launchedBy, String launchedByEmail) {
+    Launch createLaunchInstance(String launchedBy, String launchedByEmail) {
         return Launch.builder().launchedDateTime(getZuluTimeAsString()).launchedBy(launchedBy)
                 .launchedByEmail(launchedByEmail).build();
     }
 
-    private boolean isLaunched(Engagement engagement) {
+    boolean isLaunched(Engagement engagement) {
         return null != engagement.getLaunch();
     }
 
@@ -475,7 +475,7 @@ public class EngagementService {
      * 
      * @return
      */
-    private String getZuluTimeAsString() {
+    String getZuluTimeAsString() {
         return ZonedDateTime.now(ZoneId.of("Z")).toString();
     }
 
