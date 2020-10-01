@@ -43,7 +43,7 @@ import io.quarkus.mongodb.panache.PanacheMongoRepository;
 public class EngagementRepository implements PanacheMongoRepository<Engagement> {
 
     public static final List<String> IMMUTABLE_FIELDS = new ArrayList<>(
-            Arrays.asList("id", "mongoId", "projectId", "creationDetails", "status", "commits", "launch"));
+            Arrays.asList("uuid", "mongoId", "projectId", "creationDetails", "status", "commits", "launch"));
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
