@@ -137,7 +137,8 @@ public class EngagementService {
                         "Failed to modify engagement because request contained stale data.  Please refresh and try again.",
                         HttpStatus.SC_CONFLICT));
 
-        // TODO: send to socket
+        // send to socket
+        sendEngagementEvent(jsonb.toJson(updated));
 
         return updated;
 
@@ -199,6 +200,7 @@ public class EngagementService {
         // update in db
         repository.update(persisted);
 
+        // send to socket
         sendEngagementEvent(jsonb.toJson(persisted));
 
         return persisted;
