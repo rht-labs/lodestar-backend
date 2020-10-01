@@ -43,16 +43,16 @@ import io.quarkus.mongodb.panache.PanacheMongoRepository;
 public class EngagementRepository implements PanacheMongoRepository<Engagement> {
 
     public static final List<String> IMMUTABLE_FIELDS = new ArrayList<>(
-            Arrays.asList("mongoId", "projectId", "creationDetails", "status", "commits", "launch"));
+            Arrays.asList("id", "mongoId", "projectId", "creationDetails", "status", "commits", "launch"));
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    public Engagement findByEngagementId(Integer engagementId) {
-        return find("engagementId", engagementId).firstResult();
+    public Optional<Engagement> findByUiid(String uuid) {
+        return find("uuid", uuid).firstResultOptional();
     }
 
-    public Engagement findByCustomerNameAndProjectName(String customerName, String projectName) {
-        return find("customerName=?1 and projectName=?2", customerName, projectName).firstResult();
+    public Optional<Engagement> findByCustomerNameAndProjectName(String customerName, String projectName) {
+        return find("customerName=?1 and projectName=?2", customerName, projectName).firstResultOptional();
     }
 
     public List<Engagement> findByModifiedAndAction(FileAction action) {

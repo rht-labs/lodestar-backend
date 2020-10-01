@@ -118,7 +118,7 @@ public class StatusResourceTest {
             .header("x-notification-token", "CLEANUP")
             .post("/status/deleted")
         .then()
-            .statusCode(204);
+            .statusCode(404);
     }
     
     @Test

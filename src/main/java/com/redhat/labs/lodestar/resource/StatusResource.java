@@ -22,8 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.redhat.labs.lodestar.model.Hook;
-import com.redhat.labs.lodestar.rest.client.LodeStarStatusApiClient;
 import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
+import com.redhat.labs.lodestar.rest.client.LodeStarStatusApiClient;
 import com.redhat.labs.lodestar.service.EngagementService;
 
 @RequestScoped
@@ -86,7 +86,7 @@ public class StatusResource {
         
         if(hook.wasProjectDeleted()) {
             LOGGER.debug("Remove engagement cust {} proj {}", hook.getCustomerName(), hook.getEngagementName());
-            engagementService.delete(hook.getCustomerName(), hook.getEngagementName());
+            engagementService.deleteByCustomerAndProjectName(hook.getCustomerName(), hook.getEngagementName());
             return Response.status(204).build();
         }
 

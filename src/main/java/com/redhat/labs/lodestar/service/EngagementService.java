@@ -7,8 +7,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.TreeSet;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -22,9 +22,6 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.redhat.labs.lodestar.exception.InvalidRequestException;
-import com.redhat.labs.lodestar.exception.ResourceAlreadyExistsException;
-import com.redhat.labs.lodestar.exception.ResourceNotFoundException;
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Commit;
 import com.redhat.labs.lodestar.model.Engagement;
@@ -33,26 +30,17 @@ import com.redhat.labs.lodestar.model.Hook;
 import com.redhat.labs.lodestar.model.Launch;
 import com.redhat.labs.lodestar.model.Status;
 import com.redhat.labs.lodestar.model.event.BackendEvent;
-import com.redhat.labs.lodestar.model.event.EventType;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
 import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
 import com.redhat.labs.lodestar.socket.EngagementEventSocket;
 
-import io.quarkus.vertx.ConsumeEvent;
-import io.vertx.mutiny.core.Vertx;
 import io.vertx.mutiny.core.eventbus.EventBus;
 
 @ApplicationScoped
 public class EngagementService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(EngagementService.class);
+    private static Logger LOGGER = LoggerFactory.getLogger(EngagementService.class);
 
-    @ConfigProperty(name = "engagement.file.name", defaultValue = "engagement.json")
-    String engagementFileName;
-    @ConfigProperty(name = "engagement.file.branch", defaultValue = "master")
-    String engagementFileBranch;
-    @ConfigProperty(name = "engagement.file.commit.message", defaultValue = "updated by lodestar backend")
-    String engagementFileCommitMessage;
     @ConfigProperty(name = "status.file")
     String statusFile;
 
@@ -61,9 +49,6 @@ public class EngagementService {
 
     @Inject
     EngagementRepository repository;
-
-    @Inject
-    Vertx vertx;
 
     @Inject
     EventBus eventBus;
@@ -82,29 +67,52 @@ public class EngagementService {
      * @param engagement
      * @return
      */
-
     public Engagement create(Engagement engagement) {
+
+        cleanEngagement(engagement);
+
+        if (getByIdOrName(engagement).isPresent()) {
+            throw new WebApplicationException("engagement already exists, use PUT to update resource",
+                    HttpStatus.SC_CONFLICT);
+        }
+
+        setBeforeInsert(engagement);
+
+        repository.persist(engagement);
+
+        return engagement;
+
+    }
+
+    private void setBeforeInsert(Engagement engagement) {
+
+        // set uuid
+        engagement.setUuid(UUID.randomUUID().toString());
+
+        // set action
+        engagement.setAction(FileAction.create);
+
+        // set last update
+        setLastUpdate(engagement);
+
+    }
+
+    private void cleanEngagement(Engagement engagement) {
 
         // trim whitespace from customer and project names
         engagement.setCustomerName(engagement.getCustomerName().trim());
         engagement.setProjectName(engagement.getProjectName().trim());
 
-        // check if engagement exists
-        Optional<Engagement> optional = get(engagement.getCustomerName(), engagement.getProjectName());
-        if (optional.isPresent()) {
-            throw new ResourceAlreadyExistsException("engagement already exists.  use PUT to update resource.");
+    }
+
+    private Optional<Engagement> getByIdOrName(Engagement engagement) {
+
+        if (null == engagement.getUuid()) {
+            return repository.findByCustomerNameAndProjectName(engagement.getCustomerName(),
+                    engagement.getProjectName());
         }
 
-        // set modified info
-        engagement.setAction(FileAction.create);
-
-        // set last update
-        engagement.setLastUpdate(getZuluTimeAsString());
-
-        // persist to db
-        repository.persist(engagement);
-
-        return engagement;
+        return repository.findByUiid(engagement.getUuid());
 
     }
 
@@ -112,30 +120,39 @@ public class EngagementService {
      * Updates the {@link Engagement} resource in the data store and marks it for
      * asynchronous processing by the {@link GitSyncService}.
      * 
-     * @param customerName
-     * @param projectName
      * @param engagement
      * @return
      */
-    public Engagement update(String customerName, String projectName, Engagement engagement) {
+    public Engagement update(Engagement engagement) {
 
-        // check if engagement exists
-        Optional<Engagement> optional = get(customerName, projectName);
-        if (!optional.isPresent()) {
-            throw new ResourceNotFoundException("no engagement found.  use POST to create resource.");
-        }
+        Engagement existing = getByIdOrName(engagement).orElseThrow(
+                () -> new WebApplicationException("no engagement found, use POST to create", HttpStatus.SC_NOT_FOUND));
 
-        // set modified if already marked for modification
-        Engagement persisted = optional.get();
+        setBeforeUpdate(engagement);
+        String currentLastUpdated = setLastUpdate(existing);
+        boolean skipLaunch = skipLaunch(engagement);
+
+        Engagement updated = repository.updateEngagementIfLastUpdateMatched(engagement, currentLastUpdated, skipLaunch)
+                .orElseThrow(() -> new WebApplicationException(
+                        "Failed to modify engagement because request contained stale data.  Please refresh and try again.",
+                        HttpStatus.SC_CONFLICT));
+
+        // TODO: send to socket
+
+        return updated;
+
+    }
+
+    private void setBeforeUpdate(Engagement engagement) {
 
         // mark as updated, if action not already assigned
-        engagement.setAction((null != persisted.getAction()) ? persisted.getAction() : FileAction.update);
+        engagement.setAction((null != engagement.getAction()) ? engagement.getAction() : FileAction.update);
 
         // aggregate commit messages if already set
-        if (null != persisted.getCommitMessage()) {
+        if (null != engagement.getCommitMessage()) {
 
             // get existing message
-            String existing = persisted.getCommitMessage();
+            String existing = engagement.getCommitMessage();
 
             // if another message on current request, append to existing message
             String message = (null == engagement.getCommitMessage()) ? existing
@@ -146,39 +163,30 @@ public class EngagementService {
 
         }
 
-        // save the current last updated value and reset
+    }
+
+    private String setLastUpdate(Engagement engagement) {
+
         String currentLastUpdated = engagement.getLastUpdate();
         engagement.setLastUpdate(getZuluTimeAsString());
 
-        // determine if launching
-        boolean skipLaunch = (null != persisted.getLaunch());
+        return currentLastUpdated;
 
-        // update in db
-        optional = repository.updateEngagementIfLastUpdateMatched(engagement, currentLastUpdated, skipLaunch);
-        if (!optional.isPresent()) {
-            throw new WebApplicationException(
-                    "Failed to modify engagement because request contained stale data.  Please refresh and try again.",
-                    HttpStatus.SC_CONFLICT);
-        }
+    }
 
-        // send updated engagement to socket
-        sendEngagementEvent(jsonb.toJson(persisted));
-
-        return optional.get();
-
+    private boolean skipLaunch(Engagement engagement) {
+        return (null != engagement.getLaunch());
     }
 
     // Status comes from gitlab so it does not need to to be sync'd
     public Engagement updateStatusAndCommits(Hook hook) {
         LOGGER.debug("Hook for {} {}", hook.getCustomerName(), hook.getEngagementName());
 
-        Optional<Engagement> optional = get(hook.getCustomerName(), hook.getEngagementName());
-        if (!optional.isPresent()) {
-            // try gitlab in case of special chars
-            optional = getEngagementFromNamespace(hook);
-        }
+        // create engagement for get
+        Engagement search = Engagement.builder().customerName(hook.getCustomerName())
+                .projectName(hook.getEngagementName()).build();
 
-        Engagement persisted = optional.get();
+        Engagement persisted = getByIdOrName(search).orElseGet(() -> getEngagementFromNamespace(hook));
 
         if (hook.didFileChange(statusFile)) {
             Status status = gitApi.getStatus(hook.getCustomerName(), hook.getEngagementName());
@@ -196,14 +204,12 @@ public class EngagementService {
         return persisted;
     }
 
-    private Optional<Engagement> getEngagementFromNamespace(Hook hook) {
+    private Engagement getEngagementFromNamespace(Hook hook) {
         // Need the translated customer name if using special chars
         Engagement gitEngagement = gitApi.getEngagementByNamespace(hook.getProject().getPathWithNamespace());
-        Optional<Engagement> optional = get(gitEngagement.getCustomerName(), gitEngagement.getProjectName());
-        if (!optional.isPresent()) {
-            throw new ResourceNotFoundException("no engagement found. unable to update from hook.");
-        }
-        return optional;
+        return getByIdOrName(gitEngagement)
+                .orElseThrow(() -> new WebApplicationException("no engagement found. unable to update from hook.",
+                        HttpStatus.SC_NOT_FOUND));
     }
 
     /**
@@ -214,23 +220,23 @@ public class EngagementService {
      * @param projectId
      * @return
      */
-    public Optional<Engagement> get(String customerName, String projectName) {
+    public Engagement getByCustomerAndProjectName(String customerName, String projectName) {
+        return repository.findByCustomerNameAndProjectName(customerName, projectName)
+                .orElseThrow(() -> new WebApplicationException(
+                        "no engagement found with customer:project " + customerName + ":" + projectName,
+                        HttpStatus.SC_NOT_FOUND));
+    }
 
-        Optional<Engagement> optional = Optional.empty();
-
-        if (LOGGER.isTraceEnabled()) {
-            repository.listAll().stream().forEach(
-                    engagement -> LOGGER.trace("E {} {}", engagement.getCustomerName(), engagement.getProjectName()));
-        }
-        // check db
-        Engagement persistedEngagement = repository.findByCustomerNameAndProjectName(customerName, projectName);
-
-        if (null != persistedEngagement) {
-            optional = Optional.of(persistedEngagement);
-        }
-
-        return optional;
-
+    /**
+     * Returns an {@link Engagement} if it is present in the data store. Otherwise,
+     * throws a Not FOUND {@link WebApplicationException}.
+     * 
+     * @param uuid
+     * @return
+     */
+    public Engagement getByUuid(String uuid) {
+        return repository.findByUiid(uuid).orElseThrow(
+                () -> new WebApplicationException("no engagement found with id " + uuid, HttpStatus.SC_NOT_FOUND));
     }
 
     /**
@@ -260,35 +266,39 @@ public class EngagementService {
      *         input
      */
     public Collection<String> getSuggestions(String subString) {
-        List<Engagement> allEngagements = repository.findCustomerSuggestions(subString);
 
-        Set<String> customers = new TreeSet<>();
-        allEngagements.stream().forEach(engagement -> customers.add(engagement.getCustomerName()));
-
-        return customers;
+        return repository.findCustomerSuggestions(subString).stream().map(e -> e.getCustomerName())
+                .collect(Collectors.toCollection(TreeSet::new));
     }
 
     /**
      * Used by the {@link GitSyncService} to delete all {@link Engagement} from the
      * data store before re-populating from Git.
      */
-    public void deleteAll() {
-        long count = repository.deleteAll();
-        LOGGER.info("removed '{}' engagements from the data store.", count);
+    private void deleteAll() {
+        repository.deleteAll();
     }
 
     /**
-     * This should also update clients about the delete. Need infra here
+     * Removes an {@link Engagement} with the provided customer and project name
+     * from the data store. Otherwise, throws a NOT FOUND
+     * {@link WebApplicationException}.
      * 
      * @param customerName
-     * @param engagementName
+     * @param projectName
      */
-    public void delete(String customerName, String engagementName) {
-        Optional<Engagement> engagement = get(customerName, engagementName);
-        if (engagement.isPresent()) {
-            LOGGER.debug("Deleting engagement {} for customer {}", engagementName, customerName);
-            repository.delete(engagement.get());
-        }
+    public void deleteByCustomerAndProjectName(String customerName, String projectName) {
+        repository.delete(getByCustomerAndProjectName(customerName, projectName));
+    }
+
+    /**
+     * Removes an {@link Engagement} with the provided UUID from the data store.
+     * Otherwise, throws a NOT FOUND {@link WebApplicationException}.
+     * 
+     * @param uuid
+     */
+    public void deleteByUuid(String uuid) {
+        repository.delete(getByUuid(uuid));
     }
 
     /**
@@ -331,7 +341,7 @@ public class EngagementService {
      * 
      * @param engagementList
      */
-    void updateEngagementListInRepository(List<Engagement> engagementList) {
+    public void updateEngagementListInRepository(List<Engagement> engagementList) {
 
         // don't update last update already done as part of update
         repository.update(engagementList);
@@ -347,23 +357,9 @@ public class EngagementService {
     public void syncGitToDatabase(boolean purgeFirst) {
 
         // get all engagements from git
-        vertx.<List<Engagement>>executeBlocking(promise -> {
-
-            try {
-                List<Engagement> engagementList = gitApi.getEngagments();
-                promise.complete(engagementList);
-            } catch (WebApplicationException wae) {
-                promise.fail(wae);
-            }
-
-        }).subscribe().with(list -> {
-
-            LOGGER.debug("found {} engagements in gitlab.", list.size());
-            syncGitToDatabase(list, purgeFirst);
-
-        }, failure -> {
-            LOGGER.warn("failed to retrieve engagements from git. {}", failure.getMessage(), failure);
-        });
+        List<Engagement> engagementList = gitApi.getEngagments();
+        // push engagements to db
+        syncGitToDatabase(engagementList, purgeFirst);
 
     }
 
@@ -374,7 +370,7 @@ public class EngagementService {
      * 
      * @param engagementList
      */
-    void syncGitToDatabase(List<Engagement> engagementList, boolean purgeFirst) {
+    private void syncGitToDatabase(List<Engagement> engagementList, boolean purgeFirst) {
 
         if (purgeFirst) {
 
@@ -390,12 +386,10 @@ public class EngagementService {
         String lastUpdate = getZuluTimeAsString();
 
         // filter any engagements that already exist and set modified
-        engagementList.stream()
-                .filter(engagement -> !get(engagement.getCustomerName(), engagement.getProjectName()).isPresent())
-                .forEach(engagement -> {
-                    engagement.setLastUpdate(lastUpdate);
-                    toInsert.add(engagement);
-                });
+        engagementList.stream().filter(engagement -> !getByIdOrName(engagement).isPresent()).forEach(engagement -> {
+            engagement.setLastUpdate(lastUpdate);
+            toInsert.add(engagement);
+        });
 
         LOGGER.debug("inserting {} engagements of {} into the database.", toInsert.size(), engagementList.size());
 
@@ -422,64 +416,28 @@ public class EngagementService {
      */
     public Engagement launch(Engagement engagement) {
 
-        // do not relaunch
-        if (null != engagement.getLaunch()) {
-            throw new InvalidRequestException("engagement has already been launched.");
+        if (isLaunched(engagement)) {
+            throw new WebApplicationException("engagement has already been launched.", HttpStatus.SC_BAD_REQUEST);
         }
 
-        // create new launch data for engagement
-        engagement.setLaunch(Launch.builder().launchedDateTime(ZonedDateTime.now(ZoneId.of("Z")).toString())
-                .launchedBy(engagement.getLastUpdateByName()).launchedByEmail(engagement.getLastUpdateByEmail())
-                .build());
+        engagement.setLaunch(createLaunchInstance(engagement.getLastUpdateByName(), engagement.getLastUpdateByEmail()));
 
-        // update db
-        Engagement updated = update(engagement.getCustomerName(), engagement.getProjectName(), engagement);
+        update(engagement);
 
-        // sync change(s) to git
-        sendEngagementsModifiedEvent();
+        // send to socket
+        sendEngagementEvent(jsonb.toJson(engagement));
 
-        return updated;
+        return engagement;
 
     }
 
-    /**
-     * This method consumes a {@link BackendEvent}, which starts the process of
-     * inserting any {@link Engagement} from GitLab that are not found in the
-     * database.
-     * 
-     * @param event
-     */
-    @ConsumeEvent(EventType.Constants.DB_REFRESH_REQUESTED_ADDRESS)
-    void consumeDbRefreshRequestedEvent(BackendEvent event) {
-
-        LOGGER.debug("consumed database refresh requested event.");
-        syncGitToDatabase(false);
-
+    private Launch createLaunchInstance(String launchedBy, String launchedByEmail) {
+        return Launch.builder().launchedDateTime(getZuluTimeAsString()).launchedBy(launchedBy)
+                .launchedByEmail(launchedByEmail).build();
     }
 
-    /**
-     * Consumes a {@link BackendEvent} and updates the database using the
-     * {@link List} of {@link Engagement}s that are contained in the event.
-     * 
-     * @param event
-     */
-    @ConsumeEvent(EventType.Constants.UPDATE_ENGAGEMENTS_IN_DB_REQUESTED_ADDRESS)
-    void consumeUpdateEngagementsInDbRequestedEvent(BackendEvent event) {
-        updateEngagementListInRepository(event.getEngagementList());
-    }
-
-    /**
-     * Consumes the {@link BackendEvent} and triggers the processing of any modified
-     * {@link Engagement}s.
-     * 
-     * @param event
-     */
-    @ConsumeEvent(EventType.Constants.PUSH_TO_GIT_REQUESTED_ADDRESS)
-    void consumePushToGitRequestedEvent(BackendEvent event) {
-
-        LOGGER.trace("consuming process time elapsed event.");
-
-        sendEngagementsModifiedEvent();
+    private boolean isLaunched(Engagement engagement) {
+        return null != engagement.getLaunch();
     }
 
     /**
