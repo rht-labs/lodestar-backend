@@ -95,6 +95,8 @@ public class Engagement extends PanacheMongoEntityBase {
 
     @JsonbProperty("engagement_categories")
     private List<Category> categories;
+    @JsonbProperty("use_cases")
+    private List<UseCase> useCases;
 
     private List<Artifact> artifacts;
 
