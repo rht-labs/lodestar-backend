@@ -11,6 +11,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.regex;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
+import static com.mongodb.client.model.Updates.unset;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -34,6 +35,7 @@ import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.Sorts;
 import com.redhat.labs.lodestar.model.Artifact;
 import com.redhat.labs.lodestar.model.Category;
+import com.redhat.labs.lodestar.model.CreationDetails;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.FileAction;
 
@@ -248,6 +250,44 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
                 updates = combine(updates, update);
             }
 
+        }
+
+        return updates;
+
+    }
+
+    public Optional<Engagement> updateEngagement(String customerName, String projectName,
+            Optional<CreationDetails> creationDetails, Optional<Integer> projectId, boolean resetFlags) {
+
+        // filter on customer/project name only
+        Bson filter = and(eq("customerName", customerName), eq("projectName", projectName));
+
+        // update only required fields
+        Bson update = updateGitSyncFields(creationDetails, projectId, resetFlags);
+
+        // make sure value returned is the updated document
+        FindOneAndUpdateOptions optionAfter = new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER);
+
+        return Optional.ofNullable(this.mongoCollection().findOneAndUpdate(filter, update, optionAfter));
+
+    }
+
+    private Bson updateGitSyncFields(Optional<CreationDetails> creationDetails, Optional<Integer> projectId,
+            boolean resetFlags) {
+
+        Bson updates = new Document();
+
+        if (creationDetails.isPresent()) {
+            updates = combine(updates, set("creationDetails", creationDetails.get()));
+        }
+
+        if (projectId.isPresent()) {
+            updates = combine(updates, set("projectId", projectId.get()));
+        }
+
+        if (resetFlags) {
+            updates = combine(updates, unset("action"));
+            updates = combine(updates, unset("commitMessage"));
         }
 
         return updates;
