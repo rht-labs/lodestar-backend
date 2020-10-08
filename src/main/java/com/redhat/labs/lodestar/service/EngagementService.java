@@ -333,8 +333,42 @@ public class EngagementService {
      */
     void updateEngagementListInRepository(List<Engagement> engagementList) {
 
-        // don't update last update already done as part of update
-        repository.update(engagementList);
+        List<Engagement> toUpdate = new ArrayList<>();
+
+        for(Engagement e : engagementList) {
+
+            // get current engagement from db
+            Optional<Engagement> optional = get(e.getCustomerName(), e.getProjectName());
+            if(optional.isPresent()) {
+
+                Engagement persisted = optional.get();
+
+                // always update creation details if missing
+                if(null == persisted.getCreationDetails()) {
+                    persisted.setCreationDetails(e.getCreationDetails());
+                }
+
+                // always update project id if missing
+                if(null == persisted.getProjectId()) {
+                    persisted.setProjectId(e.getProjectId());
+                }
+
+                // reset action and commit message only if it has not changed since last push to git;
+                // otherwise, keep values to all new changes to be pushed to git
+                if(e.getLastUpdate().equals(persisted.getLastUpdate())) {
+
+                    persisted.setAction(null);
+                    persisted.setCommitMessage(null);
+
+                }
+
+                toUpdate.add(persisted);
+
+            }
+
+        }
+
+        repository.update(toUpdate);
 
     }
 

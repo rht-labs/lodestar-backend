@@ -97,10 +97,6 @@ public class GitSyncService {
                     updateIdFromResponse(engagement, response);
                 }
 
-                // reset modified
-                engagement.setAction(null);
-                engagement.setCommitMessage(null);
-
             } catch (WebApplicationException e) {
                 // rest call returned and 400 or above http code
                 LOGGER.error(
