@@ -354,7 +354,7 @@ public class EngagementService {
                 }
 
                 // reset action and commit message only if it has not changed since last push to git;
-                // otherwise, keep values to all new changes to be pushed to git
+                // otherwise, keep values to allow new changes to be pushed to git
                 if(e.getLastUpdate().equals(persisted.getLastUpdate())) {
 
                     persisted.setAction(null);
