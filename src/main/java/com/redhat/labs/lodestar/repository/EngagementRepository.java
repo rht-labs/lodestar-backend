@@ -11,6 +11,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.regex;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
+import static com.mongodb.client.model.Updates.unset;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -285,8 +286,8 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
         }
 
         if (resetFlags) {
-            updates = combine(updates, set("action", null));
-            updates = combine(updates, set("commitMessage", null));
+            updates = combine(updates, unset("action"));
+            updates = combine(updates, unset("commitMessage"));
         }
 
         return updates;
