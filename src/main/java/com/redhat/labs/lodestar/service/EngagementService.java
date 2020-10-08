@@ -27,6 +27,7 @@ import com.redhat.labs.lodestar.exception.ResourceAlreadyExistsException;
 import com.redhat.labs.lodestar.exception.ResourceNotFoundException;
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Commit;
+import com.redhat.labs.lodestar.model.CreationDetails;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.FileAction;
 import com.redhat.labs.lodestar.model.Hook;
@@ -333,42 +334,34 @@ public class EngagementService {
      */
     void updateEngagementListInRepository(List<Engagement> engagementList) {
 
-        List<Engagement> toUpdate = new ArrayList<>();
-
         for(Engagement e : engagementList) {
 
             // get current engagement from db
-            Optional<Engagement> optional = get(e.getCustomerName(), e.getProjectName());
+            String customerName = e.getCustomerName();
+            String projectName = e.getProjectName();
+            Optional<Engagement> optional = get(customerName, projectName);
             if(optional.isPresent()) {
 
                 Engagement persisted = optional.get();
 
                 // always update creation details if missing
-                if(null == persisted.getCreationDetails()) {
-                    persisted.setCreationDetails(e.getCreationDetails());
-                }
+                Optional<CreationDetails> creationDetails = 
+                        (null == persisted.getCreationDetails()) ? 
+                                Optional.ofNullable(e.getCreationDetails()) : Optional.empty();
 
                 // always update project id if missing
-                if(null == persisted.getProjectId()) {
-                    persisted.setProjectId(e.getProjectId());
-                }
+                Optional<Integer> projectId = (null == persisted.getProjectId()) ? 
+                        Optional.ofNullable(e.getProjectId()) : Optional.empty();
 
                 // reset action and commit message only if it has not changed since last push to git;
                 // otherwise, keep values to allow new changes to be pushed to git
-                if(e.getLastUpdate().equals(persisted.getLastUpdate())) {
+                boolean resetFlags = e.getLastUpdate().equals(persisted.getLastUpdate()) ? true : false;
 
-                    persisted.setAction(null);
-                    persisted.setCommitMessage(null);
-
-                }
-
-                toUpdate.add(persisted);
+                repository.updateEngagement(customerName, projectName, creationDetails, projectId, resetFlags);
 
             }
 
         }
-
-        repository.update(toUpdate);
 
     }
 
