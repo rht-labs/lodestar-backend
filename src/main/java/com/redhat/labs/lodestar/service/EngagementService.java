@@ -40,7 +40,7 @@ import io.vertx.mutiny.core.eventbus.EventBus;
 @ApplicationScoped
 public class EngagementService {
 
-    private static Logger LOGGER = LoggerFactory.getLogger(EngagementService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(EngagementService.class);
 
     @ConfigProperty(name = "status.file")
     String statusFile;
@@ -85,6 +85,12 @@ public class EngagementService {
 
     }
 
+    /**
+     * Sets required {@link Engagement} attributes required before the initial
+     * insert in to the data store.
+     * 
+     * @param engagement
+     */
     void setBeforeInsert(Engagement engagement) {
 
         // set uuid
@@ -98,6 +104,11 @@ public class EngagementService {
 
     }
 
+    /**
+     * Performs any data cleaning on the provided {@link Engagement}.
+     * 
+     * @param engagement
+     */
     void cleanEngagement(Engagement engagement) {
 
         // trim whitespace from customer and project names
@@ -106,6 +117,14 @@ public class EngagementService {
 
     }
 
+    /**
+     * Returns an {@link Optional} containing an {@link Engagement} if one is found.
+     * Search uses UUID if provided or combination of customer and project names
+     * otherwise.
+     * 
+     * @param engagement
+     * @return
+     */
     Optional<Engagement> getByIdOrName(Engagement engagement) {
 
         if (null == engagement.getUuid()) {
@@ -129,6 +148,7 @@ public class EngagementService {
         Engagement existing = getByIdOrName(engagement).orElseThrow(
                 () -> new WebApplicationException("no engagement found, use POST to create", HttpStatus.SC_NOT_FOUND));
 
+        validateCustomerAndProjectNames(engagement, existing);
         setBeforeUpdate(engagement);
         String currentLastUpdated = setLastUpdate(existing);
         boolean skipLaunch = skipLaunch(engagement);
@@ -145,6 +165,37 @@ public class EngagementService {
 
     }
 
+    /**
+     * Throws a {@link WebApplicationException} if the Customer or Project name has
+     * changed and there is already an {@link Engagement} that has the
+     * customer/project combination.
+     * 
+     * @param toUpdate
+     * @param existing
+     */
+    void validateCustomerAndProjectNames(Engagement toUpdate, Engagement existing) {
+
+        // return if names have not changed
+        if (toUpdate.getCustomerName().equals(existing.getCustomerName())
+                && toUpdate.getProjectName().equals(existing.getProjectName())) {
+            return;
+        }
+
+        // throw exception if names changed to match an existing project
+        if (null != getByCustomerAndProjectName(toUpdate.getCustomerName(), toUpdate.getProjectName())) {
+            throw new WebApplicationException("failed to change name(s).  engagement with customer name '"
+                    + toUpdate.getCustomerName() + "' and project '" + toUpdate.getProjectName() + "' already exists.",
+                    409);
+        }
+
+    }
+
+    /**
+     * Sets required {@link Engagement} attributes required before the update in to
+     * the data store.
+     * 
+     * @param engagement
+     */
     void setBeforeUpdate(Engagement engagement) {
 
         // mark as updated, if action not already assigned
@@ -167,11 +218,25 @@ public class EngagementService {
 
     }
 
+    /**
+     * Sets the {@link FileAction} to the provided action if the {@link Engagement}
+     * does not have it set.
+     * 
+     * @param engagement
+     * @param action
+     */
     void setEngagementAction(Engagement engagement, FileAction action) {
         // set only if action not already assigned
         engagement.setAction((null != engagement.getAction()) ? engagement.getAction() : action);
     }
 
+    /**
+     * Sets the last update timestamp on the provided {@link Engagement}. Returns
+     * the prior value, which could be null.
+     * 
+     * @param engagement
+     * @return
+     */
     String setLastUpdate(Engagement engagement) {
 
         String currentLastUpdated = engagement.getLastUpdate();
@@ -181,11 +246,23 @@ public class EngagementService {
 
     }
 
+    /**
+     * Returns true if the {@link Launch} data is present on the {@link Engagement}.
+     * Otherwise, false.
+     * 
+     * @param engagement
+     * @return
+     */
     boolean skipLaunch(Engagement engagement) {
         return (null != engagement.getLaunch());
     }
 
-    // Status comes from gitlab so it does not need to to be sync'd
+    /**
+     * Updates the {@link Status} and {@link Commit} data on an {@link Engagement}.
+     * 
+     * @param hook
+     * @return
+     */
     public Engagement updateStatusAndCommits(Hook hook) {
         LOGGER.debug("Hook for {} {}", hook.getCustomerName(), hook.getEngagementName());
 
@@ -212,6 +289,13 @@ public class EngagementService {
         return persisted;
     }
 
+    /**
+     * Returns the {@link Engagement} using the namespace from the provided
+     * {@link Hook}.
+     * 
+     * @param hook
+     * @return
+     */
     Engagement getEngagementFromNamespace(Hook hook) {
         // Need the translated customer name if using special chars
         Engagement gitEngagement = gitApi.getEngagementByNamespace(hook.getProject().getPathWithNamespace());
@@ -351,26 +435,27 @@ public class EngagementService {
      */
     public void updateEngagementListInRepository(List<Engagement> engagementList) {
 
-        for(Engagement e : engagementList) {
+        for (Engagement e : engagementList) {
 
             // get current engagement from db
             String customerName = e.getCustomerName();
             String projectName = e.getProjectName();
             Optional<Engagement> optional = getByIdOrName(e);
-            if(optional.isPresent()) {
+            if (optional.isPresent()) {
 
                 Engagement persisted = optional.get();
 
                 // always update creation details if missing
-                Optional<CreationDetails> creationDetails = 
-                        (null == persisted.getCreationDetails()) ? 
-                                Optional.ofNullable(e.getCreationDetails()) : Optional.empty();
+                Optional<CreationDetails> creationDetails = (null == persisted.getCreationDetails())
+                        ? Optional.ofNullable(e.getCreationDetails())
+                        : Optional.empty();
 
                 // always update project id if missing
-                Optional<Integer> projectId = (null == persisted.getProjectId()) ? 
-                        Optional.ofNullable(e.getProjectId()) : Optional.empty();
+                Optional<Integer> projectId = (null == persisted.getProjectId()) ? Optional.ofNullable(e.getProjectId())
+                        : Optional.empty();
 
-                // reset action and commit message only if it has not changed since last push to git;
+                // reset action and commit message only if it has not changed since last push to
+                // git;
                 // otherwise, keep values to allow new changes to be pushed to git
                 boolean resetFlags = e.getLastUpdate().equals(persisted.getLastUpdate()) ? true : false;
 
@@ -483,11 +568,25 @@ public class EngagementService {
 
     }
 
+    /**
+     * Returns a {@link Launch} instance based on the current time.
+     * 
+     * @param launchedBy
+     * @param launchedByEmail
+     * @return
+     */
     Launch createLaunchInstance(String launchedBy, String launchedByEmail) {
         return Launch.builder().launchedDateTime(getZuluTimeAsString()).launchedBy(launchedBy)
                 .launchedByEmail(launchedByEmail).build();
     }
 
+    /**
+     * Returns true if {@link Launch} exists on provided {@link Engagement}.
+     * Otherwise, false.
+     * 
+     * @param engagement
+     * @return
+     */
     boolean isLaunched(Engagement engagement) {
         return null != engagement.getLaunch();
     }
