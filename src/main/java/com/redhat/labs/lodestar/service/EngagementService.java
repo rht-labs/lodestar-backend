@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Commit;
+import com.redhat.labs.lodestar.model.CreationDetails;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.FileAction;
 import com.redhat.labs.lodestar.model.Hook;
@@ -350,8 +351,34 @@ public class EngagementService {
      */
     public void updateEngagementListInRepository(List<Engagement> engagementList) {
 
-        // don't update last update already done as part of update
-        repository.update(engagementList);
+        for(Engagement e : engagementList) {
+
+            // get current engagement from db
+            String customerName = e.getCustomerName();
+            String projectName = e.getProjectName();
+            Optional<Engagement> optional = get(customerName, projectName);
+            if(optional.isPresent()) {
+
+                Engagement persisted = optional.get();
+
+                // always update creation details if missing
+                Optional<CreationDetails> creationDetails = 
+                        (null == persisted.getCreationDetails()) ? 
+                                Optional.ofNullable(e.getCreationDetails()) : Optional.empty();
+
+                // always update project id if missing
+                Optional<Integer> projectId = (null == persisted.getProjectId()) ? 
+                        Optional.ofNullable(e.getProjectId()) : Optional.empty();
+
+                // reset action and commit message only if it has not changed since last push to git;
+                // otherwise, keep values to allow new changes to be pushed to git
+                boolean resetFlags = e.getLastUpdate().equals(persisted.getLastUpdate()) ? true : false;
+
+                repository.updateEngagement(customerName, projectName, creationDetails, projectId, resetFlags);
+
+            }
+
+        }
 
     }
 

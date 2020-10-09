@@ -10,15 +10,18 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
+import org.eclipse.microprofile.rest.client.annotation.RegisterProvider;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 import org.jboss.resteasy.annotations.jaxrs.PathParam;
 
+import com.redhat.labs.lodestar.exception.mapper.LodeStarGitLabAPIServiceResponseMapper;
 import com.redhat.labs.lodestar.model.Commit;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.Status;
 import com.redhat.labs.lodestar.model.Version;
 
 @RegisterRestClient(configKey = "lodestar.gitlab.api")
+@RegisterProvider(value = LodeStarGitLabAPIServiceResponseMapper.class, priority = 50)
 public interface LodeStarGitLabAPIService {
 
     @GET
