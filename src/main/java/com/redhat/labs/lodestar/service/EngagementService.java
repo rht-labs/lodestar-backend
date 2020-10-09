@@ -356,7 +356,7 @@ public class EngagementService {
             // get current engagement from db
             String customerName = e.getCustomerName();
             String projectName = e.getProjectName();
-            Optional<Engagement> optional = get(customerName, projectName);
+            Optional<Engagement> optional = getByIdOrName(e);
             if(optional.isPresent()) {
 
                 Engagement persisted = optional.get();
