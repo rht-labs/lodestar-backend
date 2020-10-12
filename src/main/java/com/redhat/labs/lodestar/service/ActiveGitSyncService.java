@@ -32,6 +32,7 @@ public class ActiveGitSyncService {
     private final UUID uuid = UUID.randomUUID();
 
     private boolean active = false;
+    private boolean performedUuidCheck = false;
 
     /**
      * Check to see if application should take the active role for sync processes.
@@ -45,12 +46,6 @@ public class ActiveGitSyncService {
         LOGGER.debug("starting instance {}", uuid);
         // try to set active flag
         checkIfActive();
-
-        if(active) {
-            // check for null uuids only once
-            BackendEvent setUuidEvent = BackendEvent.createSetNullUuidRequestedEvent();
-            eventBus.sendAndForget(setUuidEvent.getEventType().getEventBusAddress(), setUuidEvent);
-        }
 
     }
 
@@ -148,6 +143,20 @@ public class ActiveGitSyncService {
             BackendEvent refreshDbEvent = BackendEvent.createDatabaseRefreshRequestedEvent();
             eventBus.sendAndForget(refreshDbEvent.getEventType().getEventBusAddress(), refreshDbEvent);
 
+        }
+
+    }
+
+    @Scheduled(every = "10s")
+    void checkForNullUuids() {
+
+        if(active && !performedUuidCheck) {
+            LOGGER.debug("producing set uuid event.");
+            // check for null uuids only once
+            BackendEvent setUuidEvent = BackendEvent.createSetNullUuidRequestedEvent();
+            eventBus.sendAndForget(setUuidEvent.getEventType().getEventBusAddress(), setUuidEvent);
+            // only need to do once
+            performedUuidCheck = true;
         }
 
     }

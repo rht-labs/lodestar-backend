@@ -45,7 +45,7 @@ public class EventService {
      */
     @ConsumeEvent(EventType.Constants.UPDATE_ENGAGEMENTS_IN_DB_REQUESTED_ADDRESS)
     void consumeUpdateEngagementsInDbRequestedEvent(BackendEvent event) {
-        engagementService.updateEngagementListInRepository(event.getEngagementList());
+        engagementService.updateProcessedEngagementListInRepository(event.getEngagementList());
     }
 
     /**
@@ -70,6 +70,7 @@ public class EventService {
      */
     @ConsumeEvent(EventType.Constants.SET_NULL_UUID_REQUESTED_ADDRESS)
     void consumeSetNullUuidRequestedEvent(BackendEvent event) {
+        LOGGER.debug("processing set uuid event.");
         engagementService.setNullUuids();
     }
 

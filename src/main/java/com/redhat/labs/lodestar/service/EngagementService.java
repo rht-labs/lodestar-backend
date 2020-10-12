@@ -42,6 +42,9 @@ public class EngagementService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EngagementService.class);
 
+    private static final String BACKEND_BOT = "lodestar-backend-bot";
+    private static final String BACKEND_BOT_EMAIL = "lodestar-backend-bot@bot.com";
+
     @ConfigProperty(name = "status.file")
     String statusFile;
 
@@ -181,12 +184,17 @@ public class EngagementService {
             return;
         }
 
-        // throw exception if names changed to match an existing project
-        if (null != getByCustomerAndProjectName(toUpdate.getCustomerName(), toUpdate.getProjectName())) {
-            throw new WebApplicationException("failed to change name(s).  engagement with customer name '"
-                    + toUpdate.getCustomerName() + "' and project '" + toUpdate.getProjectName() + "' already exists.",
-                    409);
+        try {
+            getByCustomerAndProjectName(toUpdate.getCustomerName(), toUpdate.getProjectName());
+        } catch (WebApplicationException wae) {
+            // return if not found
+            return;
         }
+
+        // throw exception if names changed to match an existing project
+        throw new WebApplicationException("failed to change name(s).  engagement with customer name '"
+                + toUpdate.getCustomerName() + "' and project '" + toUpdate.getProjectName() + "' already exists.",
+                409);
 
     }
 
@@ -433,7 +441,7 @@ public class EngagementService {
      * 
      * @param engagementList
      */
-    public void updateEngagementListInRepository(List<Engagement> engagementList) {
+    public void updateProcessedEngagementListInRepository(List<Engagement> engagementList) {
 
         for (Engagement e : engagementList) {
 
@@ -455,8 +463,7 @@ public class EngagementService {
                         : Optional.empty();
 
                 // reset action and commit message only if it has not changed since last push to
-                // git;
-                // otherwise, keep values to allow new changes to be pushed to git
+                // git; otherwise, keep values to allow new changes to be pushed to git
                 boolean resetFlags = e.getLastUpdate().equals(persisted.getLastUpdate()) ? true : false;
 
                 repository.updateEngagement(customerName, projectName, creationDetails, projectId, resetFlags);
@@ -474,14 +481,16 @@ public class EngagementService {
      */
     public void setNullUuids() {
 
+        LOGGER.debug("{} with null uuids", repository.findByNullUuid().size());
         // get all engagements with null UUID
-        List<Engagement> engagementList = repository.findByNullUuid().stream().map(e -> {
+        repository.findByNullUuid().stream().map(e -> {
             setEngagementAction(e, FileAction.update);
             e.setUuid(UUID.randomUUID().toString());
+            Optional<Engagement> o = repository.updateUuidForEngagement(e.getCustomerName(), e.getProjectName(),
+                    e.getUuid(), FileAction.update.name(), BACKEND_BOT, BACKEND_BOT_EMAIL);
+            LOGGER.debug("optional after uuid update {}", o);
             return e;
-        }).collect(Collectors.toList());
-
-        updateEngagementListInRepository(engagementList);
+        });
 
     }
 
