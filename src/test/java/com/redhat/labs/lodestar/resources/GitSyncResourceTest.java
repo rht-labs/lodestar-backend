@@ -208,6 +208,7 @@ public class GitSyncResourceTest {
         engagement.setCustomerName("AnotherTestCustomer");
         engagement.setProjectName("AnotherTestProject");
         engagement.setDescription(SCENARIO.SUCCESS.getValue());
+        engagement.setOcpSubDomain("");
         body = quarkusJsonb.toJson(engagement);
 
         // POST engagement - create
