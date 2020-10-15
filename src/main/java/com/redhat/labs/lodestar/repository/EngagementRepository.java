@@ -61,6 +61,10 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
         return find("action", action).list();
     }
 
+    public Optional<Engagement> findBySubdomain(String subdomain) {
+        return find("ocpSubDomain", subdomain).firstResultOptional();
+    }
+
     public List<Engagement> findByModified() {
         return find("action is not null").list();
     }
@@ -86,15 +90,13 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
      */
     public List<Category> findCategorySuggestions(String input) {
 
-        Iterable<Category> iterable =
-            mongoCollection().aggregate(Arrays.asList(
-                    unwind("$categories"),
-                    match(regex("categories.name", String.format("(?i)%s", input))),
-                    addFields(new Field<>("categories.lower_name", new Document("$toLower", "$categories.name"))),
-                    group("$categories.lower_name", Accumulators.sum("count", 1)),
-                    project(new Document("_id", 0).append("name", "$_id").append("count", "$count")),
-                    sort(Sorts.descending("count"))
-                    ), Category.class);
+        Iterable<Category> iterable = mongoCollection().aggregate(
+                Arrays.asList(unwind("$categories"), match(regex("categories.name", String.format("(?i)%s", input))),
+                        addFields(new Field<>("categories.lower_name", new Document("$toLower", "$categories.name"))),
+                        group("$categories.lower_name", Accumulators.sum("count", 1)),
+                        project(new Document("_id", 0).append("name", "$_id").append("count", "$count")),
+                        sort(Sorts.descending("count"))),
+                Category.class);
 
         return StreamSupport.stream(iterable.spliterator(), false).collect(Collectors.toList());
 
@@ -107,14 +109,11 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
      */
     public List<Category> findAllCategoryWithCounts() {
 
-        Iterable<Category> iterable =
-            mongoCollection().aggregate(Arrays.asList(
-                    unwind("$categories"),
-                    addFields(new Field<>("categories.lower_name", new Document("$toLower", "$categories.name"))),
-                    group("$categories.lower_name", Accumulators.sum("count", 1)),
-                    project(new Document("_id", 0).append("name", "$_id").append("count", "$count")),
-                    sort(Sorts.descending("count"))
-                    ), Category.class);
+        Iterable<Category> iterable = mongoCollection().aggregate(Arrays.asList(unwind("$categories"),
+                addFields(new Field<>("categories.lower_name", new Document("$toLower", "$categories.name"))),
+                group("$categories.lower_name", Accumulators.sum("count", 1)),
+                project(new Document("_id", 0).append("name", "$_id").append("count", "$count")),
+                sort(Sorts.descending("count"))), Category.class);
 
         return StreamSupport.stream(iterable.spliterator(), false).collect(Collectors.toList());
 
@@ -129,17 +128,18 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
     public List<String> findArtifactTypeSuggestions(String input) {
 
         // get all types that match the input string
-        Iterable<Artifact> iterable =
-            mongoCollection().aggregate(Arrays.asList(
-                    unwind("$artifacts"),
-                    match(regex("artifacts.type", String.format("(?i)%s", input))),
-                    addFields(new Field<>("artifacts.lower_type", new Document("$toLower", "$artifacts.type"))),
-                    group("$artifacts.lower_type"),
-                    project(new Document().append("type", "$_id")),
-                    sort(Sorts.ascending("type"))
-                    ), Artifact.class);
+        Iterable<Artifact> iterable = mongoCollection()
+                .aggregate(
+                        Arrays.asList(unwind("$artifacts"),
+                                match(regex("artifacts.type", String.format("(?i)%s", input))),
+                                addFields(new Field<>("artifacts.lower_type",
+                                        new Document("$toLower", "$artifacts.type"))),
+                                group("$artifacts.lower_type"), project(new Document().append("type", "$_id")),
+                                sort(Sorts.ascending("type"))),
+                        Artifact.class);
 
-        return StreamSupport.stream(iterable.spliterator(), false).map(artifact -> artifact.getType()).collect(Collectors.toList());
+        return StreamSupport.stream(iterable.spliterator(), false).map(artifact -> artifact.getType())
+                .collect(Collectors.toList());
 
     }
 
@@ -151,22 +151,23 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
     public List<String> findAllArtifactTypes() {
 
         // get all unique artifact types
-        Iterable<Artifact> iterable =
-            mongoCollection().aggregate(Arrays.asList(
-                    unwind("$artifacts"),
-                    addFields(new Field<>("artifacts.lower_type", new Document("$toLower", "$artifacts.type"))),
-                    group("$artifacts.lower_type"),
-                    project(new Document().append("type", "$_id")),
-                    sort(Sorts.ascending("type"))
-                    ), Artifact.class);
+        Iterable<Artifact> iterable = mongoCollection()
+                .aggregate(
+                        Arrays.asList(unwind("$artifacts"),
+                                addFields(new Field<>("artifacts.lower_type",
+                                        new Document("$toLower", "$artifacts.type"))),
+                                group("$artifacts.lower_type"), project(new Document().append("type", "$_id")),
+                                sort(Sorts.ascending("type"))),
+                        Artifact.class);
 
-        return StreamSupport.stream(iterable.spliterator(), false).map(artifact -> artifact.getType()).collect(Collectors.toList());
+        return StreamSupport.stream(iterable.spliterator(), false).map(artifact -> artifact.getType())
+                .collect(Collectors.toList());
 
     }
 
     /**
-     * Find {@link Engagement} with a {@link Category} name that matches the
-     * given {@link String}.
+     * Find {@link Engagement} with a {@link Category} name that matches the given
+     * {@link String}.
      * 
      * @param name
      * @param matchCase

@@ -96,6 +96,8 @@ public class EngagementService {
             throw new ResourceAlreadyExistsException("engagement already exists.  use PUT to update resource.");
         }
 
+        validateSubdomain("", engagement.getOcpSubDomain());
+
         // set modified info
         engagement.setAction(FileAction.create);
 
@@ -128,6 +130,8 @@ public class EngagementService {
 
         // set modified if already marked for modification
         Engagement persisted = optional.get();
+
+        validateSubdomain(persisted.getOcpSubDomain(), engagement.getOcpSubDomain());
 
         // mark as updated, if action not already assigned
         engagement.setAction((null != persisted.getAction()) ? persisted.getAction() : FileAction.update);
@@ -167,6 +171,30 @@ public class EngagementService {
 
         return optional.get();
 
+    }
+
+    /**
+     * Throws a {@link WebApplicationException} if the subdomain has changed and
+     * there is already an {@link Engagement} that has the subdomain
+     * 
+     * @param subdomain
+     */
+    void validateSubdomain(String currentSubdomain, String subdomain) {
+
+        if (subdomain.equals("")) {
+            return;
+        }
+
+        if (currentSubdomain.equals(subdomain)) {
+            return;
+        }
+        if (repository.findBySubdomain(subdomain).isEmpty()) {
+            return;
+        }
+
+        throw new WebApplicationException(
+                "failed to change the subdomain, the subdomain is being used by another engagement.",
+                HttpStatus.SC_CONFLICT);
     }
 
     // Status comes from gitlab so it does not need to to be sync'd
@@ -334,26 +362,27 @@ public class EngagementService {
      */
     void updateEngagementListInRepository(List<Engagement> engagementList) {
 
-        for(Engagement e : engagementList) {
+        for (Engagement e : engagementList) {
 
             // get current engagement from db
             String customerName = e.getCustomerName();
             String projectName = e.getProjectName();
             Optional<Engagement> optional = get(customerName, projectName);
-            if(optional.isPresent()) {
+            if (optional.isPresent()) {
 
                 Engagement persisted = optional.get();
 
                 // always update creation details if missing
-                Optional<CreationDetails> creationDetails = 
-                        (null == persisted.getCreationDetails()) ? 
-                                Optional.ofNullable(e.getCreationDetails()) : Optional.empty();
+                Optional<CreationDetails> creationDetails = (null == persisted.getCreationDetails())
+                        ? Optional.ofNullable(e.getCreationDetails())
+                        : Optional.empty();
 
                 // always update project id if missing
-                Optional<Integer> projectId = (null == persisted.getProjectId()) ? 
-                        Optional.ofNullable(e.getProjectId()) : Optional.empty();
+                Optional<Integer> projectId = (null == persisted.getProjectId()) ? Optional.ofNullable(e.getProjectId())
+                        : Optional.empty();
 
-                // reset action and commit message only if it has not changed since last push to git;
+                // reset action and commit message only if it has not changed since last push to
+                // git;
                 // otherwise, keep values to allow new changes to be pushed to git
                 boolean resetFlags = e.getLastUpdate().equals(persisted.getLastUpdate()) ? true : false;
 
