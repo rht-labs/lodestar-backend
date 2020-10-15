@@ -57,6 +57,10 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
         return find("customerName=?1 and projectName=?2", customerName, projectName).firstResultOptional();
     }
 
+    public Optional<Engagement> findBySubdomain(String subdomain) {
+        return find("ocpSubDomain", subdomain).firstResultOptional();
+    }
+
     public List<Engagement> findByModifiedAndAction(FileAction action) {
         return find("action", action).list();
     }

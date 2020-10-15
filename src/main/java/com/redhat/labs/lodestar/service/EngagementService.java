@@ -75,6 +75,8 @@ public class EngagementService {
 
         cleanEngagement(engagement);
 
+        validateSubdomain("", engagement.getOcpSubDomain());
+
         if (getByIdOrName(engagement).isPresent()) {
             throw new WebApplicationException("engagement already exists, use PUT to update resource",
                     HttpStatus.SC_CONFLICT);
@@ -152,6 +154,8 @@ public class EngagementService {
                 () -> new WebApplicationException("no engagement found, use POST to create", HttpStatus.SC_NOT_FOUND));
 
         validateCustomerAndProjectNames(engagement, existing);
+        validateSubdomain(existing.getOcpSubDomain(), engagement.getOcpSubDomain());
+
         setBeforeUpdate(engagement);
         String currentLastUpdated = setLastUpdate(existing);
         boolean skipLaunch = skipLaunch(engagement);
@@ -166,6 +170,30 @@ public class EngagementService {
 
         return updated;
 
+    }
+
+    /**
+     * Throws a {@link WebApplicationException} if the subdomain has changed and
+     * there is already an {@link Engagement} that has the subdomain
+     * 
+     * @param subdomain
+     */
+    void validateSubdomain(String currentSubdomain, String subdomain) {
+
+        if (subdomain.equals("")) {
+            return;
+        }
+
+        if (currentSubdomain.equals(subdomain)) {
+            return;
+        }
+        if (repository.findBySubdomain(subdomain).isEmpty()) {
+            return;
+        }
+
+        throw new WebApplicationException(
+                "failed to change the subdomain, the subdomain is being used by another engagement.",
+                HttpStatus.SC_CONFLICT);
     }
 
     /**

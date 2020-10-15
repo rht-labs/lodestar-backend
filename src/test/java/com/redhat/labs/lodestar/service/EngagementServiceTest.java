@@ -20,28 +20,31 @@ import io.quarkus.test.junit.QuarkusTest;
 @QuarkusTest
 class EngagementServiceTest {
 
-	
 	@Inject
 	EngagementService engagementService;
-	
-	@Test void testUpdateStatusInvalidProject() {
-		Hook hook = Hook.builder().project(GitlabProject.builder().pathWithNamespace("/nope/nada/iac").nameWithNamespace("/ nope / nada / iac").build()).build();
-		
-		Exception ex = assertThrows(WebApplicationException.class, ()-> {
+
+	@Test
+	void testUpdateStatusInvalidProject() {
+		Hook hook = Hook.builder().project(
+				GitlabProject.builder().pathWithNamespace("/nope/nada/iac").nameWithNamespace("/ nope / nada / iac").build())
+				.build();
+
+		Exception ex = assertThrows(WebApplicationException.class, () -> {
 			engagementService.updateStatusAndCommits(hook);
 		});
-		
+
 		assertEquals("no engagement found. unable to update from hook.", ex.getMessage());
 	}
-	
-	@Test void testAlreadyLaunched() {
+
+	@Test
+	void testAlreadyLaunched() {
 		Engagement engagement = Engagement.builder().launch(Launch.builder().build()).build();
-		
-		Exception ex = assertThrows(WebApplicationException.class, ()-> {
+
+		Exception ex = assertThrows(WebApplicationException.class, () -> {
 			engagementService.launch(engagement);
 		});
-		
+
 		assertEquals("engagement has already been launched.", ex.getMessage());
 	}
-	
+
 }
