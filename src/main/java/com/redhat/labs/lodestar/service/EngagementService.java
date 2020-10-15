@@ -75,7 +75,7 @@ public class EngagementService {
 
         cleanEngagement(engagement);
 
-        validateSubdomain("", engagement.getOcpSubDomain());
+        validateSubdomain("", engagement.getOcpSubDomain()); 
 
         if (getByIdOrName(engagement).isPresent()) {
             throw new WebApplicationException("engagement already exists, use PUT to update resource",

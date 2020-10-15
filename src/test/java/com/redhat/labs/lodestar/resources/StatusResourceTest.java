@@ -34,7 +34,7 @@ public class StatusResourceTest {
     
     @BeforeEach
     public void seed() {
-        Engagement engagement = Engagement.builder().customerName("jello").projectName("exists").build();
+        Engagement engagement = Engagement.builder().customerName("jello").projectName("exists").ocpSubDomain("").build();
         engagementService.create(engagement);
     }
     
