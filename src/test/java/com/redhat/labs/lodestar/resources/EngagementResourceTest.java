@@ -514,6 +514,39 @@ public class EngagementResourceTest {
                 .statusCode(400);
 
     }
+    @Test
+    void testReturnOkIfSubdomainExists() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        String subdomain = "asuperrandomsubdomain";
+
+        given().when().auth().oauth2(token).head(String.format("/engagements/subdomain/%s", subdomain)).then()
+                .statusCode(200);
+
+    }
+
+    @Test
+    void testReturnConflictIfSubdomainExists() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Engagement engagement = mockEngagement();
+        String subdomain = "asuperrandomsubdomain";
+        engagement.setProjectName("aRandomProjectName");
+        engagement.setOcpSubDomain(subdomain);
+
+
+        String body = quarkusJsonb.toJson(engagement);
+
+        given().when().auth().oauth2(token).body(body).contentType(ContentType.JSON).post("/engagements").then()
+                .statusCode(201);
+        given().when().auth().oauth2(token).head(String.format("/engagements/subdomain/%s", subdomain)).then()
+                .statusCode(409);
+
+    }
 
     @Test
     void testEngagementWithSubdomainAlreadyExists() throws Exception {
@@ -1419,7 +1452,7 @@ public class EngagementResourceTest {
         // create engagements with categories
         mockEngagementsWithCategories().stream()
             .forEach(e -> {
-                e.setOcpSubDomain("");
+                e.setOcpSubDomain(null);
 
                 String body = quarkusJsonb.toJson(e);
 
@@ -1505,7 +1538,7 @@ public class EngagementResourceTest {
         mockEngagementWithArtifacts().stream()
             .forEach(e -> {
 
-                e.setOcpSubDomain("");
+                e.setOcpSubDomain(null);
                 String body = quarkusJsonb.toJson(e);
 
                 given()

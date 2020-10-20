@@ -95,8 +95,11 @@ public class EngagementService {
         if (optional.isPresent()) {
             throw new ResourceAlreadyExistsException("engagement already exists.  use PUT to update resource.");
         }
-
-        validateSubdomain("", engagement.getOcpSubDomain());
+        String subdomain = engagement.getOcpSubDomain();
+        if (doesSubdomainExist(engagement.getOcpSubDomain())) {
+            throw new ResourceAlreadyExistsException(
+                    String.format("The requested subdomain, %s, is already in use", subdomain));
+        }
 
         // set modified info
         engagement.setAction(FileAction.create);
@@ -131,7 +134,12 @@ public class EngagementService {
         // set modified if already marked for modification
         Engagement persisted = optional.get();
 
-        validateSubdomain(persisted.getOcpSubDomain(), engagement.getOcpSubDomain());
+        String subdomain = engagement.getOcpSubDomain();
+        if (subdomain != null && !subdomain.equalsIgnoreCase(persisted.getOcpSubDomain())
+                && doesSubdomainExist(subdomain)) {
+            throw new ResourceAlreadyExistsException(
+                    String.format("The requested subdomain, %s, is already in use", subdomain));
+        }
 
         // mark as updated, if action not already assigned
         engagement.setAction((null != persisted.getAction()) ? persisted.getAction() : FileAction.update);
@@ -179,22 +187,21 @@ public class EngagementService {
      * 
      * @param subdomain
      */
-    void validateSubdomain(String currentSubdomain, String subdomain) {
-
-        if (subdomain.equals("")) {
-            return;
+    boolean doesSubdomainExist(String subdomain) {
+        if (subdomain == null) {
+            return false;
         }
 
-        if (currentSubdomain.equals(subdomain)) {
-            return;
+        if (subdomain.isBlank()) {
+            return false;
         }
+
         if (repository.findBySubdomain(subdomain).isEmpty()) {
-            return;
+            return false;
+        } else {
+            return true;
         }
 
-        throw new WebApplicationException(
-                "failed to change the subdomain, the subdomain is being used by another engagement.",
-                HttpStatus.SC_CONFLICT);
     }
 
     // Status comes from gitlab so it does not need to to be sync'd
@@ -233,6 +240,10 @@ public class EngagementService {
             throw new ResourceNotFoundException("no engagement found. unable to update from hook.");
         }
         return optional;
+    }
+
+    public Optional<Engagement> getBySubdomain(String subdomain) {
+        return repository.findBySubdomain(subdomain);
     }
 
     /**

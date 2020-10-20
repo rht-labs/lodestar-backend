@@ -47,7 +47,7 @@ public class GitSyncResourceTest {
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
         Engagement engagement = mockEngagement();
-        engagement.setOcpSubDomain("");
+        engagement.setOcpSubDomain(null);
         engagement.setDescription(SCENARIO.SUCCESS.getValue());
 
         String body = quarkusJsonb.toJson(engagement);
@@ -86,7 +86,7 @@ public class GitSyncResourceTest {
 
         // update description
         created.setDescription("updated");
-        created.setOcpSubDomain("");
+        created.setOcpSubDomain(null);
 
         body = quarkusJsonb.toJson(created);
 
@@ -210,7 +210,7 @@ public class GitSyncResourceTest {
         engagement.setCustomerName("AnotherTestCustomer");
         engagement.setProjectName("AnotherTestProject");
         engagement.setDescription(SCENARIO.SUCCESS.getValue());
-        engagement.setOcpSubDomain("");
+        engagement.setOcpSubDomain(null);
         body = quarkusJsonb.toJson(engagement);
 
         // POST engagement - create
