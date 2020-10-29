@@ -5,6 +5,8 @@
 bin/
 .env
 
+.factorypath
+
 # IntelliJ
 .idea
 *.ipr
