@@ -25,6 +25,7 @@ import lombok.NoArgsConstructor;
 @EqualsAndHashCode(callSuper = true)
 public class Engagement extends PanacheMongoEntityBase {
 
+    private String uuid;
     // Mongo DB generated ID
     @BsonId
     @JsonbProperty("mongo_id")

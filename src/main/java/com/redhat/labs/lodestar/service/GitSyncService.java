@@ -2,6 +2,7 @@ package com.redhat.labs.lodestar.service;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -77,6 +78,8 @@ public class GitSyncService {
      */
     private void processModifiedEvents(List<Engagement> engagementList) {
 
+        List<Engagement> processed = new ArrayList<>();
+
         for (Engagement engagement : engagementList) {
 
             if (LOGGER.isDebugEnabled()) {
@@ -97,6 +100,9 @@ public class GitSyncService {
                     updateIdFromResponse(engagement, response);
                 }
 
+                // add to processed list if successful
+                processed.add(engagement);
+
             } catch (WebApplicationException e) {
                 // rest call returned and 400 or above http code
                 LOGGER.error(
@@ -109,7 +115,7 @@ public class GitSyncService {
         }
 
         // send event to update in db
-        BackendEvent updateInDbEvent = BackendEvent.createUpdateEngagementsInDbRequestedEvent(engagementList);
+        BackendEvent updateInDbEvent = BackendEvent.createUpdateEngagementsInDbRequestedEvent(processed);
         eventBus.sendAndForget(updateInDbEvent.getEventType().getEventBusAddress(), updateInDbEvent);
 
     }
