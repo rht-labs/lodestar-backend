@@ -31,7 +31,6 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 
-import com.redhat.labs.lodestar.exception.ResourceNotFoundException;
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.service.EngagementService;
@@ -83,13 +82,14 @@ public class EngagementResource {
     }
 
     @PUT
+    @Deprecated
     @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/customers/{customerName}/projects/{projectName}")
     @APIResponses(value = { 
             @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "404", description = "Engagement resource not found to update"),
             @APIResponse(responseCode = "200", description = "Engagement updated in the database") })
-    @Operation(summary = "Updates the engagement resource in the database.")
+    @Operation(deprecated = true, summary = "Updates the engagement resource in the database.")
     public Engagement put(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName,
             @Valid Engagement engagement) {
 
@@ -97,56 +97,47 @@ public class EngagementResource {
         engagement.setLastUpdateByName(getUsernameFromToken());
         engagement.setLastUpdateByEmail(getUserEmailFromToken());
 
-        return engagementService.update(customerName, projectName, engagement);
+        return engagementService.update(engagement);
 
     }
 
     @GET
+    @Deprecated
     @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/customers/{customerName}/projects/{projectName}")
     @APIResponses(value = { 
             @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "404", description = "Engagement resource with customer and project names does not exist"),
             @APIResponse(responseCode = "200", description = "Engagement resource found and returned") })
-    @Operation(summary = "Returns the engagement resource for the given customer and project names.")
+    @Operation(deprecated = true, summary = "Returns the engagement resource for the given customer and project names.")
     public Response get(@PathParam("customerName") String customerName,
             @PathParam("projectName") String projectName) {
 
-        Optional<Engagement> optional = engagementService.get(customerName, projectName);
-
-        if (optional.isPresent()) {
-            Engagement engagement = optional.get();
-            return Response.ok(engagement)
-                    .header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
-                    .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER)
-                    .build();
-        }
-
-        throw new ResourceNotFoundException("no resource found.");
+        Engagement engagement = engagementService.getByCustomerAndProjectName(customerName, projectName);
+        return Response.ok(engagement)
+                .header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
+                .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER)
+                .build();
 
     }
 
     @HEAD
+    @Deprecated
     @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/customers/{customerName}/projects/{projectName}")
     @APIResponses(value = { 
             @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "404", description = "Engagement resource with customer and project names does not exist"),
             @APIResponse(responseCode = "200", description = "Engagement resource found and metadata returned in headers") })
-    @Operation(summary = "Returns metadata regarding the engagement resource for the given customer and project names.")
+    @Operation(deprecated = true, summary = "Returns metadata regarding the engagement resource for the given customer and project names.")
     public Response head(@PathParam("customerName") String customerName,
             @PathParam("projectName") String projectName) {
 
-        Optional<Engagement> optional = engagementService.get(customerName, projectName);
-
-        if (optional.isPresent()) {
-            return Response.ok()
-                    .header(LAST_UPDATE_HEADER, optional.get().getLastUpdate())
-                    .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER)
-                    .build();
-        }
-
-        throw new ResourceNotFoundException("no resource found.");
+        Engagement engagement = engagementService.getByCustomerAndProjectName(customerName, projectName);
+        return Response.ok()
+                .header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
+                .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER)
+                .build();
 
     }
 
@@ -209,7 +200,8 @@ public class EngagementResource {
         engagement.setLastUpdateByName(getUsernameFromToken());
         engagement.setLastUpdateByEmail(getUserEmailFromToken());
 
-        return engagementService.launch(engagement);
+        engagementService.launch(engagement);
+        return engagement;
 
     }
 
@@ -225,6 +217,60 @@ public class EngagementResource {
         // start the sync process
         engagementService.syncGitToDatabase((null == purgeFirst) ? false : purgeFirst);
         return Response.accepted().build();
+
+    }
+
+    @GET
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @Path("/{id}")
+    @APIResponses(value = { 
+            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "404", description = "Engagement resource with id does not exist"),
+            @APIResponse(responseCode = "200", description = "Engagement resource found and returned") })
+    @Operation(summary = "Returns the engagement resource for the given id.")
+    public Response get(@PathParam("id") String uuid) {
+
+        Engagement engagement = engagementService.getByUuid(uuid);
+        return Response.ok(engagement)
+                .header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
+                .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER)
+                .build();
+
+    }
+
+    @HEAD
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @Path("/{id}")
+    @APIResponses(value = { 
+            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "404", description = "Engagement resource with customer and project names does not exist"),
+            @APIResponse(responseCode = "200", description = "Engagement resource found and metadata returned in headers") })
+    @Operation(summary = "Returns metadata regarding the engagement resource for the given customer and project names.")
+    public Response head(@PathParam("id") String uuid) {
+
+        Engagement engagement = engagementService.getByUuid(uuid);
+        return Response.ok()
+                .header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
+                .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER)
+                .build();
+
+    }
+
+    @PUT
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @Path("/{id}")
+    @APIResponses(value = { 
+            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "404", description = "Engagement resource not found to update"),
+            @APIResponse(responseCode = "200", description = "Engagement updated in the database") })
+    @Operation(summary = "Updates the engagement resource in the database.")
+    public Engagement put(@PathParam("id") String uuid, @Valid Engagement engagement) {
+
+        // pull user info from token
+        engagement.setLastUpdateByName(getUsernameFromToken());
+        engagement.setLastUpdateByEmail(getUserEmailFromToken());
+
+        return engagementService.update(engagement);
 
     }
 

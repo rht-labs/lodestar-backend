@@ -4,11 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import javax.inject.Inject;
+import javax.ws.rs.WebApplicationException;
 
 import org.junit.jupiter.api.Test;
 
-import com.redhat.labs.lodestar.exception.InvalidRequestException;
-import com.redhat.labs.lodestar.exception.ResourceNotFoundException;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.GitlabProject;
 import com.redhat.labs.lodestar.model.Hook;
@@ -28,7 +27,7 @@ class EngagementServiceTest {
 	@Test void testUpdateStatusInvalidProject() {
 		Hook hook = Hook.builder().project(GitlabProject.builder().pathWithNamespace("/nope/nada/iac").nameWithNamespace("/ nope / nada / iac").build()).build();
 		
-		Exception ex = assertThrows(ResourceNotFoundException.class, ()-> {
+		Exception ex = assertThrows(WebApplicationException.class, ()-> {
 			engagementService.updateStatusAndCommits(hook);
 		});
 		
@@ -38,7 +37,7 @@ class EngagementServiceTest {
 	@Test void testAlreadyLaunched() {
 		Engagement engagement = Engagement.builder().launch(Launch.builder().build()).build();
 		
-		Exception ex = assertThrows(InvalidRequestException.class, ()-> {
+		Exception ex = assertThrows(WebApplicationException.class, ()-> {
 			engagementService.launch(engagement);
 		});
 		
