@@ -215,11 +215,11 @@ public class EngagementService {
 
             // get existing message
             String existingMessage = existing.getCommitMessage();
-            LOGGER.warn("has existing commit message: ", existingMessage);
+
             // if another message on current request, append to existing message
             String message = (null == engagement.getCommitMessage()) ? existingMessage
                     : new StringBuilder(existingMessage).append("\n\n").append(engagement.getCommitMessage()).toString();
-LOGGER.warn("updated commit message: ", message);
+
             // set the message on the engagement before persisting
             engagement.setCommitMessage(message);
 
