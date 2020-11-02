@@ -152,9 +152,9 @@ public class EngagementService {
                 () -> new WebApplicationException("no engagement found, use POST to create", HttpStatus.SC_NOT_FOUND));
 
         validateCustomerAndProjectNames(engagement, existing);
-        setBeforeUpdate(engagement);
+        setBeforeUpdate(engagement, existing);
         String currentLastUpdated = setLastUpdate(existing);
-        boolean skipLaunch = skipLaunch(engagement);
+        boolean skipLaunch = skipLaunch(existing);
 
         Engagement updated = repository.updateEngagementIfLastUpdateMatched(engagement, currentLastUpdated, skipLaunch)
                 .orElseThrow(() -> new WebApplicationException(
@@ -203,22 +203,23 @@ public class EngagementService {
      * the data store.
      * 
      * @param engagement
+     * @param existing
      */
-    void setBeforeUpdate(Engagement engagement) {
+    void setBeforeUpdate(Engagement engagement, Engagement existing) {
 
         // mark as updated, if action not already assigned
         setEngagementAction(engagement, FileAction.update);
 
         // aggregate commit messages if already set
-        if (null != engagement.getCommitMessage()) {
+        if (null != existing.getCommitMessage()) {
 
             // get existing message
-            String existing = engagement.getCommitMessage();
-
+            String existingMessage = existing.getCommitMessage();
+            LOGGER.warn("has existing commit message: ", existingMessage);
             // if another message on current request, append to existing message
-            String message = (null == engagement.getCommitMessage()) ? existing
-                    : new StringBuilder(existing).append("\n\n").append(engagement.getCommitMessage()).toString();
-
+            String message = (null == engagement.getCommitMessage()) ? existingMessage
+                    : new StringBuilder(existingMessage).append("\n\n").append(engagement.getCommitMessage()).toString();
+LOGGER.warn("updated commit message: ", message);
             // set the message on the engagement before persisting
             engagement.setCommitMessage(message);
 
