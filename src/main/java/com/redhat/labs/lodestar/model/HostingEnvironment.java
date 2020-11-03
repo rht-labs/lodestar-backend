@@ -11,10 +11,13 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class HostingProvider {
+public class HostingEnvironment {
 
   @JsonbProperty("id")
   private String id;
+
+  @JsonbProperty("environment_name")
+  private String environmentName;
 
   @JsonbProperty("additional_details")
   private String additionalDetails;

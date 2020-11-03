@@ -58,6 +58,8 @@ public class Engagement extends PanacheMongoEntityBase {
     private String customerContactName;
     @JsonbProperty("customer_contact_email")
     private String customerContactEmail;
+    @JsonbProperty("hosting_environments")
+    private List<HostingEnvironment> hostingEnvironments;
     @JsonbProperty("ocp_cloud_provider_name")
     private String ocpCloudProviderName;
     @JsonbProperty("ocp_cloud_provider_region")
