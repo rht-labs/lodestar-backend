@@ -484,13 +484,12 @@ public class EngagementService {
 
         LOGGER.debug("{} with null uuids", repository.findByNullUuid().size());
         // get all engagements with null UUID
-        repository.findByNullUuid().stream().map(e -> {
+        repository.findByNullUuid().stream().forEach(e -> {
             setEngagementAction(e, FileAction.update);
             e.setUuid(UUID.randomUUID().toString());
             Optional<Engagement> o = repository.updateUuidForEngagement(e.getCustomerName(), e.getProjectName(),
                     e.getUuid(), FileAction.update.name(), BACKEND_BOT, BACKEND_BOT_EMAIL);
             LOGGER.debug("optional after uuid update {}", o);
-            return e;
         });
 
     }
