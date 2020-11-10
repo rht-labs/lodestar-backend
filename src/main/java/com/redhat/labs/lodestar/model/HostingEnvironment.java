@@ -37,4 +37,7 @@ public class HostingEnvironment {
   @JsonbProperty("ocp_version")
   private String ocpVersion;
 
+  @JsonbProperty("ocp_cluster_size")
+  private String ocpClusterSize;
+
 }
