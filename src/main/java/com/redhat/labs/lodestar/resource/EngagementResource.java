@@ -60,8 +60,7 @@ public class EngagementResource {
 
     @POST
     @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = { 
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "409", description = "Engagement resource already exists"),
             @APIResponse(responseCode = "201", description = "Engagement stored in database") })
     @Operation(summary = "Creates the engagement resource in the database.")
@@ -85,8 +84,7 @@ public class EngagementResource {
     @Deprecated
     @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/customers/{customerName}/projects/{projectName}")
-    @APIResponses(value = { 
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "404", description = "Engagement resource not found to update"),
             @APIResponse(responseCode = "200", description = "Engagement updated in the database") })
     @Operation(deprecated = true, summary = "Updates the engagement resource in the database.")
@@ -105,19 +103,15 @@ public class EngagementResource {
     @Deprecated
     @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/customers/{customerName}/projects/{projectName}")
-    @APIResponses(value = { 
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "404", description = "Engagement resource with customer and project names does not exist"),
             @APIResponse(responseCode = "200", description = "Engagement resource found and returned") })
     @Operation(deprecated = true, summary = "Returns the engagement resource for the given customer and project names.")
-    public Response get(@PathParam("customerName") String customerName,
-            @PathParam("projectName") String projectName) {
+    public Response get(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName) {
 
         Engagement engagement = engagementService.getByCustomerAndProjectName(customerName, projectName);
-        return Response.ok(engagement)
-                .header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
-                .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER)
-                .build();
+        return Response.ok(engagement).header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
+                .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER).build();
 
     }
 
@@ -125,26 +119,21 @@ public class EngagementResource {
     @Deprecated
     @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/customers/{customerName}/projects/{projectName}")
-    @APIResponses(value = { 
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "404", description = "Engagement resource with customer and project names does not exist"),
             @APIResponse(responseCode = "200", description = "Engagement resource found and metadata returned in headers") })
     @Operation(deprecated = true, summary = "Returns metadata regarding the engagement resource for the given customer and project names.")
-    public Response head(@PathParam("customerName") String customerName,
-            @PathParam("projectName") String projectName) {
+    public Response head(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName) {
 
         Engagement engagement = engagementService.getByCustomerAndProjectName(customerName, projectName);
-        return Response.ok()
-                .header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
-                .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER)
-                .build();
+        return Response.ok().header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
+                .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER).build();
 
     }
 
     @GET
     @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = { 
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "A list or empty list of engagement resources returned") })
     @Operation(summary = "Returns all engagement resources from the database.  Can be empty list if none found.")
     public List<Engagement> getAll(@QueryParam("categories") String categories) {
@@ -154,8 +143,7 @@ public class EngagementResource {
     @GET
     @Path("/customers/suggest")
     @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = { 
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "Customer data has been returned.") })
     @Operation(summary = "Returns customers list")
     public Response findCustomers(@NotBlank @QueryParam("suggest") String match) {
@@ -168,8 +156,7 @@ public class EngagementResource {
     @GET
     @Path("/categories")
     @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = { 
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "Customer data has been returned.") })
     @Operation(summary = "Returns customers list")
     public List<Category> getAllCategories(@QueryParam("suggest") String match) {
@@ -179,8 +166,7 @@ public class EngagementResource {
     @GET
     @Path("/artifact/types")
     @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = { 
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "Artifact types have been returned.") })
     @Operation(summary = "Returns artifact type list")
     public List<String> getArtifactTypes(@QueryParam("suggest") String match) {
@@ -190,8 +176,7 @@ public class EngagementResource {
     @PUT
     @Path("/launch")
     @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = { 
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "Launch data added to engagement resource and persisted to git") })
     @Operation(summary = "Adds launch data to the engagement resource and immediately persists it to git.")
     public Engagement launch(@Valid Engagement engagement) {
@@ -208,9 +193,8 @@ public class EngagementResource {
     @PUT
     @Path("/refresh")
     @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = {
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
-            @APIResponse(responseCode = "202", description = "The request was accepted and will be processed.")})
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "202", description = "The request was accepted and will be processed.") })
     @Operation(summary = "Refreshes database with data in git, purging first if the query paramater set to true.")
     public Response refresh(@QueryParam("purgeFirst") Boolean purgeFirst) {
 
@@ -223,44 +207,37 @@ public class EngagementResource {
     @GET
     @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/{id}")
-    @APIResponses(value = { 
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "404", description = "Engagement resource with id does not exist"),
             @APIResponse(responseCode = "200", description = "Engagement resource found and returned") })
     @Operation(summary = "Returns the engagement resource for the given id.")
     public Response get(@PathParam("id") String uuid) {
 
         Engagement engagement = engagementService.getByUuid(uuid);
-        return Response.ok(engagement)
-                .header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
-                .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER)
-                .build();
+        return Response.ok(engagement).header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
+                .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER).build();
 
     }
 
     @HEAD
     @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/{id}")
-    @APIResponses(value = { 
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "404", description = "Engagement resource with customer and project names does not exist"),
             @APIResponse(responseCode = "200", description = "Engagement resource found and metadata returned in headers") })
     @Operation(summary = "Returns metadata regarding the engagement resource for the given customer and project names.")
     public Response head(@PathParam("id") String uuid) {
 
         Engagement engagement = engagementService.getByUuid(uuid);
-        return Response.ok()
-                .header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
-                .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER)
-                .build();
+        return Response.ok().header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
+                .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER).build();
 
     }
 
     @PUT
     @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/{id}")
-    @APIResponses(value = { 
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "404", description = "Engagement resource not found to update"),
             @APIResponse(responseCode = "200", description = "Engagement updated in the database") })
     @Operation(summary = "Updates the engagement resource in the database.")
@@ -279,14 +256,14 @@ public class EngagementResource {
         // Use `name` claim first
         Optional<String> optional = claimIsValid(NAME_CLAIM);
 
-        if(optional.isPresent()) {
+        if (optional.isPresent()) {
             return optional.get();
         }
 
         // use `preferred_username` claim if `name` not valid
         optional = claimIsValid(PREFERRED_USERNAME_CLAIM);
 
-        if(optional.isPresent()) {
+        if (optional.isPresent()) {
             return optional.get();
         }
 
@@ -297,9 +274,9 @@ public class EngagementResource {
 
     private String getUserEmailFromToken() {
 
-        Optional<String >optional = claimIsValid(USER_EMAIL_CLAIM);
+        Optional<String> optional = claimIsValid(USER_EMAIL_CLAIM);
 
-        if(optional.isPresent()) {
+        if (optional.isPresent()) {
             return optional.get();
         }
 

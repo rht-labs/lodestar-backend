@@ -3,6 +3,9 @@
 .classpath
 .settings/
 bin/
+.env
+
+.factorypath
 
 # IntelliJ
 .idea
