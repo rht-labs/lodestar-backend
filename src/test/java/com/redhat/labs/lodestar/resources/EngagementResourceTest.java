@@ -1705,22 +1705,6 @@ public class EngagementResourceTest {
 
     }
 
-    List<EngagementUser> getUserList() {
-
-        EngagementUser one = createUser("bob", "smith", "developer", "bs@example.com");
-        EngagementUser two = createUser("tim", "jones", "developer", "tj@example.com");
-
-        // duplicate user - email already exists
-        EngagementUser three = createUser("bob", "smith", "admin", "bs@example.com");
-
-        return Arrays.asList(one, two, three);
-
-    }
-
-    EngagementUser createUser(String firstName, String lastName, String role, String email) {
-        return EngagementUser.builder().firstName(firstName).lastName(lastName).role(role).email(email).build();
-    }
-
     String addDupliateUsers(String engagementJson) throws ParseException {
 
         JSONParser jsonParser = new JSONParser();
