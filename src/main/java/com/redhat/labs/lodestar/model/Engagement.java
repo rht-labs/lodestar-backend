@@ -1,6 +1,7 @@
 package com.redhat.labs.lodestar.model;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.json.bind.annotation.JsonbProperty;
 import javax.json.bind.annotation.JsonbTransient;
@@ -78,7 +79,7 @@ public class Engagement extends PanacheMongoEntityBase {
     private String additionalDetails;
     private Launch launch;
     @JsonbProperty("engagement_users")
-    private List<EngagementUser> engagementUsers;
+    private Set<EngagementUser> engagementUsers;
 
     private Status status;
     private List<Commit> commits;
