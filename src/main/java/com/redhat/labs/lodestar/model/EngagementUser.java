@@ -25,4 +25,27 @@ public class EngagementUser {
     @NotBlank
     private String role;
 
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        EngagementUser other = (EngagementUser) obj;
+        if (email == null && other.email != null) {
+            return false;
+        }
+        return email.equals(other.email);
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((email == null) ? 0 : email.hashCode());
+        return result;
+    }
+
 }

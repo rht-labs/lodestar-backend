@@ -1,17 +1,19 @@
 package com.redhat.labs.lodestar.resources;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,11 +22,16 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.json.bind.Jsonb;
 
+import org.jose4j.json.internal.json_simple.JSONArray;
+import org.jose4j.json.internal.json_simple.JSONObject;
+import org.jose4j.json.internal.json_simple.parser.JSONParser;
+import org.jose4j.json.internal.json_simple.parser.ParseException;
 import org.junit.jupiter.api.Test;
 
 import com.redhat.labs.lodestar.model.Artifact;
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.model.EngagementUser;
 import com.redhat.labs.lodestar.rest.client.MockLodeStarGitLabAPIService.SCENARIO;
 import com.redhat.labs.lodestar.utils.EmbeddedMongoTest;
 import com.redhat.labs.lodestar.utils.TokenUtils;
@@ -596,6 +603,65 @@ public class EngagementResourceTest {
                 .put("/engagements/customers/" + engagement.getCustomerName() + "/projects/" + engagement.getProjectName())
             .then()
                 .statusCode(400);
+
+    }
+
+    @Test
+    void testPutEngagementWithAuthAndRoleDuplicateUsers() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Engagement engagement = mockEngagement();
+        engagement.setDescription(SCENARIO.SUCCESS.getValue());
+
+        String body = quarkusJsonb.toJson(engagement);
+
+        // POST engagement
+        Response response = given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .body(body)
+                .contentType(ContentType.JSON)
+                .post("/engagements");
+
+        assertEquals(201, response.getStatusCode());
+
+        String responseBody = response.getBody().asString();
+        Engagement created = quarkusJsonb.fromJson(responseBody, Engagement.class);
+
+        assertEquals(engagement.getCustomerName(), created.getCustomerName());
+        assertEquals(engagement.getProjectName(), created.getProjectName());
+        assertNull(created.getProjectId());
+        assertNotNull(created.getLastUpdate());
+
+        // update description
+        created.setDescription("updated");
+
+        body = quarkusJsonb.toJson(created);
+
+        // add users with duplicates
+        body = addDupliateUsers(body);
+
+        Response r =
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .body(body)
+                .contentType(ContentType.JSON)
+                .put("/engagements/customers/" + engagement.getCustomerName() + "/projects/" + engagement.getProjectName());
+
+        assertEquals(200, r.getStatusCode());
+        String responseJson = r.getBody().asString();
+        Engagement updatedEngagement = quarkusJsonb.fromJson(responseJson, Engagement.class);
+        
+        assertEquals(created.getCustomerName(), updatedEngagement.getCustomerName());
+        assertEquals(created.getProjectName(), updatedEngagement.getProjectName());
+
+        // validate users
+        assertEquals(2, updatedEngagement.getEngagementUsers().size());
 
     }
 
@@ -1636,6 +1702,39 @@ public class EngagementResourceTest {
                 .ocpPersistentStorageSize("50GB").ocpClusterSize("medium").build();
 
         return engagement;
+
+    }
+
+    String addDupliateUsers(String engagementJson) throws ParseException {
+
+        JSONParser jsonParser = new JSONParser();
+        JSONObject json = (JSONObject) jsonParser.parse(engagementJson);
+
+        Collection<JSONObject> users = new ArrayList<JSONObject>();
+
+        JSONObject user1 = createUserJson("bob", "smith", "developer", "bsmith@example.com");
+        JSONObject user2 = createUserJson("john", "jones", "developer", "jjones@example.com");
+        JSONObject user3 = createUserJson("bob", "smith", "admin", "bsmith@example.com");
+
+        users.add(user1);
+        users.add(user2);
+        users.add(user3);
+
+        json.put("engagement_users", users);
+
+        return json.toJSONString();
+
+    }
+
+    JSONObject createUserJson(String firstName, String lastName, String role, String email) {
+
+        JSONObject user = new JSONObject();
+        user.put("first_name", firstName);
+        user.put("last_name", lastName);
+        user.put("role", role);
+        user.put("email", email);
+
+        return user;
 
     }
 
