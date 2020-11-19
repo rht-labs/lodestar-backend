@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 import javax.inject.Inject;
 import javax.json.bind.Jsonb;
 
-import org.jose4j.json.internal.json_simple.JSONArray;
 import org.jose4j.json.internal.json_simple.JSONObject;
 import org.jose4j.json.internal.json_simple.parser.JSONParser;
 import org.jose4j.json.internal.json_simple.parser.ParseException;
@@ -31,7 +30,6 @@ import org.junit.jupiter.api.Test;
 import com.redhat.labs.lodestar.model.Artifact;
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Engagement;
-import com.redhat.labs.lodestar.model.EngagementUser;
 import com.redhat.labs.lodestar.rest.client.MockLodeStarGitLabAPIService.SCENARIO;
 import com.redhat.labs.lodestar.utils.EmbeddedMongoTest;
 import com.redhat.labs.lodestar.utils.TokenUtils;
