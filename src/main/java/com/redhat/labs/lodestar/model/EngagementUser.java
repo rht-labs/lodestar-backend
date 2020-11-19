@@ -34,12 +34,10 @@ public class EngagementUser {
         if (getClass() != obj.getClass())
             return false;
         EngagementUser other = (EngagementUser) obj;
-        if (email == null) {
-            if (other.email != null)
-                return false;
-        } else if (!email.equals(other.email))
+        if (email == null && other.email != null) {
             return false;
-        return true;
+        }
+        return email.equals(other.email);
     }
 
     @Override
