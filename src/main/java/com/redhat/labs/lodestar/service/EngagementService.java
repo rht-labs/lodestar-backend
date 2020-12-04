@@ -7,9 +7,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -26,6 +28,7 @@ import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Commit;
 import com.redhat.labs.lodestar.model.CreationDetails;
 import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.model.EngagementUser;
 import com.redhat.labs.lodestar.model.FileAction;
 import com.redhat.labs.lodestar.model.Hook;
 import com.redhat.labs.lodestar.model.Launch;
@@ -210,6 +213,9 @@ public class EngagementService {
         // mark as updated, if action not already assigned
         setEngagementAction(engagement, FileAction.update);
 
+        // create new or use existing uuids for users
+        setUserUuidsBeforeUpdate(engagement, existing);
+
         // aggregate commit messages if already set
         if (null != existing.getCommitMessage()) {
 
@@ -218,12 +224,48 @@ public class EngagementService {
 
             // if another message on current request, append to existing message
             String message = (null == engagement.getCommitMessage()) ? existingMessage
-                    : new StringBuilder(existingMessage).append("\n\n").append(engagement.getCommitMessage()).toString();
+                    : new StringBuilder(existingMessage).append("\n\n").append(engagement.getCommitMessage())
+                            .toString();
 
             // set the message on the engagement before persisting
             engagement.setCommitMessage(message);
 
         }
+
+    }
+
+    /**
+     * Sets a {@link UUID} for new {@link EngagementUser} or uses existing
+     * {@link UUID} for existing {@link EngagementUser}s.
+     * 
+     * @param engagement
+     * @param existing
+     */
+    void setUserUuidsBeforeUpdate(Engagement engagement, Engagement existing) {
+
+        Set<EngagementUser> incomingUsers = engagement.getEngagementUsers();
+        Set<EngagementUser> existingUsers = existing.getEngagementUsers();
+
+        // do nothing if no users incoming
+        if (null == incomingUsers || incomingUsers.isEmpty()) {
+            return;
+        }
+
+        incomingUsers.stream().forEach(user -> {
+
+            // find existing user with matching email
+            Optional<EngagementUser> optionalUser = (null == existingUsers) ? Optional.empty()
+                    : existingUsers.stream().filter(eUser -> eUser.getEmail().equals(user.getEmail())).findFirst();
+
+            if (optionalUser.isPresent()) {
+                // set uuid to that of existing user
+                user.setUuid(optionalUser.get().getUuid());
+            } else {
+                // set uuid to new uuid for new users
+                user.setUuid(UUID.randomUUID().toString());
+            }
+
+        });
 
     }
 
@@ -476,21 +518,87 @@ public class EngagementService {
     }
 
     /**
-     * Sets a generated UUID value for each {@link Engagement} in the data store
-     * that does not have a UUID. Also, triggers a push to Git to make sure the UUID
-     * value is set in case of a data store refresh.
+     * Sets a generated UUID value for each {@link Engagement} or
+     * {@link EngagementUser} in the data store that does not have a UUID. Also,
+     * triggers a push to Git to make sure the UUID value(s) are set in case of a
+     * data store refresh.
      */
-    public void setNullUuids() {
+    public long setNullUuids() {
 
-        LOGGER.debug("{} with null uuids", repository.findByNullUuid().size());
-        // get all engagements with null UUID
-        repository.findByNullUuid().stream().forEach(e -> {
+        // update UUIDs on engagements and engagment users if missing
+        Stream<Engagement> eStream = repository.streamAll().filter(e -> uuidUpdated(e)).map(e -> {
             setEngagementAction(e, FileAction.update);
-            e.setUuid(UUID.randomUUID().toString());
-            Optional<Engagement> o = repository.updateUuidForEngagement(e.getCustomerName(), e.getProjectName(),
-                    e.getUuid(), FileAction.update.name(), BACKEND_BOT, BACKEND_BOT_EMAIL);
-            LOGGER.debug("optional after uuid update {}", o);
+            e.setLastUpdateByName(BACKEND_BOT);
+            e.setLastUpdateByEmail(BACKEND_BOT_EMAIL);
+            return e;
         });
+
+        long count = eStream.count();
+
+        repository.update(eStream);
+
+        return count;
+
+    }
+
+    /**
+     * Returns true if a UUID was set on the {@link Engagement} or any
+     * {@link EngagementUser}. Otherwise, false.
+     * 
+     * @param engagement
+     * @return
+     */
+    boolean uuidUpdated(Engagement engagement) {
+
+        // set engagement uuid if required
+        boolean eUuidSet = setUuidOnEngagement(engagement);
+
+        // set engagement user(s) uuids if required
+        boolean uUuidSet = setUuidOnUsers(engagement.getEngagementUsers());
+
+        return eUuidSet || uUuidSet;
+
+    }
+
+    /**
+     * Returns true if the UUID for the {@link Engagement} was set. Otherwise,
+     * returns false.
+     * 
+     * @param engagement
+     * @return
+     */
+    boolean setUuidOnEngagement(Engagement engagement) {
+
+        if (null == engagement.getUuid()) {
+            engagement.setUuid(UUID.randomUUID().toString());
+            return true;
+        }
+
+        return false;
+
+    }
+
+    /**
+     * Returns true if any {@link EngagementUser} had a UUID set. Otherwise, returns
+     * false.
+     * 
+     * @param engagementUsers
+     * @return
+     */
+    boolean setUuidOnUsers(Set<EngagementUser> engagementUsers) {
+
+        if (null != engagementUsers) {
+
+            Set<Boolean> result = engagementUsers.stream().filter(user -> null == user.getUuid()).map(user -> {
+                user.setUuid(UUID.randomUUID().toString());
+                return Boolean.TRUE;
+            }).collect(Collectors.toSet());
+
+            return result.contains(Boolean.TRUE);
+
+        }
+
+        return false;
 
     }
 

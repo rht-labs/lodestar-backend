@@ -188,7 +188,7 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
      * @return
      */
     public Optional<Engagement> updateEngagementIfLastUpdateMatched(Engagement toUpdate, String lastUpdate,
-            boolean skipLaunch) {
+            Boolean skipLaunch) {
 
         // create the bson for filter and update
         Bson filter = createFilterForEngagement(toUpdate, lastUpdate);

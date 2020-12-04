@@ -24,6 +24,8 @@ public class EngagementUser {
     private String email;
     @NotBlank
     private String role;
+    private String uuid;
+    private boolean reset;
 
     @Override
     public boolean equals(Object obj) {
