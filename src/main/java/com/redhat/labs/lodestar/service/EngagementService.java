@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -26,7 +25,6 @@ import org.slf4j.LoggerFactory;
 
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Commit;
-import com.redhat.labs.lodestar.model.CreationDetails;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.EngagementUser;
 import com.redhat.labs.lodestar.model.FileAction;
@@ -486,34 +484,43 @@ public class EngagementService {
      */
     public void updateProcessedEngagementListInRepository(List<Engagement> engagementList) {
 
-        for (Engagement e : engagementList) {
+        engagementList.stream().forEach(e -> {
 
-            // get current engagement from db
-            String customerName = e.getCustomerName();
-            String projectName = e.getProjectName();
             Optional<Engagement> optional = getByIdOrName(e);
             if (optional.isPresent()) {
 
                 Engagement persisted = optional.get();
 
                 // always update creation details if missing
-                Optional<CreationDetails> creationDetails = (null == persisted.getCreationDetails())
-                        ? Optional.ofNullable(e.getCreationDetails())
-                        : Optional.empty();
+                if (null == persisted.getCreationDetails()) {
+                    persisted.setCreationDetails(e.getCreationDetails());
+                }
 
                 // always update project id if missing
-                Optional<Integer> projectId = (null == persisted.getProjectId()) ? Optional.ofNullable(e.getProjectId())
-                        : Optional.empty();
+                if (null == persisted.getProjectId()) {
+                    persisted.setProjectId(e.getProjectId());
+                }
 
                 // reset action and commit message only if it has not changed since last push to
                 // git; otherwise, keep values to allow new changes to be pushed to git
-                boolean resetFlags = e.getLastUpdate().equals(persisted.getLastUpdate()) ? true : false;
+                if (e.getLastUpdate().equals(persisted.getLastUpdate())) {
 
-                repository.updateEngagement(customerName, projectName, creationDetails, projectId, resetFlags);
+                    persisted.setAction(null);
+                    persisted.setCommitMessage(null);
+
+                    // set any user resets to false
+                    if (null != persisted.getEngagementUsers()) {
+                        Set<EngagementUser> users = persisted.getEngagementUsers();
+                        users.stream().forEach(user -> user.setReset(false));
+                    }
+
+                }
+
+                repository.update(persisted);
 
             }
 
-        }
+        });
 
     }
 
@@ -526,16 +533,17 @@ public class EngagementService {
     public long setNullUuids() {
 
         // update UUIDs on engagements and engagment users if missing
-        Stream<Engagement> eStream = repository.streamAll().filter(e -> uuidUpdated(e)).map(e -> {
+        List<Engagement> updated = repository.streamAll().filter(e -> uuidUpdated(e)).map(e -> {
             setEngagementAction(e, FileAction.update);
             e.setLastUpdateByName(BACKEND_BOT);
             e.setLastUpdateByEmail(BACKEND_BOT_EMAIL);
+            LOGGER.debug("uuid(s) updated for enagement {}", e.getUuid());
             return e;
-        });
+        }).collect(Collectors.toList());
 
-        long count = eStream.count();
+        long count = updated.size();
 
-        repository.update(eStream);
+        repository.update(updated);
 
         return count;
 
@@ -571,6 +579,8 @@ public class EngagementService {
 
         if (null == engagement.getUuid()) {
             engagement.setUuid(UUID.randomUUID().toString());
+            LOGGER.debug("set engagement uuid to {} for {}:{}", engagement.getUuid(), engagement.getCustomerName(),
+                    engagement.getProjectName());
             return true;
         }
 
@@ -591,6 +601,7 @@ public class EngagementService {
 
             Set<Boolean> result = engagementUsers.stream().filter(user -> null == user.getUuid()).map(user -> {
                 user.setUuid(UUID.randomUUID().toString());
+                LOGGER.debug("set uuid for user {}, to {}", user.getEmail(), user.getUuid());
                 return Boolean.TRUE;
             }).collect(Collectors.toSet());
 
