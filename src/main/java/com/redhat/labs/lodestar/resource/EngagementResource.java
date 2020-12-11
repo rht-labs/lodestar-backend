@@ -139,8 +139,9 @@ public class EngagementResource {
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "A list or empty list of engagement resources returned") })
     @Operation(summary = "Returns all engagement resources from the database.  Can be empty list if none found.")
-    public List<Engagement> getAll(@QueryParam("categories") String categories) {
-        return engagementService.getAll(categories);
+    public List<Engagement> getAll(@QueryParam("categories") String categories, @QueryParam("include") String include, 
+            @QueryParam("exclude") String exclude) {
+        return engagementService.getAll(categories, getFilterOptions(include, exclude));
     }
 
     @GET

@@ -7,8 +7,10 @@ import static com.mongodb.client.model.Aggregates.project;
 import static com.mongodb.client.model.Aggregates.sort;
 import static com.mongodb.client.model.Aggregates.unwind;
 import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.or;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.regex;
+import static com.mongodb.client.model.Filters.in;
 import static com.mongodb.client.model.Projections.exclude;
 import static com.mongodb.client.model.Projections.include;
 import static com.mongodb.client.model.Updates.combine;
@@ -21,12 +23,14 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import javax.enterprise.context.ApplicationScoped;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Field;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
@@ -49,12 +53,6 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
             Arrays.asList("uuid", "mongoId", "projectId", "creationDetails", "status", "commits", "launch"));
 
     private ObjectMapper objectMapper = new ObjectMapper();
-
-    // public Optional<Engagement> findByCustomerNameAndProjectName(String
-    // customerName, String projectName) {
-    // return find("customerName=?1 and projectName=?2", customerName,
-    // projectName).firstResultOptional();
-    // }
 
     public List<Engagement> findByModified() {
         return find("action is not null").list();
@@ -157,19 +155,6 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
     }
 
     /**
-     * Find {@link Engagement} with a {@link Category} name that matches the given
-     * {@link String}.
-     * 
-     * @param name
-     * @param matchCase
-     * @return
-     */
-    public List<Engagement> findEngagementsByCategory(String name, boolean matchCase) {
-        String queryInput = matchCase ? String.format("/^%s$/", name) : String.format("/^%s$/i", name);
-        return find("categories.name like ?1", queryInput).list();
-    }
-
-    /**
      * Returns an {@link Optional} containing the updated {@link Engagement} where
      * last update matched. Otherwise, returns an empty {@link Optional}
      * 
@@ -245,12 +230,29 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
 
     }
 
+    public List<Engagement> findByCategories(String categories, Optional<FilterOptions> filterOptions) {
+
+        // split the list
+        Set<String> categorySet = Stream.of(categories.split(",")).collect(Collectors.toSet());
+
+        // create regex for each category
+        List<Bson> regexs = categorySet.stream().map(category -> {
+            return regex("categories.name", category, "i");
+        }).collect(Collectors.toList());
+
+        // or the regexs together
+        Bson bson = or(regexs);
+        return findAll(Optional.of(bson), filterOptions);
+
+    }
+
     public Optional<Engagement> findByUuid(String uuid) {
         return findByUuid(uuid, Optional.empty());
     }
 
     public Optional<Engagement> findByUuid(String uuid, Optional<FilterOptions> filterOptions) {
-        return findBy(eq("uuid", uuid), filterOptions);
+        Bson bson = eq("uuid", uuid);
+        return Optional.ofNullable(find(Optional.of(bson), filterOptions).first());
     }
 
     public Optional<Engagement> findByCustomerNameAndProjectName(String customerName, String projectName) {
@@ -259,10 +261,21 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
 
     public Optional<Engagement> findByCustomerNameAndProjectName(String customerName, String projectName,
             Optional<FilterOptions> filterOptions) {
-        return findBy(and(eq("customerName", customerName), eq("projectName", projectName)), filterOptions);
+        Bson bson = and(eq("customerName", customerName), eq("projectName", projectName));
+        return Optional.ofNullable(find(Optional.of(bson), filterOptions).first());
     }
 
-    private Optional<Engagement> findBy(Bson bson, Optional<FilterOptions> filterOptions) {
+    public List<Engagement> findAll(Optional<FilterOptions> filterOptions) {
+        return findAll(Optional.empty(), filterOptions);
+    }
+
+    public List<Engagement> findAll(Optional<Bson> filter, Optional<FilterOptions> filterOptions) {
+        List<Engagement> list = new ArrayList<>();
+        find(filter, filterOptions).iterator().forEachRemaining(list::add);
+        return list;
+    }
+
+    private FindIterable<Engagement> find(Optional<Bson> bson, Optional<FilterOptions> filterOptions) {
 
         if (filterOptions.isPresent()) {
 
@@ -272,20 +285,28 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
 
             // return only the attributes to include
             if (includeSet.isPresent()) {
-                return Optional.ofNullable(
-                        mongoCollection().find(bson).projection(include(List.copyOf(includeSet.get()))).first());
+                return getFindIterable(bson).projection(include(List.copyOf(includeSet.get())));
             }
 
             // return only the attributes not excluded
             if (excludeSet.isPresent()) {
-                return Optional.ofNullable(
-                        mongoCollection().find(bson).projection(exclude(List.copyOf(excludeSet.get()))).first());
+                return getFindIterable(bson).projection(exclude(List.copyOf(excludeSet.get())));
             }
 
         }
 
         // return full engagement if no filter
-        return Optional.ofNullable(mongoCollection().find(bson).first());
+        return getFindIterable(bson);
+
+    }
+
+    private FindIterable<Engagement> getFindIterable(Optional<Bson> bson) {
+
+        if (bson.isPresent()) {
+            return mongoCollection().find(bson.get());
+        }
+
+        return mongoCollection().find();
 
     }
 

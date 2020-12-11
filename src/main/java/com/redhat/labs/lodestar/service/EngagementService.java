@@ -387,15 +387,13 @@ public class EngagementService {
      * 
      * @return
      */
-    public List<Engagement> getAll(String categories) {
+    public List<Engagement> getAll(String categories, Optional<FilterOptions> filterOptions) {
 
-        if (null == categories || categories.isBlank()) {
-            return repository.listAll();
+        if( null == categories || categories.isBlank()) {
+            return repository.findAll(filterOptions);
         }
 
-        return Arrays.stream(categories.split(","))
-                .flatMap(category -> repository.findEngagementsByCategory(category, false).stream())
-                .collect(Collectors.toList());
+        return repository.findByCategories(categories, filterOptions);
 
     }
 
