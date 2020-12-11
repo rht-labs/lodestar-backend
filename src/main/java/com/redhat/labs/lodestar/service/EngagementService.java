@@ -17,17 +17,12 @@ import javax.inject.Inject;
 import javax.json.bind.Jsonb;
 import javax.ws.rs.WebApplicationException;
 
-import org.apache.http.HttpStatus;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Commit;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.EngagementUser;
 import com.redhat.labs.lodestar.model.FileAction;
+import com.redhat.labs.lodestar.model.FilterOptions;
 import com.redhat.labs.lodestar.model.Hook;
 import com.redhat.labs.lodestar.model.Launch;
 import com.redhat.labs.lodestar.model.Status;
@@ -35,6 +30,12 @@ import com.redhat.labs.lodestar.model.event.BackendEvent;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
 import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
 import com.redhat.labs.lodestar.socket.EngagementEventSocket;
+
+import org.apache.http.HttpStatus;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import io.vertx.mutiny.core.eventbus.EventBus;
 
@@ -136,7 +137,7 @@ public class EngagementService {
                     engagement.getProjectName());
         }
 
-        return repository.findByUiid(engagement.getUuid());
+        return repository.findByUuid(engagement.getUuid());
 
     }
 
@@ -186,7 +187,7 @@ public class EngagementService {
         }
 
         try {
-            getByCustomerAndProjectName(toUpdate.getCustomerName(), toUpdate.getProjectName());
+            getByCustomerAndProjectName(toUpdate.getCustomerName(), toUpdate.getProjectName(), Optional.empty());
         } catch (WebApplicationException wae) {
             // return if not found
             return;
@@ -361,8 +362,9 @@ public class EngagementService {
      * @param projectId
      * @return
      */
-    public Engagement getByCustomerAndProjectName(String customerName, String projectName) {
-        return repository.findByCustomerNameAndProjectName(customerName, projectName)
+    public Engagement getByCustomerAndProjectName(String customerName, String projectName,
+            Optional<FilterOptions> options) {
+        return repository.findByCustomerNameAndProjectName(customerName, projectName, options)
                 .orElseThrow(() -> new WebApplicationException(
                         "no engagement found with customer:project " + customerName + ":" + projectName,
                         HttpStatus.SC_NOT_FOUND));
@@ -375,8 +377,8 @@ public class EngagementService {
      * @param uuid
      * @return
      */
-    public Engagement getByUuid(String uuid) {
-        return repository.findByUiid(uuid).orElseThrow(
+    public Engagement getByUuid(String uuid, Optional<FilterOptions> options) {
+        return repository.findByUuid(uuid, options).orElseThrow(
                 () -> new WebApplicationException("no engagement found with id " + uuid, HttpStatus.SC_NOT_FOUND));
     }
 
@@ -385,15 +387,13 @@ public class EngagementService {
      * 
      * @return
      */
-    public List<Engagement> getAll(String categories) {
+    public List<Engagement> getAll(String categories, Optional<FilterOptions> filterOptions) {
 
-        if (null == categories || categories.isBlank()) {
-            return repository.listAll();
+        if( null == categories || categories.isBlank()) {
+            return repository.findAll(filterOptions);
         }
 
-        return Arrays.stream(categories.split(","))
-                .flatMap(category -> repository.findEngagementsByCategory(category, false).stream())
-                .collect(Collectors.toList());
+        return repository.findByCategories(categories, filterOptions);
 
     }
 
@@ -429,7 +429,7 @@ public class EngagementService {
      * @param projectName
      */
     public void deleteByCustomerAndProjectName(String customerName, String projectName) {
-        repository.delete(getByCustomerAndProjectName(customerName, projectName));
+        repository.delete(getByCustomerAndProjectName(customerName, projectName, Optional.empty()));
     }
 
     /**
@@ -439,7 +439,7 @@ public class EngagementService {
      * @param uuid
      */
     public void deleteByUuid(String uuid) {
-        repository.delete(getByUuid(uuid));
+        repository.delete(getByUuid(uuid, Optional.empty()));
     }
 
     /**

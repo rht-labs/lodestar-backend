@@ -75,7 +75,7 @@ class EngagementServiceTest {
         toUpdate.setLastUpdate(ZonedDateTime.now(ZoneId.of("Z")).toString());
 
         // repository mocks
-        Mockito.when(repository.findByUiid("00000")).thenReturn(Optional.of(existing));
+        Mockito.when(repository.findByUuid("00000")).thenReturn(Optional.of(existing));
         Mockito.when(repository.updateEngagementIfLastUpdateMatched(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(Optional.of(toUpdate));
 
@@ -102,7 +102,7 @@ class EngagementServiceTest {
         toUpdate.setLastUpdate(ZonedDateTime.now(ZoneId.of("Z")).toString());
 
         // repository mocks
-        Mockito.when(repository.findByUiid("00000")).thenReturn(Optional.of(existing));
+        Mockito.when(repository.findByUuid("00000")).thenReturn(Optional.of(existing));
         Mockito.when(repository.updateEngagementIfLastUpdateMatched(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(Optional.of(toUpdate));
 
@@ -139,7 +139,7 @@ class EngagementServiceTest {
         toUpdate.setLastUpdate(ZonedDateTime.now(ZoneId.of("Z")).toString());
 
         // repository mocks
-        Mockito.when(repository.findByUiid("00000")).thenReturn(Optional.of(existing));
+        Mockito.when(repository.findByUuid("00000")).thenReturn(Optional.of(existing));
         Mockito.when(repository.updateEngagementIfLastUpdateMatched(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(Optional.of(toUpdate));
 
