@@ -11,7 +11,6 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.regex;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
-import static com.mongodb.client.model.Updates.unset;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,9 +34,7 @@ import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.Sorts;
 import com.redhat.labs.lodestar.model.Artifact;
 import com.redhat.labs.lodestar.model.Category;
-import com.redhat.labs.lodestar.model.CreationDetails;
 import com.redhat.labs.lodestar.model.Engagement;
-import com.redhat.labs.lodestar.model.FileAction;
 
 import io.quarkus.mongodb.panache.PanacheMongoRepository;
 
@@ -57,16 +54,8 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
         return find("customerName=?1 and projectName=?2", customerName, projectName).firstResultOptional();
     }
 
-    public List<Engagement> findByModifiedAndAction(FileAction action) {
-        return find("action", action).list();
-    }
-
     public List<Engagement> findByModified() {
         return find("action is not null").list();
-    }
-
-    public List<Engagement> findByNullUuid() {
-        return find("uuid is null").list();
     }
 
     /**
@@ -188,7 +177,7 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
      * @return
      */
     public Optional<Engagement> updateEngagementIfLastUpdateMatched(Engagement toUpdate, String lastUpdate,
-            boolean skipLaunch) {
+            Boolean skipLaunch) {
 
         // create the bson for filter and update
         Bson filter = createFilterForEngagement(toUpdate, lastUpdate);
@@ -251,61 +240,6 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
         }
 
         return updates;
-
-    }
-
-    public Optional<Engagement> updateEngagement(String customerName, String projectName,
-            Optional<CreationDetails> creationDetails, Optional<Integer> projectId, boolean resetFlags) {
-
-        // filter on customer/project name only
-        Bson filter = and(eq("customerName", customerName), eq("projectName", projectName));
-
-        // update only required fields
-        Bson update = updateGitSyncFields(creationDetails, projectId, resetFlags);
-
-        // make sure value returned is the updated document
-        FindOneAndUpdateOptions optionAfter = new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER);
-
-        return Optional.ofNullable(this.mongoCollection().findOneAndUpdate(filter, update, optionAfter));
-
-    }
-
-    private Bson updateGitSyncFields(Optional<CreationDetails> creationDetails, Optional<Integer> projectId,
-            boolean resetFlags) {
-
-        Bson updates = new Document();
-
-        if (creationDetails.isPresent()) {
-            updates = combine(updates, set("creationDetails", creationDetails.get()));
-        }
-
-        if (projectId.isPresent()) {
-            updates = combine(updates, set("projectId", projectId.get()));
-        }
-
-        if (resetFlags) {
-            updates = combine(updates, unset("action"));
-            updates = combine(updates, unset("commitMessage"));
-        }
-
-        return updates;
-
-    }
-
-    public Optional<Engagement> updateUuidForEngagement(String customerName, String projectName, String uuid,
-            String action, String authorName, String authorEmail) {
-
-        // filter on customer/project name only
-        Bson filter = and(eq("customerName", customerName), eq("projectName", projectName));
-        // update uuid and action
-        Bson update = combine(set("uuid", uuid), set("action", action));
-        update = combine(update, set("lastUpdateByName", authorName));
-        update = combine(update, set("lastUpdateByEmail", authorEmail));
-
-        // make sure value returned is the updated document
-        FindOneAndUpdateOptions optionAfter = new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER);
-
-        return Optional.ofNullable(this.mongoCollection().findOneAndUpdate(filter, update, optionAfter));
 
     }
 
