@@ -204,6 +204,19 @@ public class EngagementResource {
 
     }
 
+    @PUT
+    @Path("/uuids/set")
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "200", description = "The request was successful.") })
+    @Operation(summary = "Sets UUIDs on all engagement and users that do not already have a UUID")
+    public Response setUuids() {
+
+        engagementService.setNullUuids();
+        return Response.ok().build();
+
+    }
+
     @GET
     @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/{id}")
