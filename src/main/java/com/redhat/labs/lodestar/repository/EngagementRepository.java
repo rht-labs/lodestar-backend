@@ -9,10 +9,10 @@ import static com.mongodb.client.model.Aggregates.unwind;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.regex;
-import static com.mongodb.client.model.Updates.combine;
-import static com.mongodb.client.model.Updates.set;
 import static com.mongodb.client.model.Projections.exclude;
 import static com.mongodb.client.model.Projections.include;
+import static com.mongodb.client.model.Updates.combine;
+import static com.mongodb.client.model.Updates.set;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,9 +24,6 @@ import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 import javax.enterprise.context.ApplicationScoped;
-
-import org.bson.Document;
-import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -40,6 +37,9 @@ import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.FilterOptions;
 
+import org.bson.Document;
+import org.bson.conversions.Bson;
+
 import io.quarkus.mongodb.panache.PanacheMongoRepository;
 
 @ApplicationScoped
@@ -50,9 +50,11 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    public Optional<Engagement> findByCustomerNameAndProjectName(String customerName, String projectName) {
-        return find("customerName=?1 and projectName=?2", customerName, projectName).firstResultOptional();
-    }
+    // public Optional<Engagement> findByCustomerNameAndProjectName(String
+    // customerName, String projectName) {
+    // return find("customerName=?1 and projectName=?2", customerName,
+    // projectName).firstResultOptional();
+    // }
 
     public List<Engagement> findByModified() {
         return find("action is not null").list();
@@ -248,6 +250,19 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
     }
 
     public Optional<Engagement> findByUuid(String uuid, Optional<FilterOptions> filterOptions) {
+        return findBy(eq("uuid", uuid), filterOptions);
+    }
+
+    public Optional<Engagement> findByCustomerNameAndProjectName(String customerName, String projectName) {
+        return findByCustomerNameAndProjectName(customerName, projectName, Optional.empty());
+    }
+
+    public Optional<Engagement> findByCustomerNameAndProjectName(String customerName, String projectName,
+            Optional<FilterOptions> filterOptions) {
+        return findBy(and(eq("customerName", customerName), eq("projectName", projectName)), filterOptions);
+    }
+
+    private Optional<Engagement> findBy(Bson bson, Optional<FilterOptions> filterOptions) {
 
         if (filterOptions.isPresent()) {
 
@@ -257,20 +272,20 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
 
             // return only the attributes to include
             if (includeSet.isPresent()) {
-                return Optional.ofNullable(mongoCollection().find(eq("uuid", uuid))
-                        .projection(combine(include(List.copyOf(includeSet.get())))).first());
+                return Optional.ofNullable(
+                        mongoCollection().find(bson).projection(include(List.copyOf(includeSet.get()))).first());
             }
 
             // return only the attributes not excluded
             if (excludeSet.isPresent()) {
-                return Optional.ofNullable(mongoCollection().find(eq("uuid", uuid))
-                        .projection(combine(exclude(List.copyOf(excludeSet.get())))).first());
+                return Optional.ofNullable(
+                        mongoCollection().find(bson).projection(exclude(List.copyOf(excludeSet.get()))).first());
             }
 
         }
 
         // return full engagement if no filter
-        return Optional.ofNullable(mongoCollection().find(eq("uuid", uuid)).first());
+        return Optional.ofNullable(mongoCollection().find(bson).first());
 
     }
 

@@ -24,6 +24,11 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import com.redhat.labs.lodestar.model.Category;
+import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.model.FilterOptions;
+import com.redhat.labs.lodestar.service.EngagementService;
+
 import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -32,11 +37,6 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
-
-import com.redhat.labs.lodestar.model.Category;
-import com.redhat.labs.lodestar.model.Engagement;
-import com.redhat.labs.lodestar.model.FilterOptions;
-import com.redhat.labs.lodestar.service.EngagementService;
 
 @RequestScoped
 @Path("/engagements")
@@ -103,16 +103,16 @@ public class EngagementResource {
     }
 
     @GET
-    @Deprecated
     @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/customers/{customerName}/projects/{projectName}")
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "404", description = "Engagement resource with customer and project names does not exist"),
             @APIResponse(responseCode = "200", description = "Engagement resource found and returned") })
-    @Operation(deprecated = true, summary = "Returns the engagement resource for the given customer and project names.")
-    public Response get(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName) {
+    @Operation(summary = "Returns the engagement resource for the given customer and project names.")
+    public Response get(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName, 
+            @QueryParam("include") String include, @QueryParam("exclude") String exclude) {
 
-        Engagement engagement = engagementService.getByCustomerAndProjectName(customerName, projectName);
+        Engagement engagement = engagementService.getByCustomerAndProjectName(customerName, projectName, getFilterOptions(include, exclude));
         return Response.ok(engagement).header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
                 .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER).build();
 
@@ -128,7 +128,7 @@ public class EngagementResource {
     @Operation(deprecated = true, summary = "Returns metadata regarding the engagement resource for the given customer and project names.")
     public Response head(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName) {
 
-        Engagement engagement = engagementService.getByCustomerAndProjectName(customerName, projectName);
+        Engagement engagement = engagementService.getByCustomerAndProjectName(customerName, projectName, Optional.empty());
         return Response.ok().header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
                 .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER).build();
 
@@ -216,18 +216,7 @@ public class EngagementResource {
     @Operation(summary = "Returns the engagement resource for the given id.")
     public Response get(@PathParam("id") String uuid, @QueryParam("include") String include, @QueryParam("exclude") String exclude) {
 
-        // throw bad request if both supplied
-        if(null != include && null != exclude) {
-            throw new WebApplicationException("cannot use both include and exclude params", HttpStatus.SC_BAD_REQUEST);
-        }
-
-        // create options if either exist
-        Optional<FilterOptions> options = Optional.empty();
-        if(null != include || null != exclude) {
-            options = Optional.of(FilterOptions.builder().include(include).exclude(exclude).build());
-        }
-
-        Engagement engagement = engagementService.getByUuid(uuid, options);
+        Engagement engagement = engagementService.getByUuid(uuid, getFilterOptions(include, exclude));
         return Response.ok(engagement).header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
                 .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER).build();
 
@@ -318,6 +307,22 @@ public class EngagementResource {
         // valid return
         return optional;
 
+    }
+
+    private Optional<FilterOptions> getFilterOptions(String include, String exclude) {
+
+        // throw bad request if both supplied
+        if(null != include && null != exclude) {
+            throw new WebApplicationException("cannot use both include and exclude params", HttpStatus.SC_BAD_REQUEST);
+        }
+
+        // create options if either exist
+        if(null != include || null != exclude) {
+            return Optional.of(FilterOptions.builder().include(include).exclude(exclude).build());
+        }
+
+        return Optional.empty();
+        
     }
 
 }
