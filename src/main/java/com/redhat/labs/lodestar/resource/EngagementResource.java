@@ -17,12 +17,14 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SecuritySchemeType;
@@ -33,6 +35,7 @@ import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.model.FilterOptions;
 import com.redhat.labs.lodestar.service.EngagementService;
 
 @RequestScoped
@@ -211,9 +214,20 @@ public class EngagementResource {
             @APIResponse(responseCode = "404", description = "Engagement resource with id does not exist"),
             @APIResponse(responseCode = "200", description = "Engagement resource found and returned") })
     @Operation(summary = "Returns the engagement resource for the given id.")
-    public Response get(@PathParam("id") String uuid) {
+    public Response get(@PathParam("id") String uuid, @QueryParam("include") String include, @QueryParam("exclude") String exclude) {
 
-        Engagement engagement = engagementService.getByUuid(uuid);
+        // throw bad request if both supplied
+        if(null != include && null != exclude) {
+            throw new WebApplicationException("cannot use both include and exclude params", HttpStatus.SC_BAD_REQUEST);
+        }
+
+        // create options if either exist
+        Optional<FilterOptions> options = Optional.empty();
+        if(null != include || null != exclude) {
+            options = Optional.of(FilterOptions.builder().include(include).exclude(exclude).build());
+        }
+
+        Engagement engagement = engagementService.getByUuid(uuid, options);
         return Response.ok(engagement).header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
                 .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER).build();
 
@@ -228,7 +242,7 @@ public class EngagementResource {
     @Operation(summary = "Returns metadata regarding the engagement resource for the given customer and project names.")
     public Response head(@PathParam("id") String uuid) {
 
-        Engagement engagement = engagementService.getByUuid(uuid);
+        Engagement engagement = engagementService.getByUuid(uuid, Optional.empty());
         return Response.ok().header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
                 .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER).build();
 

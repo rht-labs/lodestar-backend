@@ -11,12 +11,15 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.regex;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
+import static com.mongodb.client.model.Projections.exclude;
+import static com.mongodb.client.model.Projections.include;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
@@ -35,6 +38,7 @@ import com.mongodb.client.model.Sorts;
 import com.redhat.labs.lodestar.model.Artifact;
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.model.FilterOptions;
 
 import io.quarkus.mongodb.panache.PanacheMongoRepository;
 
@@ -45,10 +49,6 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
             Arrays.asList("uuid", "mongoId", "projectId", "creationDetails", "status", "commits", "launch"));
 
     private ObjectMapper objectMapper = new ObjectMapper();
-
-    public Optional<Engagement> findByUiid(String uuid) {
-        return find("uuid", uuid).firstResultOptional();
-    }
 
     public Optional<Engagement> findByCustomerNameAndProjectName(String customerName, String projectName) {
         return find("customerName=?1 and projectName=?2", customerName, projectName).firstResultOptional();
@@ -240,6 +240,37 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
         }
 
         return updates;
+
+    }
+
+    public Optional<Engagement> findByUuid(String uuid) {
+        return findByUuid(uuid, Optional.empty());
+    }
+
+    public Optional<Engagement> findByUuid(String uuid, Optional<FilterOptions> filterOptions) {
+
+        if (filterOptions.isPresent()) {
+
+            FilterOptions options = filterOptions.get();
+            Optional<Set<String>> includeSet = options.getIncludeList();
+            Optional<Set<String>> excludeSet = options.getExcludeList();
+
+            // return only the attributes to include
+            if (includeSet.isPresent()) {
+                return Optional.ofNullable(mongoCollection().find(eq("uuid", uuid))
+                        .projection(combine(include(List.copyOf(includeSet.get())))).first());
+            }
+
+            // return only the attributes not excluded
+            if (excludeSet.isPresent()) {
+                return Optional.ofNullable(mongoCollection().find(eq("uuid", uuid))
+                        .projection(combine(exclude(List.copyOf(excludeSet.get())))).first());
+            }
+
+        }
+
+        // return full engagement if no filter
+        return Optional.ofNullable(mongoCollection().find(eq("uuid", uuid)).first());
 
     }
 

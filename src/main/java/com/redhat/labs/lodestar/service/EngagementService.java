@@ -28,6 +28,7 @@ import com.redhat.labs.lodestar.model.Commit;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.EngagementUser;
 import com.redhat.labs.lodestar.model.FileAction;
+import com.redhat.labs.lodestar.model.FilterOptions;
 import com.redhat.labs.lodestar.model.Hook;
 import com.redhat.labs.lodestar.model.Launch;
 import com.redhat.labs.lodestar.model.Status;
@@ -136,7 +137,7 @@ public class EngagementService {
                     engagement.getProjectName());
         }
 
-        return repository.findByUiid(engagement.getUuid());
+        return repository.findByUuid(engagement.getUuid());
 
     }
 
@@ -375,8 +376,8 @@ public class EngagementService {
      * @param uuid
      * @return
      */
-    public Engagement getByUuid(String uuid) {
-        return repository.findByUiid(uuid).orElseThrow(
+    public Engagement getByUuid(String uuid, Optional<FilterOptions> options ) {
+        return repository.findByUuid(uuid, options).orElseThrow(
                 () -> new WebApplicationException("no engagement found with id " + uuid, HttpStatus.SC_NOT_FOUND));
     }
 
@@ -439,7 +440,7 @@ public class EngagementService {
      * @param uuid
      */
     public void deleteByUuid(String uuid) {
-        repository.delete(getByUuid(uuid));
+        repository.delete(getByUuid(uuid, Optional.empty()));
     }
 
     /**
