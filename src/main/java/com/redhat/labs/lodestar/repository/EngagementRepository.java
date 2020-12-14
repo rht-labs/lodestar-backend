@@ -54,6 +54,11 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
         return find("customerName=?1 and projectName=?2", customerName, projectName).firstResultOptional();
     }
 
+    public Optional<Engagement> findBySubdomain(String subdomain) {
+        Bson filter = regex("ocpSubDomain", subdomain, "i");
+        return Optional.ofNullable(mongoCollection().find(filter).first());
+    }
+
     public List<Engagement> findByModified() {
         return find("action is not null").list();
     }

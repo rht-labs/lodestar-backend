@@ -81,6 +81,7 @@ public class EngagementService {
                     HttpStatus.SC_CONFLICT);
         }
 
+        validateSubdomainOnCreate(engagement);
         setBeforeInsert(engagement);
 
         repository.persist(engagement);
@@ -152,6 +153,7 @@ public class EngagementService {
         Engagement existing = getByIdOrName(engagement).orElseThrow(
                 () -> new WebApplicationException("no engagement found, use POST to create", HttpStatus.SC_NOT_FOUND));
 
+        validateSubdomainOnUpdate(engagement, existing);
         validateCustomerAndProjectNames(engagement, existing);
         setBeforeUpdate(engagement, existing);
         String currentLastUpdated = setLastUpdate(existing);
@@ -197,6 +199,65 @@ public class EngagementService {
                 + toUpdate.getCustomerName() + "' and project '" + toUpdate.getProjectName() + "' already exists.",
                 409);
 
+    }
+
+    /**
+     * Throws {@link WebApplicationException} if the supplied subdomain is used by
+     * another {@link Engagement}.
+     * 
+     * @param engagement
+     */
+    void validateSubdomainOnCreate(Engagement engagement) {
+
+        String subdomain = engagement.getOcpSubDomain();
+        if (doesSubdomainExist(engagement.getOcpSubDomain())) {
+            throw new WebApplicationException(
+                    String.format("The requested subdomain, %s, is already in use", subdomain), HttpStatus.SC_CONFLICT);
+        }
+
+    }
+
+    /**
+     * Throws {@link WebApplicationException} if the supplied subdomain is different
+     * from the persisted domain and another {@link Engagement} is already using it.
+     * 
+     * @param toUpdate
+     * @param existing
+     */
+    void validateSubdomainOnUpdate(Engagement toUpdate, Engagement existing) {
+
+        String subdomain = toUpdate.getOcpSubDomain();
+        if (subdomain != null && !subdomain.equalsIgnoreCase(existing.getOcpSubDomain())
+                && doesSubdomainExist(subdomain)) {
+            throw new WebApplicationException(
+                    String.format("The requested subdomain, %s, is already in use", subdomain), HttpStatus.SC_CONFLICT);
+        }
+
+    }
+
+    /**
+     * Return false if subdomain is null, empty, or is not found in the data store.  Otherwise, true.
+     * 
+     * @param subdomain
+     */
+    boolean doesSubdomainExist(String subdomain) {
+
+        if (subdomain == null || subdomain.isBlank() || getBySubdomain(subdomain).isEmpty()) {
+            return false;
+        }
+
+        return true;
+
+    }
+
+    /**
+     * Returns Optional containing {@link Engagement} if found with given subdomain.
+     * 
+     * @param subdomain
+     * @return
+     */
+    public Optional<Engagement> getBySubdomain(String subdomain) {
+        return repository.findBySubdomain(subdomain);
     }
 
     /**
