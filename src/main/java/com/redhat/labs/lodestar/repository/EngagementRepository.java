@@ -55,7 +55,8 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
     }
 
     public Optional<Engagement> findBySubdomain(String subdomain) {
-        Bson filter = regex("ocpSubDomain", subdomain, "i");
+        String regex = new StringBuilder("^").append(subdomain).append("$").toString();
+        Bson filter = regex("ocpSubDomain", regex, "im");
         return Optional.ofNullable(mongoCollection().find(filter).first());
     }
 
