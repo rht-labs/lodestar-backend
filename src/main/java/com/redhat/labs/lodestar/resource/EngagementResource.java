@@ -274,8 +274,7 @@ public class EngagementResource {
             @APIResponse(responseCode = "409", description = "Subdomain is already in use"),
             @APIResponse(responseCode = "200", description = "Engagement resource found and metadata returned in headers") })
     public Response uniqueSubdomain(@PathParam("subdomain") String subdomain) {
-        Optional<Engagement> optional = engagementService.getBySubdomain(subdomain);
-        int status = optional.isPresent() ? HttpStatus.SC_CONFLICT : 200;
+        int status = engagementService.getBySubdomain(subdomain).isPresent() ? HttpStatus.SC_CONFLICT : HttpStatus.SC_OK;
         return Response.status(status).build();
     }
 

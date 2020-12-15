@@ -236,18 +236,12 @@ public class EngagementService {
     }
 
     /**
-     * Return false if subdomain is null, empty, or is not found in the data store.  Otherwise, true.
+     * Return false if subdomain is null, blank, or is not found in the data store.  Otherwise, true.
      * 
      * @param subdomain
      */
     boolean doesSubdomainExist(String subdomain) {
-
-        if (subdomain == null || subdomain.isBlank() || getBySubdomain(subdomain).isEmpty()) {
-            return false;
-        }
-
-        return true;
-
+        return getBySubdomain(subdomain).isPresent();
     }
 
     /**
@@ -257,7 +251,7 @@ public class EngagementService {
      * @return
      */
     public Optional<Engagement> getBySubdomain(String subdomain) {
-        return repository.findBySubdomain(subdomain);
+        return (subdomain == null | subdomain.isBlank()) ? Optional.empty() : repository.findBySubdomain(subdomain);
     }
 
     /**
