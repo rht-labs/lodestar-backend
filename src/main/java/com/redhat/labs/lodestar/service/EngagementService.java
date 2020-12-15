@@ -210,7 +210,7 @@ public class EngagementService {
     void validateSubdomainOnCreate(Engagement engagement) {
 
         String subdomain = engagement.getOcpSubDomain();
-        if (doesSubdomainExist(engagement.getOcpSubDomain())) {
+        if (subdomain != null && doesSubdomainExist(subdomain)) {
             throw new WebApplicationException(
                     String.format("The requested subdomain, %s, is already in use", subdomain), HttpStatus.SC_CONFLICT);
         }

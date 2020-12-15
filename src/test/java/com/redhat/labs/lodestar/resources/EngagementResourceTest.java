@@ -1518,7 +1518,6 @@ public class EngagementResourceTest {
         mockEngagementsWithCategories().stream()
             .forEach(e -> {
 
-                e.setOcpSubDomain(null);
                 String body = quarkusJsonb.toJson(e);
 
                 given()
@@ -1603,7 +1602,6 @@ public class EngagementResourceTest {
         mockEngagementWithArtifacts().stream()
             .forEach(e -> {
 
-                e.setOcpSubDomain(null);
                 String body = quarkusJsonb.toJson(e);
 
                 given()
@@ -1707,6 +1705,7 @@ public class EngagementResourceTest {
         Engagement e1 = mockEngagement();
         e1.setCustomerName("customer1");
         e1.setArtifacts(Arrays.asList(a1, a2, a3));
+        e1.setOcpSubDomain(null);
 
         Artifact a4 = mockArtifact("E2 Week 1 Report", "report", "http://report-week-1");
         Artifact a5 = mockArtifact("E2 Demo Week 1", "demo", "http://demo-week-1");
@@ -1716,6 +1715,7 @@ public class EngagementResourceTest {
         Engagement e2 = mockEngagement();
         e2.setCustomerName("customer2");
         e2.setArtifacts(Arrays.asList(a4, a5, a6, a7));
+        e2.setOcpSubDomain(null);
 
         return Arrays.asList(e1, e2);
     }
@@ -1732,6 +1732,7 @@ public class EngagementResourceTest {
         Engagement e1 = mockEngagement();
         e1.setCustomerName("customer1");
         e1.setCategories(Arrays.asList(c1, c2));
+        e1.setOcpSubDomain(null);
 
         Category c3 = mockCategory("C2");
         Category c4 = mockCategory("c4");
@@ -1740,6 +1741,7 @@ public class EngagementResourceTest {
         Engagement e2 = mockEngagement();
         e2.setCustomerName("customer2");
         e2.setCategories(Arrays.asList(c3,c4,c5));
+        e2.setOcpSubDomain(null);
 
         return Arrays.asList(e1, e2);
 
