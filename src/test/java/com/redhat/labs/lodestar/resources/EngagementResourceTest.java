@@ -521,6 +521,64 @@ public class EngagementResourceTest {
     }
 
     @Test
+    void testReturnOkIfSubdomainExists() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        String subdomain = "asuperrandomsubdomain";
+
+        given().when().auth().oauth2(token).head(String.format("/engagements/subdomain/%s", subdomain)).then()
+                .statusCode(200);
+
+    }
+
+    @Test
+    void testReturnConflictIfSubdomainExists() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Engagement engagement = mockEngagement();
+        String subdomain = "asuperrandomsubdomain";
+        engagement.setProjectName("aRandomProjectName");
+        engagement.setOcpSubDomain(subdomain);
+
+
+        String body = quarkusJsonb.toJson(engagement);
+
+        given().when().auth().oauth2(token).body(body).contentType(ContentType.JSON).post("/engagements").then()
+                .statusCode(201);
+        given().when().auth().oauth2(token).head(String.format("/engagements/subdomain/%s", subdomain)).then()
+                .statusCode(409);
+
+    }
+
+    @Test
+    void testEngagementWithSubdomainAlreadyExists() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Engagement engagement = mockEngagement();
+        engagement.setProjectName("aRandomProjectName");
+        engagement.setOcpSubDomain("aSuperRandomSubdomain");
+
+        Engagement engagement2 = mockEngagement();
+        engagement2.setProjectName("anotherRandomName");
+        engagement2.setOcpSubDomain("aSuperRandomSubdomain");
+
+        String body = quarkusJsonb.toJson(engagement);
+        String body2 = quarkusJsonb.toJson(engagement2);
+
+        given().when().auth().oauth2(token).body(body).contentType(ContentType.JSON).post("/engagements").then()
+                .statusCode(201);
+        given().when().auth().oauth2(token).body(body2).contentType(ContentType.JSON).post("/engagements").then()
+                .statusCode(409);
+
+    }
+
+    @Test
     void testPutEngagementWithAuthAndRoleInvalidProjectNameEmpty() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
@@ -1647,6 +1705,7 @@ public class EngagementResourceTest {
         Engagement e1 = mockEngagement();
         e1.setCustomerName("customer1");
         e1.setArtifacts(Arrays.asList(a1, a2, a3));
+        e1.setOcpSubDomain(null);
 
         Artifact a4 = mockArtifact("E2 Week 1 Report", "report", "http://report-week-1");
         Artifact a5 = mockArtifact("E2 Demo Week 1", "demo", "http://demo-week-1");
@@ -1656,6 +1715,7 @@ public class EngagementResourceTest {
         Engagement e2 = mockEngagement();
         e2.setCustomerName("customer2");
         e2.setArtifacts(Arrays.asList(a4, a5, a6, a7));
+        e2.setOcpSubDomain(null);
 
         return Arrays.asList(e1, e2);
     }
@@ -1672,6 +1732,7 @@ public class EngagementResourceTest {
         Engagement e1 = mockEngagement();
         e1.setCustomerName("customer1");
         e1.setCategories(Arrays.asList(c1, c2));
+        e1.setOcpSubDomain(null);
 
         Category c3 = mockCategory("C2");
         Category c4 = mockCategory("c4");
@@ -1680,6 +1741,7 @@ public class EngagementResourceTest {
         Engagement e2 = mockEngagement();
         e2.setCustomerName("customer2");
         e2.setCategories(Arrays.asList(c3,c4,c5));
+        e2.setOcpSubDomain(null);
 
         return Arrays.asList(e1, e2);
 

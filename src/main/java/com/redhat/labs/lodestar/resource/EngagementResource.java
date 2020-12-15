@@ -208,6 +208,19 @@ public class EngagementResource {
 
     }
 
+    @PUT
+    @Path("/uuids/set")
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "200", description = "The request was successful.") })
+    @Operation(summary = "Sets UUIDs on all engagement and users that do not already have a UUID")
+    public Response setUuids() {
+
+        engagementService.setNullUuids();
+        return Response.ok().build();
+
+    }
+
     @GET
     @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/{id}")
@@ -253,6 +266,18 @@ public class EngagementResource {
 
         return engagementService.update(engagement);
 
+    }
+
+    @HEAD
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @Path("/subdomain/{subdomain}")
+    @APIResponses(value = {
+            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "409", description = "Subdomain is already in use"),
+            @APIResponse(responseCode = "200", description = "Engagement resource found and metadata returned in headers") })
+    public Response uniqueSubdomain(@PathParam("subdomain") String subdomain) {
+        int status = engagementService.getBySubdomain(subdomain).isPresent() ? HttpStatus.SC_CONFLICT : HttpStatus.SC_OK;
+        return Response.status(status).build();
     }
 
     private String getUsernameFromToken() {
