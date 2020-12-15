@@ -54,6 +54,19 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
     private ObjectMapper objectMapper = new ObjectMapper();
 
     /**
+     * Returns Optional containing an {@link Engagement} that matches the provided
+     * subdomain.
+     * 
+     * @param subdomain
+     * @return
+     */
+    public Optional<Engagement> findBySubdomain(String subdomain) {
+        String regex = new StringBuilder("^").append(subdomain).append("$").toString();
+        Bson filter = regex("ocpSubDomain", regex, "im");
+        return Optional.ofNullable(mongoCollection().find(filter).first());
+    }
+
+    /**
      * Returns a {@link List} of {@link Engagement}s where the action attribute is
      * not null.
      * 
