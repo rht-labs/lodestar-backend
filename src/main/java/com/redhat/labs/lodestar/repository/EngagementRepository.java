@@ -55,9 +55,24 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
     }
 
     public Optional<Engagement> findBySubdomain(String subdomain) {
+        return findBySubdomain(subdomain, Optional.empty(), Optional.empty());
+    }
+
+    public Optional<Engagement> findBySubdomain(String subdomain, Optional<String> engagementUuid, Optional<String> environmentName) {
+
         String regex = new StringBuilder("^").append(subdomain).append("$").toString();
-        Bson filter = regex("ocpSubDomain", regex, "im");
+        Bson filter = regex("hostingEnvironments.ocpSubDomain", regex, "im");
+
+        if(engagementUuid.isPresent()) {
+            filter = and(eq("uuid", engagementUuid.get()));
+        }
+
+        if(environmentName.isPresent()) {
+            filter = and(eq("hostingEnvironments.environmentName", environmentName.get()));
+        }
+
         return Optional.ofNullable(mongoCollection().find(filter).first());
+
     }
 
     public List<Engagement> findByModified() {
