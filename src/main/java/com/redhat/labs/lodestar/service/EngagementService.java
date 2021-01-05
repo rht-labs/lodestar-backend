@@ -241,7 +241,7 @@ public class EngagementService {
             List<String> subdomainsInUse = toUpdate.getHostingEnvironments().stream()
                     .filter(he -> null != he.getOcpSubDomain())
                     .filter(he -> repository.findBySubdomain(he.getOcpSubDomain(),
-                            Optional.ofNullable(toUpdate.getUuid()), Optional.ofNullable(he.getEnvironmentName()))
+                            Optional.ofNullable(toUpdate.getUuid()))
                             .isEmpty())
                     .filter(he -> repository.findBySubdomain(he.getOcpSubDomain()).isPresent())
                     .map(he -> he.getOcpSubDomain())
