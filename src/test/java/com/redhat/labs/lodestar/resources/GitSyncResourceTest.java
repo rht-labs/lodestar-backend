@@ -47,7 +47,6 @@ public class GitSyncResourceTest {
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
         Engagement engagement = mockEngagement();
-        engagement.setOcpSubDomain(null);
         engagement.setDescription(SCENARIO.SUCCESS.getValue());
 
         String body = quarkusJsonb.toJson(engagement);
@@ -86,7 +85,6 @@ public class GitSyncResourceTest {
 
         // update description
         created.setDescription("updated");
-        created.setOcpSubDomain(null);
         body = quarkusJsonb.toJson(created);
 
         // PUT engagement - update
@@ -209,7 +207,6 @@ public class GitSyncResourceTest {
         engagement.setCustomerName("AnotherTestCustomer");
         engagement.setProjectName("AnotherTestProject");
         engagement.setDescription(SCENARIO.SUCCESS.getValue());
-        engagement.setOcpSubDomain(null);
         body = quarkusJsonb.toJson(engagement);
 
         // POST engagement - create
@@ -244,9 +241,7 @@ public class GitSyncResourceTest {
                 .description("Test Description").location("Raleigh, NC").startDate("20170501").endDate("20170708")
                 .archiveDate("20170930").engagementLeadName("Mister Lead").engagementLeadEmail("mister@lead.com")
                 .technicalLeadName("Mister Techlead").technicalLeadEmail("mister@techlead.com")
-                .customerContactName("Customer Contact").customerContactEmail("customer@contact.com")
-                .ocpCloudProviderName("GCP").ocpCloudProviderRegion("West").ocpVersion("v4.2").ocpSubDomain("jello")
-                .ocpPersistentStorageSize("50GB").ocpClusterSize("medium").build();
+                .customerContactName("Customer Contact").customerContactEmail("customer@contact.com").build();
 
         return engagement;
 
