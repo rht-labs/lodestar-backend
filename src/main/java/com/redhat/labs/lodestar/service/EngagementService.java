@@ -29,6 +29,7 @@ import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.EngagementUser;
 import com.redhat.labs.lodestar.model.FileAction;
 import com.redhat.labs.lodestar.model.Hook;
+import com.redhat.labs.lodestar.model.HostingEnvironment;
 import com.redhat.labs.lodestar.model.Launch;
 import com.redhat.labs.lodestar.model.Status;
 import com.redhat.labs.lodestar.model.event.BackendEvent;
@@ -81,6 +82,7 @@ public class EngagementService {
                     HttpStatus.SC_CONFLICT);
         }
 
+        validateHostingEnvironments(engagement.getHostingEnvironments());
         validateSubdomainOnCreate(engagement);
         setBeforeInsert(engagement);
 
@@ -153,6 +155,7 @@ public class EngagementService {
         Engagement existing = getByIdOrName(engagement).orElseThrow(
                 () -> new WebApplicationException("no engagement found, use POST to create", HttpStatus.SC_NOT_FOUND));
 
+        validateHostingEnvironments(engagement.getHostingEnvironments());
         validateSubdomainOnUpdate(engagement, existing);
         validateCustomerAndProjectNames(engagement, existing);
         setBeforeUpdate(engagement, existing);
@@ -202,6 +205,31 @@ public class EngagementService {
     }
 
     /**
+     * Throws {@link WebApplicationException} if the supplied {@link List} of
+     * {@link HostingEnvironment} contains duplicate subdomain.
+     * 
+     * @param heList
+     */
+    void validateHostingEnvironments(List<HostingEnvironment> heList) {
+
+        if (null != heList) {
+
+            List<String> duplicateSubdomains = heList.stream().filter(he -> null != he.getOcpSubDomain())
+                    .collect(Collectors.groupingBy(he -> he.getOcpSubDomain(), Collectors.counting())).entrySet()
+                    .stream().filter(entry -> entry.getValue() > 1).map(entry -> entry.getKey())
+                    .collect(Collectors.toList());
+
+            if (!duplicateSubdomains.isEmpty()) {
+                throw new WebApplicationException(
+                        "supplied hosting environments has duplicate subdomains for entries " + duplicateSubdomains,
+                        400);
+            }
+
+        }
+
+    }
+
+    /**
      * Throws {@link WebApplicationException} if the supplied subdomain is used by
      * another {@link Engagement}.
      * 
@@ -209,10 +237,20 @@ public class EngagementService {
      */
     void validateSubdomainOnCreate(Engagement engagement) {
 
-        String subdomain = engagement.getOcpSubDomain();
-        if (subdomain != null && doesSubdomainExist(subdomain)) {
-            throw new WebApplicationException(
-                    String.format("The requested subdomain, %s, is already in use", subdomain), HttpStatus.SC_CONFLICT);
+        if (null != engagement.getHostingEnvironments()) {
+
+            // validate each subdomain
+            List<String> subdomainsInUse = engagement.getHostingEnvironments().stream()
+                    .filter(env -> null != env.getOcpSubDomain())
+                    .filter(env -> doesSubdomainExist(env.getOcpSubDomain())).map(env -> env.getOcpSubDomain())
+                    .collect(Collectors.toList());
+
+            if (!subdomainsInUse.isEmpty()) {
+                throw new WebApplicationException(
+                        String.format("The following subdomains are already in use: %s", subdomainsInUse),
+                        HttpStatus.SC_CONFLICT);
+            }
+
         }
 
     }
@@ -226,17 +264,30 @@ public class EngagementService {
      */
     void validateSubdomainOnUpdate(Engagement toUpdate, Engagement existing) {
 
-        String subdomain = toUpdate.getOcpSubDomain();
-        if (subdomain != null && !subdomain.equalsIgnoreCase(existing.getOcpSubDomain())
-                && doesSubdomainExist(subdomain)) {
-            throw new WebApplicationException(
-                    String.format("The requested subdomain, %s, is already in use", subdomain), HttpStatus.SC_CONFLICT);
+        if (null != toUpdate.getHostingEnvironments()) {
+
+            List<String> subdomainsInUse = toUpdate.getHostingEnvironments().stream()
+                    .filter(he -> null != he.getOcpSubDomain())
+                    .filter(he -> repository
+                            .findBySubdomain(he.getOcpSubDomain(), Optional.ofNullable(toUpdate.getUuid())).isEmpty())
+                    .filter(he -> repository.findBySubdomain(he.getOcpSubDomain()).isPresent())
+                    .map(he -> he.getOcpSubDomain()).collect(Collectors.toList());
+
+            LOGGER.debug("subdomains in use: {}", subdomainsInUse);
+
+            if (!subdomainsInUse.isEmpty()) {
+                throw new WebApplicationException(
+                        String.format("The following subdomains are already in use: %s", subdomainsInUse),
+                        HttpStatus.SC_CONFLICT);
+            }
+
         }
 
     }
 
     /**
-     * Return false if subdomain is null, blank, or is not found in the data store.  Otherwise, true.
+     * Return false if subdomain is null, blank, or is not found in the data store.
+     * Otherwise, true.
      * 
      * @param subdomain
      */
@@ -251,7 +302,7 @@ public class EngagementService {
      * @return
      */
     public Optional<Engagement> getBySubdomain(String subdomain) {
-        return (subdomain == null | subdomain.isBlank()) ? Optional.empty() : repository.findBySubdomain(subdomain);
+        return (subdomain == null || subdomain.isBlank()) ? Optional.empty() : repository.findBySubdomain(subdomain);
     }
 
     /**

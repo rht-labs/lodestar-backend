@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import com.redhat.labs.lodestar.model.Artifact;
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.model.HostingEnvironment;
 import com.redhat.labs.lodestar.rest.client.MockLodeStarGitLabAPIService.SCENARIO;
 import com.redhat.labs.lodestar.utils.EmbeddedMongoTest;
 import com.redhat.labs.lodestar.utils.TokenUtils;
@@ -542,8 +543,8 @@ public class EngagementResourceTest {
         Engagement engagement = mockEngagement();
         String subdomain = "asuperrandomsubdomain";
         engagement.setProjectName("aRandomProjectName");
-        engagement.setOcpSubDomain(subdomain);
-
+        HostingEnvironment env = HostingEnvironment.builder().environmentName("e1").ocpSubDomain(subdomain).build();
+        engagement.setHostingEnvironments(Arrays.asList(env));
 
         String body = quarkusJsonb.toJson(engagement);
 
@@ -562,11 +563,13 @@ public class EngagementResourceTest {
 
         Engagement engagement = mockEngagement();
         engagement.setProjectName("aRandomProjectName");
-        engagement.setOcpSubDomain("aSuperRandomSubdomain");
+        HostingEnvironment env = HostingEnvironment.builder().environmentName("e1").ocpSubDomain("aSuperRandomSubdomain").build();
+        engagement.setHostingEnvironments(Arrays.asList(env));
 
         Engagement engagement2 = mockEngagement();
         engagement2.setProjectName("anotherRandomName");
-        engagement2.setOcpSubDomain("aSuperRandomSubdomain");
+        HostingEnvironment env2 = HostingEnvironment.builder().environmentName("e2").ocpSubDomain("aSuperRandomSubdomain").build();
+        engagement2.setHostingEnvironments(Arrays.asList(env2));
 
         String body = quarkusJsonb.toJson(engagement);
         String body2 = quarkusJsonb.toJson(engagement2);
@@ -1668,6 +1671,172 @@ public class EngagementResourceTest {
 
     }
 
+    @Test
+    void testPostEngagementWithConflictingHostingEvironmentSubdomain() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        // create engagement with hosting environment
+        Engagement e1 = mockMinimumEngagement("c1", "p1");
+        HostingEnvironment he1 = mockHostingEnvironment("env1", "p1");
+        e1.setHostingEnvironments(Arrays.asList(he1));
+
+        String body = quarkusJsonb.toJson(e1);
+
+        // POST first engagement
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .body(body)
+                .contentType(ContentType.JSON)
+                .post("/engagements")
+            .then()
+                .statusCode(201);
+
+        // create another engagement with hosting environment same as prior engagement
+        Engagement e2 = mockMinimumEngagement("c2", "anotherProject");
+        HostingEnvironment he2 = mockHostingEnvironment("unique", "p1");
+        e2.setHostingEnvironments(Arrays.asList(he2));
+
+        body = quarkusJsonb.toJson(e2);
+
+        // POST first engagement
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .body(body)
+                .contentType(ContentType.JSON)
+                .post("/engagements")
+            .then()
+                .statusCode(409);
+
+    }
+
+    @Test
+    void testPutEngagementWithExistingHostingEvironmentSubdomain() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        // create engagement with hosting environment
+        Engagement e1 = mockMinimumEngagement("c1", "p1");
+        HostingEnvironment he1 = mockHostingEnvironment("env1", "p1");
+        e1.setHostingEnvironments(Arrays.asList(he1));
+
+        String body = quarkusJsonb.toJson(e1);
+
+        // POST first engagement
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .body(body)
+                .contentType(ContentType.JSON)
+                .post("/engagements")
+            .then()
+                .statusCode(201);
+
+        // create another engagement
+        Engagement e2 = mockMinimumEngagement("c2", "anotherProject");
+
+        // create second engagement with conflicting hosting environment subdomain
+        HostingEnvironment he2 = mockHostingEnvironment("unique", "p2");
+        e2.setHostingEnvironments(Arrays.asList(he2));
+
+        body = quarkusJsonb.toJson(e2);
+
+        // POST second engagement
+        Response response = given() 
+            .when()
+                .auth()
+                .oauth2(token)
+                .body(body)
+                .contentType(ContentType.JSON)
+                .post("/engagements");
+
+        assertEquals(201, response.statusCode());
+
+        String responseBody = response.asString();
+        e2 = quarkusJsonb.fromJson(responseBody, Engagement.class);
+
+        body = quarkusJsonb.toJson(e2);
+
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .body(body)
+                .contentType(ContentType.JSON)
+                .put("/engagements/" + e2.getUuid())
+            .then()
+                .statusCode(200);
+
+    }
+
+    @Test
+    void testPutEngagementWithConflictingHostingEvironmentSubdomain() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        // create engagement with hosting environment
+        Engagement e1 = mockMinimumEngagement("c1", "p1");
+        HostingEnvironment he1 = mockHostingEnvironment("env1", "p1");
+        e1.setHostingEnvironments(Arrays.asList(he1));
+
+        String body = quarkusJsonb.toJson(e1);
+
+        // POST first engagement
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .body(body)
+                .contentType(ContentType.JSON)
+                .post("/engagements")
+            .then()
+                .statusCode(201);
+
+        // create another engagement
+        Engagement e2 = mockMinimumEngagement("c2", "anotherProject");
+
+        body = quarkusJsonb.toJson(e2);
+
+        // POST second engagement
+        Response response = given() 
+            .when()
+                .auth()
+                .oauth2(token)
+                .body(body)
+                .contentType(ContentType.JSON)
+                .post("/engagements");
+
+        assertEquals(201, response.statusCode());
+
+        String responseBody = response.asString();
+        e2 = quarkusJsonb.fromJson(responseBody, Engagement.class);
+
+        // update second engagement with conflicting hosting environment subdomain
+        HostingEnvironment he2 = mockHostingEnvironment("unique", "p1");
+        e2.setHostingEnvironments(Arrays.asList(he2));
+
+        body = quarkusJsonb.toJson(e2);
+
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .body(body)
+                .contentType(ContentType.JSON)
+                .put("/engagements/" + e2.getUuid())
+            .then()
+                .statusCode(409);
+
+    }
+
     private Map<String, Boolean> validateCategories(Category[] categories) {
 
         Map<String, Boolean> map = new HashMap<>();
@@ -1705,7 +1874,6 @@ public class EngagementResourceTest {
         Engagement e1 = mockEngagement();
         e1.setCustomerName("customer1");
         e1.setArtifacts(Arrays.asList(a1, a2, a3));
-        e1.setOcpSubDomain(null);
 
         Artifact a4 = mockArtifact("E2 Week 1 Report", "report", "http://report-week-1");
         Artifact a5 = mockArtifact("E2 Demo Week 1", "demo", "http://demo-week-1");
@@ -1715,7 +1883,6 @@ public class EngagementResourceTest {
         Engagement e2 = mockEngagement();
         e2.setCustomerName("customer2");
         e2.setArtifacts(Arrays.asList(a4, a5, a6, a7));
-        e2.setOcpSubDomain(null);
 
         return Arrays.asList(e1, e2);
     }
@@ -1732,7 +1899,6 @@ public class EngagementResourceTest {
         Engagement e1 = mockEngagement();
         e1.setCustomerName("customer1");
         e1.setCategories(Arrays.asList(c1, c2));
-        e1.setOcpSubDomain(null);
 
         Category c3 = mockCategory("C2");
         Category c4 = mockCategory("c4");
@@ -1741,7 +1907,6 @@ public class EngagementResourceTest {
         Engagement e2 = mockEngagement();
         e2.setCustomerName("customer2");
         e2.setCategories(Arrays.asList(c3,c4,c5));
-        e2.setOcpSubDomain(null);
 
         return Arrays.asList(e1, e2);
 
@@ -1757,14 +1922,23 @@ public class EngagementResourceTest {
                 .description("Test Description").location("Raleigh, NC").startDate("20170501").endDate("20170708")
                 .archiveDate("20170930").engagementLeadName("Mister Lead").engagementLeadEmail("mister@lead.com")
                 .technicalLeadName("Mister Techlead").technicalLeadEmail("mister@techlead.com")
-                .customerContactName("Customer Contact").customerContactEmail("customer@contact.com")
-                .ocpCloudProviderName("GCP").ocpCloudProviderRegion("West").ocpVersion("v4.2").ocpSubDomain("jello")
-                .ocpPersistentStorageSize("50GB").ocpClusterSize("medium").build();
+                .customerContactName("Customer Contact").customerContactEmail("customer@contact.com").build();
 
         return engagement;
 
     }
 
+    public Engagement mockMinimumEngagement(String customerName, String projectName) {
+        return Engagement.builder().customerName(customerName).projectName(projectName).build();
+    }
+
+    HostingEnvironment mockHostingEnvironment(String environmentName, String ocpSubdomain) {
+        return HostingEnvironment.builder().environmentName(environmentName).ocpCloudProviderName("provider1")
+                .ocpClusterSize("small").ocpPersistentStorageSize("none").ocpSubDomain(ocpSubdomain).ocpVersion("4.x.x")
+                .build();
+    }
+
+    @SuppressWarnings("unchecked")
     String addDupliateUsers(String engagementJson) throws ParseException {
 
         JSONParser jsonParser = new JSONParser();
@@ -1786,6 +1960,7 @@ public class EngagementResourceTest {
 
     }
 
+    @SuppressWarnings("unchecked")
     JSONObject createUserJson(String firstName, String lastName, String role, String email) {
 
         JSONObject user = new JSONObject();
