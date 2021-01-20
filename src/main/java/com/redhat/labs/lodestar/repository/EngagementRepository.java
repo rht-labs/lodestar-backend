@@ -7,8 +7,11 @@ import static com.mongodb.client.model.Aggregates.project;
 import static com.mongodb.client.model.Aggregates.sort;
 import static com.mongodb.client.model.Aggregates.unwind;
 import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.or;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.regex;
+import static com.mongodb.client.model.Projections.exclude;
+import static com.mongodb.client.model.Projections.include;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
 
@@ -17,16 +20,16 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import org.bson.Document;
-import org.bson.conversions.Bson;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.Field;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
@@ -35,6 +38,10 @@ import com.mongodb.client.model.Sorts;
 import com.redhat.labs.lodestar.model.Artifact;
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.model.FilterOptions;
+
+import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import io.quarkus.mongodb.panache.PanacheMongoRepository;
 
@@ -46,14 +53,13 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
-    public Optional<Engagement> findByUiid(String uuid) {
-        return find("uuid", uuid).firstResultOptional();
-    }
-
-    public Optional<Engagement> findByCustomerNameAndProjectName(String customerName, String projectName) {
-        return find("customerName=?1 and projectName=?2", customerName, projectName).firstResultOptional();
-    }
-
+    /**
+     * Returns Optional containing an {@link Engagement} that matches the provided
+     * subdomain.
+     * 
+     * @param subdomain
+     * @return
+     */
     public Optional<Engagement> findBySubdomain(String subdomain) {
         return findBySubdomain(subdomain, Optional.empty());
     }
@@ -71,6 +77,12 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
 
     }
 
+    /**
+     * Returns a {@link List} of {@link Engagement}s where the action attribute is
+     * not null.
+     * 
+     * @return
+     */
     public List<Engagement> findByModified() {
         return find("action is not null").list();
     }
@@ -172,19 +184,6 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
     }
 
     /**
-     * Find {@link Engagement} with a {@link Category} name that matches the given
-     * {@link String}.
-     * 
-     * @param name
-     * @param matchCase
-     * @return
-     */
-    public List<Engagement> findEngagementsByCategory(String name, boolean matchCase) {
-        String queryInput = matchCase ? String.format("/^%s$/", name) : String.format("/^%s$/i", name);
-        return find("categories.name like ?1", queryInput).list();
-    }
-
-    /**
      * Returns an {@link Optional} containing the updated {@link Engagement} where
      * last update matched. Otherwise, returns an empty {@link Optional}
      * 
@@ -257,6 +256,171 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
         }
 
         return updates;
+
+    }
+
+    /**
+     * Returns a {@link List} of {@link Engagement}s that contain the supplied
+     * categories.
+     * 
+     * If FilterOptions is provided, the associated projection will be used.
+     * Otherwise, all fields will be returned.
+     * 
+     * @param categories
+     * @param filterOptions
+     * @return
+     */
+    public List<Engagement> findByCategories(String categories, Optional<FilterOptions> filterOptions) {
+
+        // split the list
+        Set<String> categorySet = Stream.of(categories.split(",")).collect(Collectors.toSet());
+
+        // create regex for each category
+        List<Bson> regexs = categorySet.stream().map(category -> {
+            return regex("categories.name", category, "i");
+        }).collect(Collectors.toList());
+
+        // or the regexs together
+        Bson bson = or(regexs);
+        return findAll(Optional.of(bson), filterOptions);
+
+    }
+
+    /**
+     * Returns an {@link Optional} containing the {@link Engagement} with the UUID.
+     * Otherwise, an empty {@link Optional} is returned.
+     * 
+     * @param uuid
+     * @return
+     */
+    public Optional<Engagement> findByUuid(String uuid) {
+        return findByUuid(uuid, Optional.empty());
+    }
+
+    /**
+     * Returns an {@link Optional} containing the {@link Engagement} with the UUID.
+     * Otherwise, an empty {@link Optional} is returned.
+     * 
+     * If FilterOptions is provided, the associated projection will be used.
+     * Otherwise, all fields will be returned.
+     * 
+     * @param uuid
+     * @param filterOptions
+     * @return
+     */
+    public Optional<Engagement> findByUuid(String uuid, Optional<FilterOptions> filterOptions) {
+        Bson bson = eq("uuid", uuid);
+        return Optional.ofNullable(find(Optional.of(bson), filterOptions).first());
+    }
+
+    /**
+     * Returns an {@link Optional} containing the {@link Engagement} with the
+     * customer and project names. Otherwise, an empty {@link Optional} is returned.
+     * 
+     * @param customerName
+     * @param projectName
+     * @return
+     */
+    public Optional<Engagement> findByCustomerNameAndProjectName(String customerName, String projectName) {
+        return findByCustomerNameAndProjectName(customerName, projectName, Optional.empty());
+    }
+
+    /**
+     * Returns an {@link Optional} containing the {@link Engagement} with the
+     * customer and project names. Otherwise, an empty {@link Optional} is returned.
+     * 
+     * If FilterOptions is provided, the associated projection will be used.
+     * Otherwise, all fields will be returned.
+     * 
+     * @param customerName
+     * @param projectName
+     * @param filterOptions
+     * @return
+     */
+    public Optional<Engagement> findByCustomerNameAndProjectName(String customerName, String projectName,
+            Optional<FilterOptions> filterOptions) {
+        Bson bson = and(eq("customerName", customerName), eq("projectName", projectName));
+        return Optional.ofNullable(find(Optional.of(bson), filterOptions).first());
+    }
+
+    /**
+     * Returns all {@link Engagement}s.
+     * 
+     * If FilterOptions is provided, the associated projection will be used.
+     * Otherwise, all fields will be returned.
+     * 
+     * @param filterOptions
+     * @return
+     */
+    public List<Engagement> findAll(Optional<FilterOptions> filterOptions) {
+        return findAll(Optional.empty(), filterOptions);
+    }
+
+    /**
+     * Returns a {@link List} of {@link Engagement}s. The {@link Bson} filter will
+     * be used to query. Otherwise, all {@link Engagement}s will be returned.
+     * 
+     * If FilterOptions is provided, the associated projection will be used.
+     * Otherwise, all fields will be returned.
+     * 
+     * @param filter
+     * @param filterOptions
+     * @return
+     */
+    public List<Engagement> findAll(Optional<Bson> filter, Optional<FilterOptions> filterOptions) {
+        List<Engagement> list = new ArrayList<>();
+        find(filter, filterOptions).iterator().forEachRemaining(list::add);
+        return list;
+    }
+
+    /**
+     * Returns a FindIterable with the resulting {@link Bson} filter or all if no
+     * filter provided. A projection is added if either the include or exclude is
+     * prvided in the FilterOptions.
+     * 
+     * @param bson
+     * @param filterOptions
+     * @return
+     */
+    private FindIterable<Engagement> find(Optional<Bson> bson, Optional<FilterOptions> filterOptions) {
+
+        if (filterOptions.isPresent()) {
+
+            FilterOptions options = filterOptions.get();
+            Optional<Set<String>> includeSet = options.getIncludeList();
+            Optional<Set<String>> excludeSet = options.getExcludeList();
+
+            // return only the attributes to include
+            if (includeSet.isPresent()) {
+                return getFindIterable(bson).projection(include(List.copyOf(includeSet.get())));
+            }
+
+            // return only the attributes not excluded
+            if (excludeSet.isPresent()) {
+                return getFindIterable(bson).projection(exclude(List.copyOf(excludeSet.get())));
+            }
+
+        }
+
+        // return full engagement if no filter
+        return getFindIterable(bson);
+
+    }
+
+    /**
+     * Returns a FindIterable for all {@link Engagement}s or the results of the
+     * {@link Bson} filter.
+     * 
+     * @param bson
+     * @return
+     */
+    private FindIterable<Engagement> getFindIterable(Optional<Bson> bson) {
+
+        if (bson.isPresent()) {
+            return mongoCollection().find(bson.get());
+        }
+
+        return mongoCollection().find();
 
     }
 

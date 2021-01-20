@@ -29,7 +29,7 @@ public class Engagement extends PanacheMongoEntityBase {
     private String uuid;
     // Mongo DB generated ID
     @BsonId
-    @JsonbProperty("mongo_id")
+    @JsonbTransient
     private ObjectId mongoId;
     @ValidName
     @JsonbProperty("customer_name")
@@ -62,7 +62,7 @@ public class Engagement extends PanacheMongoEntityBase {
     @JsonbProperty("hosting_environments")
     private List<HostingEnvironment> hostingEnvironments;
     @JsonbProperty("public_reference")
-    private boolean publicReference;
+    private Boolean publicReference;
     @JsonProperty("additional_details")
     private String additionalDetails;
     private Launch launch;
