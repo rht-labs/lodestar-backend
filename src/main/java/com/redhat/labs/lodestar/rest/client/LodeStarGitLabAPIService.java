@@ -2,6 +2,7 @@ package com.redhat.labs.lodestar.rest.client;
 
 import java.util.List;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.Encoded;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -50,6 +51,11 @@ public interface LodeStarGitLabAPIService {
     @Produces("application/json")
     List<Commit> getCommits(@PathParam("customer") String customer, @PathParam("engagement") String engagement);
 
+    @DELETE
+    @Path("/api/v1/engagements/customer/{customer}/{engagement}")
+    @Produces("application/json")
+    void deleteEngagement(@PathParam("customer") String customer, @PathParam("engagement") String engagement);
+    
     @GET
     @Path("/api/v1/config")
     @Produces("application/json")

@@ -42,29 +42,24 @@ public class GitSyncService {
 
     /**
      * Consumes {@link BackendEvent} to trigger the processing of modified
-     * {@link Engagement}s. Starts the processing in a separate {@link Thread} using
-     * executeBlocking to prevent blocking the event loop.
+     * {@link Engagement}s.
      * 
      * @param event
      */
-    @ConsumeEvent(EventType.Constants.UPDATE_ENGAGEMENTS_IN_GIT_REQUESTED_ADDRESS)
+    @ConsumeEvent(value = EventType.Constants.UPDATE_ENGAGEMENTS_IN_GIT_REQUESTED_ADDRESS, blocking = true)
     void consumeUpdateEngagementsInGitRequestedEvent(BackendEvent event) {
-
         List<Engagement> engagementList = event.getEngagementList();
+        processModifiedEvents(engagementList);
+    }
 
-        vertx.executeBlocking(promise -> {
-            try {
-                processModifiedEvents(engagementList);
-                promise.complete();
-            } catch (Exception e) {
-                promise.fail(e);
-            }
-        }).subscribe().with(item -> {
-            LOGGER.debug("processing modified engagements succeeded.");
-        }, failure -> {
-            LOGGER.warn("processing modified engagements failed with message {}", failure.getMessage(), failure);
-        });
-
+    /**
+     * Consumes a delete engagement event.
+     * 
+     * @param engagement
+     */
+    @ConsumeEvent(EventType.Constants.DELETE_ENGAGEMENT_IN_GIT_REQUESTED_ADDRESS)
+    void consumeDeleteEngagementInGitRequestedEvent(Engagement engagement) {
+        gitApiClient.deleteEngagement(engagement.getCustomerName(), engagement.getProjectName());
     }
 
     /**
@@ -86,14 +81,14 @@ public class GitSyncService {
                 LOGGER.debug("...performing {} on engagement {} using Git API.", engagement.getAction().name(),
                         engagement);
             }
-            
+
             // set creation details for create actions
             if (FileAction.create == engagement.getAction()) {
                 setCreationDetails(engagement);
             }
 
             try (Response response = gitApiClient.createOrUpdateEngagement(engagement, engagement.getLastUpdateByName(),
-                        engagement.getLastUpdateByEmail())) {
+                    engagement.getLastUpdateByEmail())) {
 
                 // update id for create actions
                 if (FileAction.create == engagement.getAction()) {
