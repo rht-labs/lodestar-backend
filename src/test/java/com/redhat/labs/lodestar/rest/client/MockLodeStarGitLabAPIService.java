@@ -110,4 +110,8 @@ public class MockLodeStarGitLabAPIService implements LodeStarGitLabAPIService {
         return null;
     }
 
+    @Override
+    public void deleteEngagement(String customer, String engagement) {
+    }
+
 }
