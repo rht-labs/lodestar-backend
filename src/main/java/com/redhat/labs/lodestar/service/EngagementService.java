@@ -566,7 +566,7 @@ public class EngagementService {
         }
 
         // delete from db
-        deleteByUuid(uuid);
+        repository.delete(engagement);
 
         // send delete event
         eventBus.sendAndForget(EventType.Constants.DELETE_ENGAGEMENT_IN_GIT_REQUESTED_ADDRESS, engagement);

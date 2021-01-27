@@ -273,9 +273,10 @@ public class EngagementResource {
     @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/{id}")
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
-            @APIResponse(responseCode = "404", description = "Engagement resource not found to update"),
-            @APIResponse(responseCode = "200", description = "Engagement updated in the database") })
-    @Operation(summary = "Updates the engagement resource in the database.")
+            @APIResponse(responseCode = "404", description = "Engagement resource not found to delete"),
+            @APIResponse(responseCode = "400", description = "Engagement resource has already been launched"),
+            @APIResponse(responseCode = "202", description = "Engagement deleted in the database and sent to Git for processing") })
+    @Operation(summary = "Deletes the engagement resource in the database and sends to Git API for deletion")
     public Response delete(@PathParam("id") String uuid) {
 
         engagementService.deleteEngagement(uuid);
