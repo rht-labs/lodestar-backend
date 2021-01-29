@@ -2,6 +2,7 @@ package com.redhat.labs.lodestar.model;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.json.bind.annotation.JsonbProperty;
 import javax.json.bind.annotation.JsonbTransient;
@@ -20,7 +21,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
@@ -95,7 +96,48 @@ public class Engagement extends PanacheMongoEntityBase {
     @JsonbProperty("commit_message")
     private String commitMessage;
 
-    @JsonbTransient
-    private FileAction action;
+    public static Engagement deepCopy(Engagement engagement) {
+
+        Engagement copy = engagement.toBuilder().build();
+
+        // copy hosting environments
+        if (null != engagement.getHostingEnvironments()) {
+            copy.setHostingEnvironments(engagement.getHostingEnvironments().stream().map(h -> h.toBuilder().build())
+                    .collect(Collectors.toList()));
+        }
+
+        // copy engagement users
+        if (null != engagement.getEngagementUsers()) {
+            copy.setEngagementUsers(engagement.getEngagementUsers().stream().map(u -> u.toBuilder().build())
+                    .collect(Collectors.toSet()));
+        }
+
+        // copy commits
+        if (null != engagement.getCommits()) {
+            copy.setCommits(
+                    engagement.getCommits().stream().map(c -> c.toBuilder().build()).collect(Collectors.toList()));
+        }
+
+        // copy categories
+        if (null != engagement.getCategories()) {
+            copy.setCategories(
+                    engagement.getCategories().stream().map(c -> c.toBuilder().build()).collect(Collectors.toList()));
+        }
+
+        // copy user case
+        if (null != engagement.getUseCases()) {
+            copy.setUseCases(
+                    engagement.getUseCases().stream().map(u -> u.toBuilder().build()).collect(Collectors.toList()));
+        }
+
+        // copy artifacts
+        if (null != engagement.getArtifacts()) {
+            copy.setArtifacts(
+                    engagement.getArtifacts().stream().map(a -> a.toBuilder().build()).collect(Collectors.toList()));
+        }
+
+        return copy;
+
+    }
 
 }

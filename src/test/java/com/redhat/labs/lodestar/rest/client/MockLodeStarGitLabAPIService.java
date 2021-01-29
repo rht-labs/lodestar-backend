@@ -13,7 +13,6 @@ import com.redhat.labs.lodestar.model.Commit;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.Status;
 import com.redhat.labs.lodestar.model.Version;
-import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
 
 import io.quarkus.test.Mock;
 

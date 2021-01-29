@@ -8,7 +8,6 @@ import javax.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import com.redhat.labs.lodestar.model.status.VersionManifestV1;
-import com.redhat.labs.lodestar.rest.client.LodeStarStatusApiClient;
 import com.redhat.labs.lodestar.utils.ResourceLoader;
 
 import io.quarkus.test.Mock;

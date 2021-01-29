@@ -69,7 +69,7 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
         String regex = new StringBuilder("^").append(subdomain).append("$").toString();
         Bson filter = regex("hostingEnvironments.ocpSubDomain", regex, "im");
 
-        if(engagementUuid.isPresent()) {
+        if (engagementUuid.isPresent()) {
             filter = and(filter, eq("uuid", engagementUuid.get()));
         }
 
@@ -180,6 +180,25 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
 
         return StreamSupport.stream(iterable.spliterator(), false).map(artifact -> artifact.getType())
                 .collect(Collectors.toList());
+
+    }
+
+    /**
+     * Returns an {@link Optional} containing the updated {@link Engagement} where
+     * the uuid matched. Otherwise, returns an empty {@link Optional}.
+     * 
+     * @param uuid
+     * @param projectId
+     * @return
+     */
+    public Optional<Engagement> setProjectId(String uuid, Integer projectId) {
+
+        Bson filter = eq("uuid", uuid);
+        Bson update = set("projectId", projectId);
+
+        FindOneAndUpdateOptions optionAfter = new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER);
+
+        return Optional.ofNullable(this.mongoCollection().findOneAndUpdate(filter, update, optionAfter));
 
     }
 
