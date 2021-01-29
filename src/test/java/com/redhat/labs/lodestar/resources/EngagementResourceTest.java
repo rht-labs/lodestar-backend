@@ -337,6 +337,9 @@ public class EngagementResourceTest {
 
         body = quarkusJsonb.toJson(created);
 
+        // delay for async process
+        TimeUnit.SECONDS.sleep(1);
+
         given()
             .when()
                 .auth()
@@ -348,7 +351,7 @@ public class EngagementResourceTest {
                 .statusCode(200)
                 .body("customer_name", equalTo(created.getCustomerName()))
                 .body("project_name", equalTo(created.getProjectName()))
-                .body("project_id", nullValue())
+                .body("project_id", equalTo(1234))
                 .body("description", equalTo(created.getDescription()));
 
     }
@@ -780,6 +783,9 @@ public class EngagementResourceTest {
                 .body("project_name", equalTo(engagement.getProjectName()))
                 .body("project_id", nullValue());
 
+        // delay for async process
+        TimeUnit.SECONDS.sleep(1);
+
         // GET
         given()
             .when()
@@ -790,7 +796,7 @@ public class EngagementResourceTest {
                 .statusCode(200)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("project_id", nullValue());
+                .body("project_id", equalTo(1234));
 
     }
 
@@ -1381,6 +1387,9 @@ public class EngagementResourceTest {
                 .body("project_name", equalTo(engagement.getProjectName()))
                 .body("project_id", nullValue());
 
+        // delay for async process
+        TimeUnit.SECONDS.sleep(1);
+
         // GET
         given()
             .when()
@@ -1391,7 +1400,7 @@ public class EngagementResourceTest {
                 .statusCode(200)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("project_id", nullValue());
+                .body("project_id", equalTo(1234));
 
         // Run sync
         given()
@@ -1465,6 +1474,9 @@ public class EngagementResourceTest {
                 .body("project_name", equalTo(engagement.getProjectName()))
                 .body("project_id", nullValue());
 
+        // delay for async process
+        TimeUnit.SECONDS.sleep(1);
+
         // GET
         given()
             .when()
@@ -1475,7 +1487,7 @@ public class EngagementResourceTest {
                 .statusCode(200)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("project_id", nullValue());
+                .body("project_id", equalTo(1234));
 
         // Run sync
         given()
