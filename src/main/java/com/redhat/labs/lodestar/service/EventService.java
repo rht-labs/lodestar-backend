@@ -76,9 +76,6 @@ public class EventService {
                     "failed to create or update engagement with message '{}', please check to see data needs to be refreshed from git. engagement: {}",
                     e.getMessage(), engagement);
 
-            // TODO: send event to retry - probably need a counter
-            // should probably only retry if updated timestamp matches
-
         }
 
     }

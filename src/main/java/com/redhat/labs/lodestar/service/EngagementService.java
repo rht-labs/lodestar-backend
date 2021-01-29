@@ -82,14 +82,17 @@ public class EngagementService {
         validateSubdomainOnCreate(engagement);
         setBeforeInsert(engagement);
 
-        // send create engagement event
-        eventBus.sendAndForget(EventType.CREATE_ENGAGEMENT_EVENT_ADDRESS, Engagement.deepCopy(engagement));
-
+        // create copy to send to git api
+        Engagement copy = Engagement.deepCopy(engagement);
+        
         // reset commit message
         engagement.setCommitMessage(null);
 
         // save to database
         repository.persist(engagement);
+
+        // send create engagement event after save to database
+        eventBus.sendAndForget(EventType.CREATE_ENGAGEMENT_EVENT_ADDRESS, copy);
 
         return engagement;
 
@@ -173,15 +176,16 @@ public class EngagementService {
         Engagement existing = getByIdOrName(engagement).orElseThrow(
                 () -> new WebApplicationException("no engagement found, use POST to create", HttpStatus.SC_NOT_FOUND));
 
+        String currentLastUpdated = engagement.getLastUpdate();
         validateHostingEnvironments(engagement.getHostingEnvironments());
         validateSubdomainOnUpdate(engagement, existing);
         validateCustomerAndProjectNames(engagement, existing);
         setBeforeUpdate(engagement, existing);
-        String currentLastUpdated = setLastUpdate(existing);
+        
         boolean skipLaunch = skipLaunch(existing);
 
-        // send update engagement event
-        eventBus.sendAndForget(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, Engagement.deepCopy(engagement));
+        // create copy to send to git api
+        Engagement copy = Engagement.deepCopy(engagement);
 
         // reset values before save
         engagement.setCommitMessage(null);
@@ -193,6 +197,9 @@ public class EngagementService {
                 .orElseThrow(() -> new WebApplicationException(
                         "Failed to modify engagement because request contained stale data.  Please refresh and try again.",
                         HttpStatus.SC_CONFLICT));
+
+        // send update engagement event once saved
+        eventBus.sendAndForget(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, copy);
 
         return updated;
 
@@ -338,6 +345,8 @@ public class EngagementService {
      */
     void setBeforeUpdate(Engagement engagement, Engagement existing) {
 
+        setLastUpdate(engagement);
+
         // create new or use existing uuids for users
         setUserUuidsBeforeUpdate(engagement, existing);
 
@@ -401,13 +410,8 @@ public class EngagementService {
      * @param engagement
      * @return
      */
-    String setLastUpdate(Engagement engagement) {
-
-        String currentLastUpdated = engagement.getLastUpdate();
+    void setLastUpdate(Engagement engagement) {
         engagement.setLastUpdate(getZuluTimeAsString());
-
-        return currentLastUpdated;
-
     }
 
     /**
@@ -428,7 +432,10 @@ public class EngagementService {
      * @param projectId
      */
     public void setProjectId(String uuid, Integer projectId) {
-        repository.setProjectId(uuid, projectId);
+        Optional<Engagement> optional = repository.setProjectId(uuid, projectId);
+        if(optional.isPresent()) {
+            System.out.println("preset: " + optional.get());
+        }
     }
 
     /**
