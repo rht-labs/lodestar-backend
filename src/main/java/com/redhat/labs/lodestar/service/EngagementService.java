@@ -3,7 +3,6 @@ package com.redhat.labs.lodestar.service;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -17,6 +16,12 @@ import javax.inject.Inject;
 import javax.json.bind.Jsonb;
 import javax.ws.rs.WebApplicationException;
 
+import org.apache.http.HttpStatus;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Commit;
 import com.redhat.labs.lodestar.model.Engagement;
@@ -28,15 +33,10 @@ import com.redhat.labs.lodestar.model.HostingEnvironment;
 import com.redhat.labs.lodestar.model.Launch;
 import com.redhat.labs.lodestar.model.Status;
 import com.redhat.labs.lodestar.model.event.BackendEvent;
+import com.redhat.labs.lodestar.model.event.EventType;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
 import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
 import com.redhat.labs.lodestar.socket.EngagementEventSocket;
-
-import org.apache.http.HttpStatus;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import io.vertx.mutiny.core.eventbus.EventBus;
 
@@ -495,7 +495,7 @@ public class EngagementService {
      */
     public List<Engagement> getAll(String categories, Optional<FilterOptions> filterOptions) {
 
-        if( null == categories || categories.isBlank()) {
+        if (null == categories || categories.isBlank()) {
             return repository.findAll(filterOptions);
         }
 
@@ -546,6 +546,31 @@ public class EngagementService {
      */
     public void deleteByUuid(String uuid) {
         repository.delete(getByUuid(uuid, Optional.empty()));
+    }
+
+    /**
+     * Deletes the {@link Engagement} from the database if it exists and not already
+     * launched. Then, sends an event to remove the engagement from Git.
+     * 
+     * @param uuid
+     */
+    public void deleteEngagement(String uuid) {
+
+        // get engagement by uuid
+        Engagement engagement = getByUuid(uuid, Optional.empty());
+
+        // throw 400 if already launched
+        if (isLaunched(engagement)) {
+            throw new WebApplicationException("cannot delete engagement that has already been launched.",
+                    HttpStatus.SC_BAD_REQUEST);
+        }
+
+        // delete from db
+        repository.delete(engagement);
+
+        // send delete event
+        eventBus.sendAndForget(EventType.Constants.DELETE_ENGAGEMENT_IN_GIT_REQUESTED_ADDRESS, engagement);
+
     }
 
     /**

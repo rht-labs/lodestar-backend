@@ -9,6 +9,7 @@ import javax.inject.Inject;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HEAD;
 import javax.ws.rs.POST;
@@ -265,6 +266,21 @@ public class EngagementResource {
         engagement.setLastUpdateByEmail(getUserEmailFromToken());
 
         return engagementService.update(engagement);
+
+    }
+
+    @DELETE
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @Path("/{id}")
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "404", description = "Engagement resource not found to delete"),
+            @APIResponse(responseCode = "400", description = "Engagement resource has already been launched"),
+            @APIResponse(responseCode = "202", description = "Engagement deleted in the database and sent to Git for processing") })
+    @Operation(summary = "Deletes the engagement resource in the database and sends to Git API for deletion")
+    public Response delete(@PathParam("id") String uuid) {
+
+        engagementService.deleteEngagement(uuid);
+        return Response.accepted().build();
 
     }
 

@@ -217,6 +217,46 @@ class EngagementServiceTest {
 
     }
 
+    @Test
+    void testDeleteEngagementDoesNotExist() {
+
+        Mockito.when(repository.findByUuid("123", Optional.empty())).thenReturn(Optional.empty());
+        
+        Exception ex = assertThrows(WebApplicationException.class, () -> {
+            engagementService.deleteEngagement("123");
+        });
+
+        assertEquals("no engagement found with id 123", ex.getMessage());
+
+    }
+
+    @Test
+    void testDeleteEngagementAlreadyLaunched() {
+
+        Engagement e = mockMinimumEngagement("c1", "p1", "123");
+        e.setLaunch(Launch.builder().build());
+        Mockito.when(repository.findByUuid("123", Optional.empty())).thenReturn(Optional.of(e));
+        
+        Exception ex = assertThrows(WebApplicationException.class, () -> {
+            engagementService.deleteEngagement("123");
+        });
+
+        assertEquals("cannot delete engagement that has already been launched.", ex.getMessage());
+
+    }
+
+    @Test
+    void testDeleteEngagementSuccess() {
+
+        Engagement e = mockMinimumEngagement("c1", "p1", "123");
+        Mockito.when(repository.findByUuid("123", Optional.empty())).thenReturn(Optional.of(e));
+
+        engagementService.deleteEngagement("123");
+
+        Mockito.verify(repository).delete(e);
+
+    }
+
     Engagement mockMinimumEngagement(String customerName, String projectName, String uuid) {
         return Engagement.builder().customerName(customerName).projectName(projectName).uuid(uuid).build();
     }
