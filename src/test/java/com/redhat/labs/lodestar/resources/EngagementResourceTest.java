@@ -1837,6 +1837,63 @@ public class EngagementResourceTest {
 
     }
 
+    @Test
+    void testDeleteEngagement() throws Exception {
+        
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Engagement engagement = mockEngagement();
+        engagement.setDescription(SCENARIO.SUCCESS.getValue());
+
+        String body = quarkusJsonb.toJson(engagement);
+
+        // POST engagement
+        Response response = given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .body(body)
+                .contentType(ContentType.JSON)
+                .post("/engagements");
+
+        assertEquals(201, response.getStatusCode());
+
+        String responseBody = response.getBody().asString();
+        Engagement created = quarkusJsonb.fromJson(responseBody, Engagement.class);
+
+        assertNotNull(created.getUuid());
+
+        // validate create
+        given()
+        .when()
+            .auth()
+            .oauth2(token)
+            .get("/engagements/" + created.getUuid())
+        .then()
+            .statusCode(200);
+
+        // DELETE
+        given()
+        .when()
+            .auth()
+            .oauth2(token)
+            .delete("/engagements/" + created.getUuid())
+        .then()
+            .statusCode(202);
+
+        // Validate delete
+        given()
+        .when()
+            .auth()
+            .oauth2(token)
+            .get("/engagements/" + created.getUuid())
+        .then()
+            .statusCode(404);
+
+        
+    }
+
     private Map<String, Boolean> validateCategories(Category[] categories) {
 
         Map<String, Boolean> map = new HashMap<>();
