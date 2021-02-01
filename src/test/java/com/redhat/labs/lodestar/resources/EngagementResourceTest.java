@@ -706,6 +706,9 @@ public class EngagementResourceTest {
         // add users with duplicates
         body = addDupliateUsers(body);
 
+        // delay for async process
+        TimeUnit.SECONDS.sleep(1);
+
         Response r =
         given()
             .when()
@@ -1737,6 +1740,7 @@ public class EngagementResourceTest {
         Engagement e1 = mockMinimumEngagement("c1", "p1");
         HostingEnvironment he1 = mockHostingEnvironment("env1", "p1");
         e1.setHostingEnvironments(Arrays.asList(he1));
+        e1.setDescription(SCENARIO.SUCCESS.getValue());
 
         String body = quarkusJsonb.toJson(e1);
 
@@ -1757,6 +1761,7 @@ public class EngagementResourceTest {
         // create second engagement with conflicting hosting environment subdomain
         HostingEnvironment he2 = mockHostingEnvironment("unique", "p2");
         e2.setHostingEnvironments(Arrays.asList(he2));
+        e2.setDescription(SCENARIO.SUCCESS.getValue());
 
         body = quarkusJsonb.toJson(e2);
 
@@ -1775,6 +1780,9 @@ public class EngagementResourceTest {
         e2 = quarkusJsonb.fromJson(responseBody, Engagement.class);
 
         body = quarkusJsonb.toJson(e2);
+
+        // delay for async process
+        TimeUnit.SECONDS.sleep(1);
 
         given()
             .when()
@@ -1798,6 +1806,7 @@ public class EngagementResourceTest {
         Engagement e1 = mockMinimumEngagement("c1", "p1");
         HostingEnvironment he1 = mockHostingEnvironment("env1", "p1");
         e1.setHostingEnvironments(Arrays.asList(he1));
+        e1.setDescription(SCENARIO.SUCCESS.getValue());
 
         String body = quarkusJsonb.toJson(e1);
 
@@ -1814,6 +1823,7 @@ public class EngagementResourceTest {
 
         // create another engagement
         Engagement e2 = mockMinimumEngagement("c2", "anotherProject");
+        e2.setDescription(SCENARIO.SUCCESS.getValue());
 
         body = quarkusJsonb.toJson(e2);
 
@@ -1836,6 +1846,9 @@ public class EngagementResourceTest {
         e2.setHostingEnvironments(Arrays.asList(he2));
 
         body = quarkusJsonb.toJson(e2);
+
+        // delay for async process
+        TimeUnit.SECONDS.sleep(1);
 
         given()
             .when()

@@ -447,10 +447,7 @@ public class EngagementService {
      * @param projectId
      */
     public void setProjectId(String uuid, Integer projectId) {
-        Optional<Engagement> optional = repository.setProjectId(uuid, projectId);
-        if (optional.isPresent()) {
-            System.out.println("preset: " + optional.get());
-        }
+        repository.setProjectId(uuid, projectId);
     }
 
     /**

@@ -69,6 +69,7 @@ class EngagementServiceTest {
         EngagementUser user2 = mockEngagementUser("js@example.com", "Jeff", "Smith", "observer", "6789");
         Engagement existing = mockMinimumEngagement("c1", "p1", "00000");
         existing.setEngagementUsers(Sets.newSet(user1, user2));
+        existing.setProjectId(1234);
 
         // requested update engagement
         Engagement toUpdate = mockMinimumEngagement("c1", "p1", "00000");
@@ -93,6 +94,7 @@ class EngagementServiceTest {
 
         // persisted engagement
         Engagement existing = mockMinimumEngagement("c1", "p1", "00000");
+        existing.setProjectId(1234);
 
         // requested update engagement
         EngagementUser user1 = mockEngagementUser("jj@example.com", "John", "Johnson", "admin", null);
@@ -131,6 +133,7 @@ class EngagementServiceTest {
         EngagementUser user1 = mockEngagementUser("jj@example.com", "John", "Johnson", "admin", "1234");
         Engagement existing = mockMinimumEngagement("c1", "p1", "00000");
         existing.setEngagementUsers(Sets.newSet(user1));
+        existing.setProjectId(1234);
 
         // requested update engagement
         EngagementUser user2 = mockEngagementUser("js@example.com", "Jeff", "Smith", "observer", null);
