@@ -84,7 +84,7 @@ public class EngagementService {
 
         // create copy to send to git api
         Engagement copy = Engagement.deepCopy(engagement);
-        
+
         // reset commit message
         engagement.setCommitMessage(null);
 
@@ -176,12 +176,13 @@ public class EngagementService {
         Engagement existing = getByIdOrName(engagement).orElseThrow(
                 () -> new WebApplicationException("no engagement found, use POST to create", HttpStatus.SC_NOT_FOUND));
 
+        validateProjectIdExists(existing);
         String currentLastUpdated = engagement.getLastUpdate();
         validateHostingEnvironments(engagement.getHostingEnvironments());
         validateSubdomainOnUpdate(engagement, existing);
         validateCustomerAndProjectNames(engagement, existing);
         setBeforeUpdate(engagement, existing);
-        
+
         boolean skipLaunch = skipLaunch(existing);
 
         // create copy to send to git api
@@ -202,6 +203,20 @@ public class EngagementService {
         eventBus.sendAndForget(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, copy);
 
         return updated;
+
+    }
+
+    /**
+     * Throws a {@link WebApplicationException} if the project ID is missing from
+     * the given {@link Engagement}.
+     * 
+     * @param engagement
+     */
+    void validateProjectIdExists(Engagement engagement) {
+
+        if (null == engagement.getProjectId()) {
+            throw new WebApplicationException("cannot updated engagement: missing project id.", 500);
+        }
 
     }
 
@@ -433,7 +448,7 @@ public class EngagementService {
      */
     public void setProjectId(String uuid, Integer projectId) {
         Optional<Engagement> optional = repository.setProjectId(uuid, projectId);
-        if(optional.isPresent()) {
+        if (optional.isPresent()) {
             System.out.println("preset: " + optional.get());
         }
     }
