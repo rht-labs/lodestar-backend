@@ -15,7 +15,7 @@ import io.quarkus.test.junit.QuarkusTest;
 
 @EmbeddedMongoTest
 @QuarkusTest
-public class ConfigResourceTest {
+class ConfigResourceTest {
 
     @ConfigProperty(name = "configFileCacheKey", defaultValue = "schema/config.yml")
     String configFileCacheKey;
@@ -37,7 +37,7 @@ public class ConfigResourceTest {
      */
 
     @Test
-    public void testGetConfigTokenHasWrongRole() throws Exception {
+    void testGetConfigTokenHasWrongRole() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsUnknown.json", timeClaims);
@@ -53,7 +53,7 @@ public class ConfigResourceTest {
     }
 
     @Test
-    public void testGetConfigInGitRepo() throws Exception {
+    void testGetConfigInGitRepo() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsReader.json", timeClaims);
@@ -72,7 +72,7 @@ public class ConfigResourceTest {
     }
 
     @Test
-    public void testGetConfigInGitRepoV2() throws Exception {
+    void testGetConfigInGitRepoV2() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsReader.json", timeClaims);

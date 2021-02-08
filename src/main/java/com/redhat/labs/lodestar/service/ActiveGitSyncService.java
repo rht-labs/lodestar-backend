@@ -63,7 +63,7 @@ public class ActiveGitSyncService {
         // get record from db
         List<ActiveSync> syncRecordList = activeSyncRepository.listAll(Sort.ascending("lastUpdated"));
 
-        if (syncRecordList.size() == 0) {
+        if (syncRecordList.isEmpty()) {
 
             LOGGER.debug("no active found, inserting active record for instance {}", uuid);
 
@@ -87,7 +87,7 @@ public class ActiveGitSyncService {
             active = true;
 
             // shouldn't happen, but remove extra records if more than one exists
-            if (syncRecordList.size() > 0) {
+            if (!syncRecordList.isEmpty()) {
 
                 LOGGER.debug("found multiple control records, performing cleanup");
                 for (ActiveSync record : syncRecordList) {

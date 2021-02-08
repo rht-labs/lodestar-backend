@@ -13,10 +13,10 @@ import io.restassured.http.ContentType;
 
 @EmbeddedMongoTest
 @QuarkusTest
-public class VersionResourceTest {
+class VersionResourceTest {
 
     @Test
-    public void testValidResourceVersion() {
+    void testValidResourceVersion() {
         given()
         .when()
             .contentType(ContentType.JSON)
@@ -28,7 +28,7 @@ public class VersionResourceTest {
     }   
 
     @Test
-    public void testValidResourceVersion1() {
+    void testValidResourceVersion1() {
 
         given()
         .when()
@@ -44,7 +44,7 @@ public class VersionResourceTest {
     }
 
     @Test
-    public void testValidResourceVersion2() {
+    void testValidResourceVersion2() {
 
         given()
         .when()
@@ -59,7 +59,7 @@ public class VersionResourceTest {
     }
 
     @Test
-    public void testValidResourceVersionNoAcceptVersionSupplied() {
+    void testValidResourceVersionNoAcceptVersionSupplied() {
 
         given()
         .when()
@@ -73,7 +73,7 @@ public class VersionResourceTest {
     }
 
     @Test
-    public void testValidResourceVersionInvalidAcceptVersion() {
+    void testValidResourceVersionInvalidAcceptVersion() {
 
         given()
         .when()
@@ -86,7 +86,7 @@ public class VersionResourceTest {
     }
 
     @Test
-    public void testValidResourceVersionManifest() {
+    void testValidResourceVersionManifest() {
 
         given()
         .when()

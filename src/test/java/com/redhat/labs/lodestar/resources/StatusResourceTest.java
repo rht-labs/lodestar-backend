@@ -23,7 +23,7 @@ import io.restassured.http.ContentType;
 
 @EmbeddedMongoTest
 @QuarkusTest
-public class StatusResourceTest {
+class StatusResourceTest {
     
     @Inject
     EngagementService engagementService;
@@ -33,14 +33,14 @@ public class StatusResourceTest {
     LodeStarStatusApiClient statusClient;
     
     @BeforeEach
-    public void seed() {
+    void seed() {
         Engagement engagement = Engagement.builder().customerName("jello").projectName("exists").build();
         engagementService.create(engagement);
     }
     
     
     @Test
-    public void testStatusValid() {
+    void testStatusValid() {
         
         String body = ResourceLoader.load("StatusReqValid.json");
                 
@@ -55,7 +55,7 @@ public class StatusResourceTest {
     } 
     
     @Test
-    public void testStatusNoStatusUpdate() {
+    void testStatusNoStatusUpdate() {
         
         String body = ResourceLoader.load("StatusReqValidNoUpdate.json");
         
@@ -70,7 +70,7 @@ public class StatusResourceTest {
     } 
 
     @Test
-    public void testStatusNoToken() {
+    void testStatusNoToken() {
         given()
         .when()
             .contentType(ContentType.JSON)
@@ -80,7 +80,7 @@ public class StatusResourceTest {
     } 
     
     @Test
-    public void testDeletedHook() {
+    void testDeletedHook() {
         String body = ResourceLoader.load("StatusDeleted.json");
         
         given()
@@ -94,7 +94,7 @@ public class StatusResourceTest {
     }
     
     @Test
-    public void testDeletedWrongEventType() {
+    void testDeletedWrongEventType() {
         String body = ResourceLoader.load("StatusReqValid.json");
         
         given()
@@ -108,7 +108,7 @@ public class StatusResourceTest {
     }
     
     @Test
-    public void testDeletedNoEngagement() {
+    void testDeletedNoEngagement() {
         String body = ResourceLoader.load("StatusDeletedNoEngagement.json");
         
         given()
@@ -122,7 +122,7 @@ public class StatusResourceTest {
     }
     
     @Test
-    public void testDeletedNoToken() {
+    void testDeletedNoToken() {
         given()
         .when()
             .contentType(ContentType.JSON)

@@ -41,7 +41,7 @@ import io.restassured.response.Response;
 
 @EmbeddedMongoTest
 @QuarkusTest
-public class EngagementResourceTest {
+class EngagementResourceTest {
 
     @Inject
     Jsonb quarkusJsonb;
