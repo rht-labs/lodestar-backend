@@ -18,6 +18,7 @@ import io.quarkus.panache.common.Sort;
 import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
 import io.vertx.mutiny.core.eventbus.EventBus;
+import lombok.Getter;
 
 public class ActiveGitSyncService {
 
@@ -29,6 +30,7 @@ public class ActiveGitSyncService {
     @Inject
     EventBus eventBus;
 
+    @Getter
     private final UUID uuid = UUID.randomUUID();
 
     private boolean active = false;

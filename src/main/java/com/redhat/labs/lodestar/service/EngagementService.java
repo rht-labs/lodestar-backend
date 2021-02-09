@@ -179,7 +179,7 @@ public class EngagementService {
         validateProjectIdExists(existing);
         String currentLastUpdated = engagement.getLastUpdate();
         validateHostingEnvironments(engagement.getHostingEnvironments());
-        validateSubdomainOnUpdate(engagement, existing);
+        validateSubdomainOnUpdate(engagement);
         validateCustomerAndProjectNames(engagement, existing);
         setBeforeUpdate(engagement, existing);
 
@@ -261,7 +261,7 @@ public class EngagementService {
         if (null != heList) {
 
             List<String> duplicateSubdomains = heList.stream().filter(he -> null != he.getOcpSubDomain())
-                    .collect(Collectors.groupingBy(he -> he.getOcpSubDomain(), Collectors.counting())).entrySet()
+                    .collect(Collectors.groupingBy(HostingEnvironment::getOcpSubDomain, Collectors.counting())).entrySet()
                     .stream().filter(entry -> entry.getValue() > 1).map(entry -> entry.getKey())
                     .collect(Collectors.toList());
 
@@ -288,7 +288,7 @@ public class EngagementService {
             // validate each subdomain
             List<String> subdomainsInUse = engagement.getHostingEnvironments().stream()
                     .filter(env -> null != env.getOcpSubDomain())
-                    .filter(env -> doesSubdomainExist(env.getOcpSubDomain())).map(env -> env.getOcpSubDomain())
+                    .filter(env -> doesSubdomainExist(env.getOcpSubDomain())).map(HostingEnvironment::getOcpSubDomain)
                     .collect(Collectors.toList());
 
             if (!subdomainsInUse.isEmpty()) {
@@ -306,9 +306,9 @@ public class EngagementService {
      * from the persisted domain and another {@link Engagement} is already using it.
      * 
      * @param toUpdate
-     * @param existing
+     * 
      */
-    void validateSubdomainOnUpdate(Engagement toUpdate, Engagement existing) {
+    void validateSubdomainOnUpdate(Engagement toUpdate) {
 
         if (null != toUpdate.getHostingEnvironments()) {
 
@@ -317,7 +317,7 @@ public class EngagementService {
                     .filter(he -> repository
                             .findBySubdomain(he.getOcpSubDomain(), Optional.ofNullable(toUpdate.getUuid())).isEmpty())
                     .filter(he -> repository.findBySubdomain(he.getOcpSubDomain()).isPresent())
-                    .map(he -> he.getOcpSubDomain()).collect(Collectors.toList());
+                    .map(HostingEnvironment::getOcpSubDomain).collect(Collectors.toList());
 
             LOGGER.debug("subdomains in use: {}", subdomainsInUse);
 
@@ -548,7 +548,7 @@ public class EngagementService {
      */
     public Collection<String> getSuggestions(String subString) {
 
-        return repository.findCustomerSuggestions(subString).stream().map(e -> e.getCustomerName())
+        return repository.findCustomerSuggestions(subString).stream().map(Engagement::getCustomerName)
                 .collect(Collectors.toCollection(TreeSet::new));
     }
 
@@ -651,7 +651,7 @@ public class EngagementService {
     public long setNullUuids() {
 
         // update UUIDs on engagements and engagment users if missing
-        List<Engagement> updated = repository.streamAll().filter(e -> uuidUpdated(e)).map(e -> {
+        List<Engagement> updated = repository.streamAll().filter(this::uuidUpdated).map(e -> {
             e.setLastUpdateByName(BACKEND_BOT);
             e.setLastUpdateByEmail(BACKEND_BOT_EMAIL);
             LOGGER.debug("uuid(s) updated for enagement {}", e.getUuid());
@@ -659,9 +659,7 @@ public class EngagementService {
         }).collect(Collectors.toList());
 
         // send updates to git api
-        updated.stream().forEach(e -> {
-            eventBus.sendAndForget(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, e);
-        });
+        updated.stream().forEach(e -> eventBus.sendAndForget(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, e));
 
         long count = updated.size();
 

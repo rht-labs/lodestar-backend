@@ -59,7 +59,7 @@ public class FilterOptions {
             return new HashSet<>();
         }
 
-        return Stream.of(value.split(",")).map(attribute -> snakeToCamelCase(attribute)).collect(Collectors.toSet());
+        return Stream.of(value.split(",")).map(this::snakeToCamelCase).collect(Collectors.toSet());
 
     }
 
