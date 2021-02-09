@@ -124,7 +124,7 @@ public class EventService {
             Engagement persisted = engagementService.getByUuid(engagement.getUuid(), Optional.empty());
 
             // only resend if not updated
-            if (persisted.getLastUpdate().equals(engagement.getLastUpdate())) {
+            if (null != persisted && persisted.getLastUpdate().equals(engagement.getLastUpdate())) {
                 createOrUpdateEngagement(event, false);
             }
 
