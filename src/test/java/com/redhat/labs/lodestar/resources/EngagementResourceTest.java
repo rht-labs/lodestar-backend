@@ -855,6 +855,9 @@ class EngagementResourceTest {
 
         body = quarkusJsonb.toJson(created);
 
+        // wait for project id to be set
+        TimeUnit.SECONDS.sleep(1);
+
         // Launch engagement
         given()
             .when()

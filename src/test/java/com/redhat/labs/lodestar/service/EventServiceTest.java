@@ -62,9 +62,9 @@ class EventServiceTest {
                 .lastUpdateByName("someone").lastUpdateByEmail("someone@example.com").build();
         eventBus.sendAndForget(EventType.CREATE_ENGAGEMENT_EVENT_ADDRESS, e);
 
-        Mockito.verify(gitApiClient, Mockito.timeout(1000).times(2)).createOrUpdateEngagement(e, "someone",
+        Mockito.verify(gitApiClient, Mockito.timeout(2000).times(2)).createOrUpdateEngagement(e, "someone",
                 "someone@example.com");
-        Mockito.verify(engagementService, Mockito.timeout(1000).times(1)).setProjectId("1234", 5678);
+        Mockito.verify(engagementService, Mockito.timeout(2000).times(1)).setProjectId("1234", 5678);
 
     }
 
@@ -78,9 +78,9 @@ class EventServiceTest {
                 .lastUpdateByName("someone").lastUpdateByEmail("someone@example.com").build();
         eventBus.sendAndForget(EventType.CREATE_ENGAGEMENT_EVENT_ADDRESS, e);
 
-        Mockito.verify(gitApiClient, Mockito.timeout(1000).times(2)).createOrUpdateEngagement(e, "someone",
+        Mockito.verify(gitApiClient, Mockito.timeout(2000).times(2)).createOrUpdateEngagement(e, "someone",
                 "someone@example.com");
-        Mockito.verify(engagementService, Mockito.timeout(1000).times(0)).setProjectId("1234", 5678);
+        Mockito.verify(engagementService, Mockito.timeout(2000).times(0)).setProjectId("1234", 5678);
 
     }
 
@@ -114,9 +114,9 @@ class EventServiceTest {
 
         eventBus.sendAndForget(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, e);
 
-        Mockito.verify(gitApiClient, Mockito.timeout(1000).times(2)).createOrUpdateEngagement(e, "someone",
+        Mockito.verify(gitApiClient, Mockito.timeout(2000).times(2)).createOrUpdateEngagement(e, "someone",
                 "someone@example.com");
-        Mockito.verify(engagementService, Mockito.timeout(1000).times(0)).setProjectId("1234", 5678);
+        Mockito.verify(engagementService, Mockito.timeout(2000).times(0)).setProjectId("1234", 5678);
 
     }
 
@@ -151,9 +151,9 @@ class EventServiceTest {
                 .lastUpdateByName("someone").lastUpdateByEmail("someone@example.com").build();
         eventBus.sendAndForget(EventType.CREATE_ENGAGEMENT_EVENT_ADDRESS, e);
 
-        Mockito.verify(gitApiClient, Mockito.timeout(1000).times(2)).createOrUpdateEngagement(e, "someone",
+        Mockito.verify(gitApiClient, Mockito.timeout(2000).times(2)).createOrUpdateEngagement(e, "someone",
                 "someone@example.com");
-        Mockito.verify(engagementService, Mockito.timeout(1000).times(0)).setProjectId("1234", 5678);
+        Mockito.verify(engagementService, Mockito.timeout(2000).times(0)).setProjectId("1234", 5678);
 
     }
 

@@ -1,6 +1,7 @@
 package com.redhat.labs.lodestar.service;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
@@ -27,6 +28,9 @@ public class EventService {
 
     @ConfigProperty(name = "event.max.retries", defaultValue = "-1")
     Integer eventMaxRetries;
+
+    @ConfigProperty(name = "event.retry.delay.factor", defaultValue = "2")
+    Integer eventRetryDelayFactor;
 
     @Inject
     @RestClient
@@ -150,9 +154,22 @@ public class EventService {
      * @param runnable
      */
     void retryEvent(RetriableEvent event, Runnable runnable) {
+
         if (event.shouldRetry()) {
+
+            // perform sleep to delay retry
+            int seconds = event.getCurrentRetryCount() * eventRetryDelayFactor;
+            try {
+                TimeUnit.SECONDS.sleep(seconds);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+
+            // run configured method
             runnable.run();
+            
         }
+
     }
 
     /**
