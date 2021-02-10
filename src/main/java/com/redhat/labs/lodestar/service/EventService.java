@@ -32,6 +32,9 @@ public class EventService {
     @ConfigProperty(name = "event.retry.delay.factor", defaultValue = "2")
     Integer eventRetryDelayFactor;
 
+    @ConfigProperty(name = "event.retry.max.delay", defaultValue = "60")
+    Integer eventRetryMaxDelay;
+
     @Inject
     @RestClient
     LodeStarGitLabAPIService gitApiClient;
@@ -159,6 +162,10 @@ public class EventService {
 
             // perform sleep to delay retry
             int seconds = event.getCurrentRetryCount() * eventRetryDelayFactor;
+            if (seconds > eventRetryMaxDelay) {
+                seconds = eventRetryMaxDelay;
+            }
+            
             try {
                 TimeUnit.SECONDS.sleep(seconds);
             } catch (InterruptedException e) {
