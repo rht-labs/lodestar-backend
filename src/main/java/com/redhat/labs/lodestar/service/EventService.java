@@ -118,7 +118,7 @@ public class EventService {
      * 
      * @param event
      */
-    @ConsumeEvent(EventType.RETRY_UPDATE_EVENT_ADDRESS)
+    @ConsumeEvent(EventType.RETRY_UPDATE_EVENT_ADDRESS, blocking = true)
     void consumeRetryUpdateEvent(RetriableEvent event) {
         retryEvent(event, () -> {
 
