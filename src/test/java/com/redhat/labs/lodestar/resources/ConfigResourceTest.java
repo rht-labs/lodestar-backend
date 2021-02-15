@@ -5,36 +5,36 @@ import static org.hamcrest.CoreMatchers.is;
 
 import java.util.HashMap;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.junit.jupiter.api.Test;
+import javax.ws.rs.core.Response;
 
-import com.redhat.labs.lodestar.utils.EmbeddedMongoTest;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+
+import com.redhat.labs.lodestar.repository.ActiveSyncRepository;
+import com.redhat.labs.lodestar.repository.EngagementRepository;
+import com.redhat.labs.lodestar.service.ConfigService;
 import com.redhat.labs.lodestar.utils.TokenUtils;
 
 import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.mockito.InjectMock;
 
-@EmbeddedMongoTest
 @QuarkusTest
+@Tag("integration")
 class ConfigResourceTest {
 
     @ConfigProperty(name = "configFileCacheKey", defaultValue = "schema/config.yml")
     String configFileCacheKey;
 
-    /*
-     * 
-     * SCENARIOS:
-     * 
-     * SUCCESS -
-     *   token supplied, has correct role, in cache
-     * 
-     * FAIL - 
-     *   token has wrong role - 403
-     *   TODO: The following need to be tested, but no hook to specify return from mock git api service bean
-     *   config not in cache, call git api and config not returned - fail?
-     *   config not in cache, call git api and get error response
-     *   config not in cache, call git api and get network error
-     * 
-     */
+    @InjectMock
+    ConfigService service;
+
+    @InjectMock
+    ActiveSyncRepository acRepository;
+
+    @InjectMock
+    EngagementRepository eRepository;
 
     @Test
     void testGetConfigTokenHasWrongRole() throws Exception {
@@ -55,8 +55,13 @@ class ConfigResourceTest {
     @Test
     void testGetConfigInGitRepo() throws Exception {
 
+        String body = "{ \"content\": \"content\", \"encoding\": \"base64\", \"file_path\": \"myfile.yaml\" }";
+
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsReader.json", timeClaims);
+
+        
+        Mockito.when(service.getConfigData(null)).thenReturn(Response.ok(body).build());
 
         given()
             .when()
@@ -65,7 +70,7 @@ class ConfigResourceTest {
                 .get("/config")
             .then()
                 .statusCode(200)
-                .body(is("{ \"content\": \"content\", \"encoding\": \"base64\", \"file_path\": \"myfile.yaml\" }"))
+                .body(is(body))
                 .body("content", is("content"))
                 .body("file_path", is("myfile.yaml"));
         
@@ -74,8 +79,12 @@ class ConfigResourceTest {
     @Test
     void testGetConfigInGitRepoV2() throws Exception {
 
+        String body = "{ \"hello\" : \"world\" }";
+
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsReader.json", timeClaims);
+
+        Mockito.when(service.getConfigData("v2")).thenReturn(Response.ok(body).build());
 
         given()
             .headers("Accept-version", "v2")
@@ -85,7 +94,7 @@ class ConfigResourceTest {
                 .get("/config")
             .then()
                 .statusCode(200)
-                .body(is("{ \"hello\" : \"world\" }"));
+                .body(is(body));
 
     }
 

@@ -3,16 +3,16 @@ package com.redhat.labs.lodestar.config;
 import javax.inject.Inject;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.redhat.labs.lodestar.model.VersionManifest;
-import com.redhat.labs.lodestar.utils.EmbeddedMongoTest;
 
 import io.quarkus.test.junit.QuarkusTest;
 
-@EmbeddedMongoTest
 @QuarkusTest
+@Tag("integration")
 class VersionManifestConfigTest {
 
     @Inject

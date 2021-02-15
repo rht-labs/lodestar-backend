@@ -8,18 +8,21 @@ import java.util.HashMap;
 import javax.inject.Inject;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
+import com.google.common.collect.Lists;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.service.EngagementService;
-import com.redhat.labs.lodestar.utils.EmbeddedMongoTest;
+import com.redhat.labs.lodestar.utils.MockUtils;
 import com.redhat.labs.lodestar.utils.TokenUtils;
 
 import io.quarkus.test.junit.QuarkusTest;
 
-@EmbeddedMongoTest
 @QuarkusTest
-class CustomerSuggestionTest {
+@Tag("integration")
+class CustomerSuggestionTest extends EngagementResourceTestHelper {
 	private static final String ANSWER = "Red Hat";
 	private static final String SUGGESTION_URL = "/engagements/customers/suggest";
 	
@@ -33,9 +36,11 @@ class CustomerSuggestionTest {
 		HashMap<String, Long> timeClaims = new HashMap<>();
         token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 		
-		Engagement engagement = new EngagementResourceTest().mockEngagement();
+		Engagement engagement = MockUtils.mockMinimumEngagement(ANSWER, "p1", "1234");
 		engagement.setCustomerName(ANSWER);
-		engagementService.create(engagement);
+		
+		Mockito.when(eRepository.findCustomerSuggestions(Mockito.anyString())).thenReturn(Lists.newArrayList(engagement));
+
 	}
 	
 	@Test void testSuggestionsExactSuccess() throws Exception {

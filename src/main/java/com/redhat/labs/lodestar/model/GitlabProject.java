@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GitlabProject {
-    private static final String NAME_REGEX = "(.*) \\/ (.*) \\/ (.*) \\/ iac";
+    private static final String NAME_REGEX = "(.*)\\/ (.*) \\/ (.*) \\/ iac";
     private static final String PATH_REGEX = "(.*)\\/(.*)\\/(.*)\\/iac";
 
     private String pathWithNamespace;

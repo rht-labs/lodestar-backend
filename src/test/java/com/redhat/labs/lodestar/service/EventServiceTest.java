@@ -8,20 +8,20 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.event.EventType;
 import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
-import com.redhat.labs.lodestar.utils.EmbeddedMongoTest;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.vertx.mutiny.core.eventbus.EventBus;
 
-@EmbeddedMongoTest
 @QuarkusTest
+@Tag("integration")
 class EventServiceTest {
 
     @InjectMock
