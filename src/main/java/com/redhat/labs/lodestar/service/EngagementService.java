@@ -22,6 +22,8 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Commit;
 import com.redhat.labs.lodestar.model.CreationDetails;
@@ -62,6 +64,8 @@ public class EngagementService {
     @RestClient
     LodeStarGitLabAPIService gitApi;
 
+    ObjectMapper objectMapper = new ObjectMapper();
+
     /**
      * Creates a new {@link Engagement} resource in the data store and marks if for
      * asynchronous processing by the {@link GitSyncService}.
@@ -83,7 +87,7 @@ public class EngagementService {
         setBeforeInsert(engagement);
 
         // create copy to send to git api
-        Engagement copy = Engagement.deepCopy(engagement);
+        Engagement copy = clone(engagement);
 
         // reset commit message
         engagement.setCommitMessage(null);
@@ -186,7 +190,7 @@ public class EngagementService {
         boolean skipLaunch = skipLaunch(existing);
 
         // create copy to send to git api
-        Engagement copy = Engagement.deepCopy(engagement);
+        Engagement copy = clone(engagement);
 
         // reset values before save
         engagement.setCommitMessage(null);
@@ -261,8 +265,8 @@ public class EngagementService {
         if (null != heList) {
 
             List<String> duplicateSubdomains = heList.stream().filter(he -> null != he.getOcpSubDomain())
-                    .collect(Collectors.groupingBy(HostingEnvironment::getOcpSubDomain, Collectors.counting())).entrySet()
-                    .stream().filter(entry -> entry.getValue() > 1).map(entry -> entry.getKey())
+                    .collect(Collectors.groupingBy(HostingEnvironment::getOcpSubDomain, Collectors.counting()))
+                    .entrySet().stream().filter(entry -> entry.getValue() > 1).map(entry -> entry.getKey())
                     .collect(Collectors.toList());
 
             if (!duplicateSubdomains.isEmpty()) {
@@ -842,6 +846,24 @@ public class EngagementService {
      */
     String getZuluTimeAsString() {
         return ZonedDateTime.now(ZoneId.of("Z")).toString();
+    }
+
+    /**
+     * Uses {@link ObjectMapper} to create a deep copy of the given
+     * {@link Engagement}.
+     * 
+     * @param toClone
+     * @return
+     */
+    Engagement clone(Engagement toClone) {
+
+        try {
+            return objectMapper.readValue(objectMapper.writeValueAsString(toClone), Engagement.class);
+        } catch (JsonProcessingException e) {
+            throw new WebApplicationException("failed to create engagement for event. " + toClone,
+                    HttpStatus.SC_INTERNAL_SERVER_ERROR);
+        }
+
     }
 
 }
