@@ -90,6 +90,8 @@ public class Engagement extends PanacheMongoEntityBase {
     private List<Category> categories;
     @JsonbProperty("use_cases")
     private List<UseCase> useCases;
+    @JsonbProperty("timezone")
+    private String timezone;
 
     private List<Artifact> artifacts;
 
