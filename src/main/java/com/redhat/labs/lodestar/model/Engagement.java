@@ -20,7 +20,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @Data
-@Builder
+@Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
@@ -96,8 +96,5 @@ public class Engagement extends PanacheMongoEntityBase {
 
     @JsonbProperty("commit_message")
     private String commitMessage;
-
-    @JsonbTransient
-    private FileAction action;
 
 }

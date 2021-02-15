@@ -22,21 +22,21 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Commit;
+import com.redhat.labs.lodestar.model.CreationDetails;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.EngagementUser;
-import com.redhat.labs.lodestar.model.FileAction;
 import com.redhat.labs.lodestar.model.FilterOptions;
 import com.redhat.labs.lodestar.model.Hook;
 import com.redhat.labs.lodestar.model.HostingEnvironment;
 import com.redhat.labs.lodestar.model.Launch;
 import com.redhat.labs.lodestar.model.Status;
-import com.redhat.labs.lodestar.model.event.BackendEvent;
 import com.redhat.labs.lodestar.model.event.EventType;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
 import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
-import com.redhat.labs.lodestar.socket.EngagementEventSocket;
 
 import io.vertx.mutiny.core.eventbus.EventBus;
 
@@ -61,11 +61,10 @@ public class EngagementService {
     EventBus eventBus;
 
     @Inject
-    EngagementEventSocket socket;
-
-    @Inject
     @RestClient
     LodeStarGitLabAPIService gitApi;
+
+    ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * Creates a new {@link Engagement} resource in the data store and marks if for
@@ -87,7 +86,17 @@ public class EngagementService {
         validateSubdomainOnCreate(engagement);
         setBeforeInsert(engagement);
 
+        // create copy to send to git api
+        Engagement copy = clone(engagement);
+
+        // reset commit message
+        engagement.setCommitMessage(null);
+
+        // save to database
         repository.persist(engagement);
+
+        // send create engagement event after save to database
+        eventBus.sendAndForget(EventType.CREATE_ENGAGEMENT_EVENT_ADDRESS, copy);
 
         return engagement;
 
@@ -104,11 +113,26 @@ public class EngagementService {
         // set uuid
         engagement.setUuid(UUID.randomUUID().toString());
 
-        // set action
-        setEngagementAction(engagement, FileAction.create);
-
         // set last update
         setLastUpdate(engagement);
+
+        // set creation details
+        setCreationDetails(engagement);
+
+    }
+
+    /**
+     * Sets the {@link CreationDetails} on the given {@link Engagement}.
+     * 
+     * @param engagement
+     */
+    void setCreationDetails(Engagement engagement) {
+
+        // set creation details
+        CreationDetails creationDetails = CreationDetails.builder().createdByUser(engagement.getLastUpdateByName())
+                .createdByEmail(engagement.getLastUpdateByEmail())
+                .createdOn(ZonedDateTime.now(ZoneId.of("Z")).toString()).build();
+        engagement.setCreationDetails(creationDetails);
 
     }
 
@@ -156,22 +180,47 @@ public class EngagementService {
         Engagement existing = getByIdOrName(engagement).orElseThrow(
                 () -> new WebApplicationException("no engagement found, use POST to create", HttpStatus.SC_NOT_FOUND));
 
+        validateProjectIdExists(existing);
+        String currentLastUpdated = engagement.getLastUpdate();
         validateHostingEnvironments(engagement.getHostingEnvironments());
-        validateSubdomainOnUpdate(engagement, existing);
+        validateSubdomainOnUpdate(engagement);
         validateCustomerAndProjectNames(engagement, existing);
         setBeforeUpdate(engagement, existing);
-        String currentLastUpdated = setLastUpdate(existing);
+
         boolean skipLaunch = skipLaunch(existing);
+
+        // create copy to send to git api
+        Engagement copy = clone(engagement);
+
+        // reset values before save
+        engagement.setCommitMessage(null);
+        if (null != engagement.getEngagementUsers()) {
+            engagement.getEngagementUsers().stream().forEach(u -> u.setReset(false));
+        }
 
         Engagement updated = repository.updateEngagementIfLastUpdateMatched(engagement, currentLastUpdated, skipLaunch)
                 .orElseThrow(() -> new WebApplicationException(
                         "Failed to modify engagement because request contained stale data.  Please refresh and try again.",
                         HttpStatus.SC_CONFLICT));
 
-        // send to socket
-        sendEngagementEvent(jsonb.toJson(updated));
+        // send update engagement event once saved
+        eventBus.sendAndForget(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, copy);
 
         return updated;
+
+    }
+
+    /**
+     * Throws a {@link WebApplicationException} if the project ID is missing from
+     * the given {@link Engagement}.
+     * 
+     * @param engagement
+     */
+    void validateProjectIdExists(Engagement engagement) {
+
+        if (null == engagement.getProjectId()) {
+            throw new WebApplicationException("cannot updated engagement: missing project id.", 500);
+        }
 
     }
 
@@ -216,8 +265,8 @@ public class EngagementService {
         if (null != heList) {
 
             List<String> duplicateSubdomains = heList.stream().filter(he -> null != he.getOcpSubDomain())
-                    .collect(Collectors.groupingBy(he -> he.getOcpSubDomain(), Collectors.counting())).entrySet()
-                    .stream().filter(entry -> entry.getValue() > 1).map(entry -> entry.getKey())
+                    .collect(Collectors.groupingBy(HostingEnvironment::getOcpSubDomain, Collectors.counting()))
+                    .entrySet().stream().filter(entry -> entry.getValue() > 1).map(entry -> entry.getKey())
                     .collect(Collectors.toList());
 
             if (!duplicateSubdomains.isEmpty()) {
@@ -243,7 +292,7 @@ public class EngagementService {
             // validate each subdomain
             List<String> subdomainsInUse = engagement.getHostingEnvironments().stream()
                     .filter(env -> null != env.getOcpSubDomain())
-                    .filter(env -> doesSubdomainExist(env.getOcpSubDomain())).map(env -> env.getOcpSubDomain())
+                    .filter(env -> doesSubdomainExist(env.getOcpSubDomain())).map(HostingEnvironment::getOcpSubDomain)
                     .collect(Collectors.toList());
 
             if (!subdomainsInUse.isEmpty()) {
@@ -261,9 +310,9 @@ public class EngagementService {
      * from the persisted domain and another {@link Engagement} is already using it.
      * 
      * @param toUpdate
-     * @param existing
+     * 
      */
-    void validateSubdomainOnUpdate(Engagement toUpdate, Engagement existing) {
+    void validateSubdomainOnUpdate(Engagement toUpdate) {
 
         if (null != toUpdate.getHostingEnvironments()) {
 
@@ -272,7 +321,7 @@ public class EngagementService {
                     .filter(he -> repository
                             .findBySubdomain(he.getOcpSubDomain(), Optional.ofNullable(toUpdate.getUuid())).isEmpty())
                     .filter(he -> repository.findBySubdomain(he.getOcpSubDomain()).isPresent())
-                    .map(he -> he.getOcpSubDomain()).collect(Collectors.toList());
+                    .map(HostingEnvironment::getOcpSubDomain).collect(Collectors.toList());
 
             LOGGER.debug("subdomains in use: {}", subdomainsInUse);
 
@@ -315,8 +364,7 @@ public class EngagementService {
      */
     void setBeforeUpdate(Engagement engagement, Engagement existing) {
 
-        // mark as updated, if action not already assigned
-        setEngagementAction(engagement, FileAction.update);
+        setLastUpdate(engagement);
 
         // create new or use existing uuids for users
         setUserUuidsBeforeUpdate(engagement, existing);
@@ -375,31 +423,14 @@ public class EngagementService {
     }
 
     /**
-     * Sets the {@link FileAction} to the provided action if the {@link Engagement}
-     * does not have it set.
-     * 
-     * @param engagement
-     * @param action
-     */
-    void setEngagementAction(Engagement engagement, FileAction action) {
-        // set only if action not already assigned
-        engagement.setAction((null != engagement.getAction()) ? engagement.getAction() : action);
-    }
-
-    /**
      * Sets the last update timestamp on the provided {@link Engagement}. Returns
      * the prior value, which could be null.
      * 
      * @param engagement
      * @return
      */
-    String setLastUpdate(Engagement engagement) {
-
-        String currentLastUpdated = engagement.getLastUpdate();
+    void setLastUpdate(Engagement engagement) {
         engagement.setLastUpdate(getZuluTimeAsString());
-
-        return currentLastUpdated;
-
     }
 
     /**
@@ -411,6 +442,16 @@ public class EngagementService {
      */
     boolean skipLaunch(Engagement engagement) {
         return (null != engagement.getLaunch());
+    }
+
+    /**
+     * Sets the project ID for the {@link Engagement} with the matching UUID.
+     * 
+     * @param uuid
+     * @param projectId
+     */
+    public void setProjectId(String uuid, Integer projectId) {
+        repository.setProjectId(uuid, projectId);
     }
 
     /**
@@ -438,9 +479,6 @@ public class EngagementService {
 
         // update in db
         repository.update(persisted);
-
-        // send to socket
-        sendEngagementEvent(jsonb.toJson(persisted));
 
         return persisted;
     }
@@ -514,7 +552,7 @@ public class EngagementService {
      */
     public Collection<String> getSuggestions(String subString) {
 
-        return repository.findCustomerSuggestions(subString).stream().map(e -> e.getCustomerName())
+        return repository.findCustomerSuggestions(subString).stream().map(Engagement::getCustomerName)
                 .collect(Collectors.toCollection(TreeSet::new));
     }
 
@@ -569,7 +607,7 @@ public class EngagementService {
         repository.delete(engagement);
 
         // send delete event
-        eventBus.sendAndForget(EventType.Constants.DELETE_ENGAGEMENT_IN_GIT_REQUESTED_ADDRESS, engagement);
+        eventBus.sendAndForget(EventType.DELETE_ENGAGEMENT_EVENT_ADDRESS, engagement);
 
     }
 
@@ -609,53 +647,6 @@ public class EngagementService {
     }
 
     /**
-     * Updates the {@link List} of {@link Engagement} in the data store.
-     * 
-     * @param engagementList
-     */
-    public void updateProcessedEngagementListInRepository(List<Engagement> engagementList) {
-
-        engagementList.stream().forEach(e -> {
-
-            Optional<Engagement> optional = getByIdOrName(e);
-            if (optional.isPresent()) {
-
-                Engagement persisted = optional.get();
-
-                // always update creation details if missing
-                if (null == persisted.getCreationDetails()) {
-                    persisted.setCreationDetails(e.getCreationDetails());
-                }
-
-                // always update project id if missing
-                if (null == persisted.getProjectId()) {
-                    persisted.setProjectId(e.getProjectId());
-                }
-
-                // reset action and commit message only if it has not changed since last push to
-                // git; otherwise, keep values to allow new changes to be pushed to git
-                if (e.getLastUpdate().equals(persisted.getLastUpdate())) {
-
-                    persisted.setAction(null);
-                    persisted.setCommitMessage(null);
-
-                    // set any user resets to false
-                    if (null != persisted.getEngagementUsers()) {
-                        Set<EngagementUser> users = persisted.getEngagementUsers();
-                        users.stream().forEach(user -> user.setReset(false));
-                    }
-
-                }
-
-                repository.update(persisted);
-
-            }
-
-        });
-
-    }
-
-    /**
      * Sets a generated UUID value for each {@link Engagement} or
      * {@link EngagementUser} in the data store that does not have a UUID. Also,
      * triggers a push to Git to make sure the UUID value(s) are set in case of a
@@ -664,13 +655,15 @@ public class EngagementService {
     public long setNullUuids() {
 
         // update UUIDs on engagements and engagment users if missing
-        List<Engagement> updated = repository.streamAll().filter(e -> uuidUpdated(e)).map(e -> {
-            setEngagementAction(e, FileAction.update);
+        List<Engagement> updated = repository.streamAll().filter(this::uuidUpdated).map(e -> {
             e.setLastUpdateByName(BACKEND_BOT);
             e.setLastUpdateByEmail(BACKEND_BOT_EMAIL);
             LOGGER.debug("uuid(s) updated for enagement {}", e.getUuid());
             return e;
         }).collect(Collectors.toList());
+
+        // send updates to git api
+        updated.stream().forEach(e -> eventBus.sendAndForget(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, e));
 
         long count = updated.size();
 
@@ -819,10 +812,6 @@ public class EngagementService {
         engagement.setLaunch(createLaunchInstance(engagement.getLastUpdateByName(), engagement.getLastUpdateByEmail()));
 
         update(engagement);
-
-        // send to socket
-        sendEngagementEvent(jsonb.toJson(engagement));
-
         return engagement;
 
     }
@@ -851,40 +840,30 @@ public class EngagementService {
     }
 
     /**
-     * If any {@link Engagement}s in the database have been modified, it creates a
-     * {@link BackendEvent} and places it on the {@link EventBus} for processing.
-     */
-    void sendEngagementsModifiedEvent() {
-
-        List<Engagement> modifiedList = getModifiedEngagements();
-
-        if (modifiedList.isEmpty()) {
-            LOGGER.debug("no modified engagements to process");
-            return;
-        }
-
-        LOGGER.debug("emitting db engagements modified event");
-        BackendEvent event = BackendEvent.createUpdateEngagementsInGitRequestedEvent(modifiedList);
-        eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
-
-    }
-
-    /**
-     * Sends the given message to the configured socket sessions
-     * 
-     * @param message
-     */
-    void sendEngagementEvent(String message) {
-        socket.broadcast(message);
-    }
-
-    /**
      * Returns {@link String} representation of the current Zulu time.
      * 
      * @return
      */
     String getZuluTimeAsString() {
         return ZonedDateTime.now(ZoneId.of("Z")).toString();
+    }
+
+    /**
+     * Uses {@link ObjectMapper} to create a deep copy of the given
+     * {@link Engagement}.
+     * 
+     * @param toClone
+     * @return
+     */
+    Engagement clone(Engagement toClone) {
+
+        try {
+            return objectMapper.readValue(objectMapper.writeValueAsString(toClone), Engagement.class);
+        } catch (JsonProcessingException e) {
+            throw new WebApplicationException("failed to create engagement for event. " + toClone,
+                    HttpStatus.SC_INTERNAL_SERVER_ERROR);
+        }
+
     }
 
 }

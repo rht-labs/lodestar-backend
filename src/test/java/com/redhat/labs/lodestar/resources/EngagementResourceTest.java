@@ -26,6 +26,9 @@ import org.jose4j.json.internal.json_simple.JSONObject;
 import org.jose4j.json.internal.json_simple.parser.JSONParser;
 import org.jose4j.json.internal.json_simple.parser.ParseException;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import com.redhat.labs.lodestar.model.Artifact;
 import com.redhat.labs.lodestar.model.Category;
@@ -41,11 +44,15 @@ import io.restassured.response.Response;
 
 @EmbeddedMongoTest
 @QuarkusTest
-public class EngagementResourceTest {
+class EngagementResourceTest {
 
     @Inject
     Jsonb quarkusJsonb;
 
+    private static String[] nullEmptyBlankSource() {
+        return new String[] {null, "", "   "};
+    }
+    
     /*
      * POST SCENARIOS:
      * Positive:
@@ -106,14 +113,15 @@ public class EngagementResourceTest {
 
     }
 
-    @Test
-    void testPostEngagementWithAuthAndRoleInvalidCustomerNameWhitespace() throws Exception {
+    @ParameterizedTest
+    @MethodSource("nullEmptyBlankSource")
+    void testPostEngagementWithAuthAndRoleInvalidCustomerName(String input) throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
         Engagement engagement = mockEngagement();
-        engagement.setCustomerName("  ");
+        engagement.setCustomerName(input);
         engagement.setDescription(SCENARIO.SUCCESS.getValue());
 
         String body = quarkusJsonb.toJson(engagement);
@@ -131,114 +139,15 @@ public class EngagementResourceTest {
 
     }
 
-    @Test
-    void testPostEngagementWithAuthAndRoleInvalidCustomerNameNull() throws Exception {
+    @ParameterizedTest
+    @MethodSource("nullEmptyBlankSource")
+    void testPostEngagementWithAuthAndRoleInvalidProjectName(String input) throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
         Engagement engagement = mockEngagement();
-        engagement.setCustomerName(null);
-        engagement.setDescription(SCENARIO.SUCCESS.getValue());
-
-        String body = quarkusJsonb.toJson(engagement);
-
-        // POST engagement
-        given()
-            .when()
-                .auth()
-                .oauth2(token)
-                .body(body)
-                .contentType(ContentType.JSON)
-                .post("/engagements")
-            .then()
-                .statusCode(400);
-
-    }
-
-    @Test
-    void testPostEngagementWithAuthAndRoleInvalidCustomerNameEmptyString() throws Exception {
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
-
-        Engagement engagement = mockEngagement();
-        engagement.setCustomerName("");
-        engagement.setDescription(SCENARIO.SUCCESS.getValue());
-
-        String body = quarkusJsonb.toJson(engagement);
-
-        // POST engagement
-        given()
-            .when()
-                .auth()
-                .oauth2(token)
-                .body(body)
-                .contentType(ContentType.JSON)
-                .post("/engagements")
-            .then()
-                .statusCode(400);
-
-    }
-
-    @Test
-    void testPostEngagementWithAuthAndRoleInvalidProjectNameWhitespace() throws Exception {
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
-
-        Engagement engagement = mockEngagement();
-        engagement.setProjectName("  ");
-        engagement.setDescription(SCENARIO.SUCCESS.getValue());
-
-        String body = quarkusJsonb.toJson(engagement);
-
-        // POST engagement
-        given()
-            .when()
-                .auth()
-                .oauth2(token)
-                .body(body)
-                .contentType(ContentType.JSON)
-                .post("/engagements")
-            .then()
-                .statusCode(400);
-
-    }
-
-    @Test
-    void testPostEngagementWithAuthAndRoleInvalidProjectNameNull() throws Exception {
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
-
-        Engagement engagement = mockEngagement();
-        engagement.setProjectName(null);
-        engagement.setDescription(SCENARIO.SUCCESS.getValue());
-
-        String body = quarkusJsonb.toJson(engagement);
-
-        // POST engagement
-        given()
-            .when()
-                .auth()
-                .oauth2(token)
-                .body(body)
-                .contentType(ContentType.JSON)
-                .post("/engagements")
-            .then()
-                .statusCode(400);
-
-    }
-
-    @Test
-    void testPostEngagementWithAuthAndRoleInvalidProjectNameEmptyString() throws Exception {
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
-
-        Engagement engagement = mockEngagement();
-        engagement.setProjectName("");
+        engagement.setProjectName(input);
         engagement.setDescription(SCENARIO.SUCCESS.getValue());
 
         String body = quarkusJsonb.toJson(engagement);
@@ -337,6 +246,9 @@ public class EngagementResourceTest {
 
         body = quarkusJsonb.toJson(created);
 
+        // delay for async process
+        TimeUnit.SECONDS.sleep(1);
+
         given()
             .when()
                 .auth()
@@ -348,7 +260,7 @@ public class EngagementResourceTest {
                 .statusCode(200)
                 .body("customer_name", equalTo(created.getCustomerName()))
                 .body("project_name", equalTo(created.getProjectName()))
-                .body("project_id", nullValue())
+                .body("project_id", equalTo(1234))
                 .body("description", equalTo(created.getDescription()));
 
     }
@@ -703,6 +615,9 @@ public class EngagementResourceTest {
         // add users with duplicates
         body = addDupliateUsers(body);
 
+        // delay for async process
+        TimeUnit.SECONDS.sleep(1);
+
         Response r =
         given()
             .when()
@@ -780,6 +695,9 @@ public class EngagementResourceTest {
                 .body("project_name", equalTo(engagement.getProjectName()))
                 .body("project_id", nullValue());
 
+        // delay for async process
+        TimeUnit.SECONDS.sleep(1);
+
         // GET
         given()
             .when()
@@ -790,7 +708,7 @@ public class EngagementResourceTest {
                 .statusCode(200)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("project_id", nullValue());
+                .body("project_id", equalTo(1234));
 
     }
 
@@ -937,6 +855,9 @@ public class EngagementResourceTest {
 
         body = quarkusJsonb.toJson(created);
 
+        // wait for project id to be set
+        TimeUnit.SECONDS.sleep(1);
+
         // Launch engagement
         given()
             .when()
@@ -993,11 +914,24 @@ public class EngagementResourceTest {
      * - no user claim, no preferred_username, no email
      * 
      */
-    @Test
-    void testPostEngagementWithAuthAndRoleHasUserClaim() throws Exception {
+
+    @ParameterizedTest
+    @CsvSource({
+        "/jwt/user-claims/JwtClaimsAllWithNameClaim.json,John Doe,jdoe@test.com",
+        "/jwt/user-claims/JwtClaimsAllWithNoNameClaim.json,jdoe,jdoe@test.com",
+        "/jwt/user-claims/JwtClaimsAllWithEmptyNameClaim.json,jdoe,jdoe@test.com",
+        "/jwt/user-claims/JwtClaimsAllWithBlankNameClaim.json,jdoe,jdoe@test.com",
+        "/jwt/user-claims/JwtClaimsAllNoNameNoUsername.json,jdoe@test.com,jdoe@test.com",
+        "/jwt/user-claims/JwtClaimsAllNoNameEmptyUsername.json,jdoe@test.com,jdoe@test.com",
+        "/jwt/user-claims/JwtClaimsAllNoNameBlankUsername.json,jdoe@test.com,jdoe@test.com",
+        "/jwt/user-claims/JwtClaimsAllNoNameNoUsernameNoEmail.json,lodestar-email,lodestar-email",
+        "/jwt/user-claims/JwtClaimsAllNoNameNoUsernameEmptyEmail.json,lodestar-email,lodestar-email",
+        "/jwt/user-claims/JwtClaimsAllNoNameNoUsernameBlankEmail.json,lodestar-email,lodestar-email"
+    })
+    void testPostEngagementWithAuthAndRoleHasUserClaim(String claimFile, String lastUpdateName, String lastUpdateEmail) throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/jwt/user-claims/JwtClaimsAllWithNameClaim.json", timeClaims);
+        String token = TokenUtils.generateTokenString(claimFile, timeClaims);
 
         Engagement engagement = mockEngagement();
         engagement.setDescription(SCENARIO.SUCCESS.getValue());
@@ -1017,278 +951,8 @@ public class EngagementResourceTest {
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
                 .body("project_id", nullValue())
-                .body("last_update_by_name", equalTo("John Doe"))
-                .body("last_update_by_email", equalTo("jdoe@test.com"));
-
-
-    }
-
-    @Test
-    void testPostEngagementWithAuthAndRoleHasNoUserClaim() throws Exception {
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/jwt/user-claims/JwtClaimsAllWithNoNameClaim.json", timeClaims);
-
-        Engagement engagement = mockEngagement();
-        engagement.setDescription(SCENARIO.SUCCESS.getValue());
-
-        String body = quarkusJsonb.toJson(engagement);
-
-        // POST engagement
-        given()
-            .when()
-                .auth()
-                .oauth2(token)
-                .body(body)
-                .contentType(ContentType.JSON)
-                .post("/engagements")
-            .then()
-                .statusCode(201)
-                .body("customer_name", equalTo(engagement.getCustomerName()))
-                .body("project_name", equalTo(engagement.getProjectName()))
-                .body("project_id", nullValue())
-                .body("last_update_by_name", equalTo("jdoe"))
-                .body("last_update_by_email", equalTo("jdoe@test.com"));
-
-
-    }
-
-    @Test
-    void testPostEngagementWithAuthAndRoleHasEmptyUserClaim() throws Exception {
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/jwt/user-claims/JwtClaimsAllWithEmptyNameClaim.json", timeClaims);
-
-        Engagement engagement = mockEngagement();
-        engagement.setDescription(SCENARIO.SUCCESS.getValue());
-
-        String body = quarkusJsonb.toJson(engagement);
-
-        // POST engagement
-        given()
-            .when()
-                .auth()
-                .oauth2(token)
-                .body(body)
-                .contentType(ContentType.JSON)
-                .post("/engagements")
-            .then()
-                .statusCode(201)
-                .body("customer_name", equalTo(engagement.getCustomerName()))
-                .body("project_name", equalTo(engagement.getProjectName()))
-                .body("project_id", nullValue())
-                .body("last_update_by_name", equalTo("jdoe"))
-                .body("last_update_by_email", equalTo("jdoe@test.com"));
-
-
-    }
-
-    @Test
-    void testPostEngagementWithAuthAndRoleHasBlankUserClaim() throws Exception {
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/jwt/user-claims/JwtClaimsAllWithBlankNameClaim.json", timeClaims);
-
-        Engagement engagement = mockEngagement();
-        engagement.setDescription(SCENARIO.SUCCESS.getValue());
-
-        String body = quarkusJsonb.toJson(engagement);
-
-        // POST engagement
-        given()
-            .when()
-                .auth()
-                .oauth2(token)
-                .body(body)
-                .contentType(ContentType.JSON)
-                .post("/engagements")
-            .then()
-                .statusCode(201)
-                .body("customer_name", equalTo(engagement.getCustomerName()))
-                .body("project_name", equalTo(engagement.getProjectName()))
-                .body("project_id", nullValue())
-                .body("last_update_by_name", equalTo("jdoe"))
-                .body("last_update_by_email", equalTo("jdoe@test.com"));
-
-
-    }
-
-    @Test
-    void testPostEngagementWithAuthAndRoleHasNoUsernameClaim() throws Exception {
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/jwt/user-claims/JwtClaimsAllNoNameNoUsername.json", timeClaims);
-
-        Engagement engagement = mockEngagement();
-        engagement.setDescription(SCENARIO.SUCCESS.getValue());
-
-        String body = quarkusJsonb.toJson(engagement);
-
-        // POST engagement
-        given()
-            .when()
-                .auth()
-                .oauth2(token)
-                .body(body)
-                .contentType(ContentType.JSON)
-                .post("/engagements")
-            .then()
-                .statusCode(201)
-                .body("customer_name", equalTo(engagement.getCustomerName()))
-                .body("project_name", equalTo(engagement.getProjectName()))
-                .body("project_id", nullValue())
-                .body("last_update_by_name", equalTo("jdoe@test.com"))
-                .body("last_update_by_email", equalTo("jdoe@test.com"));
-
-
-    }
-
-    @Test
-    void testPostEngagementWithAuthAndRoleHasEmptyUsernameClaim() throws Exception {
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/jwt/user-claims/JwtClaimsAllNoNameEmptyUsername.json", timeClaims);
-
-        Engagement engagement = mockEngagement();
-        engagement.setDescription(SCENARIO.SUCCESS.getValue());
-
-        String body = quarkusJsonb.toJson(engagement);
-
-        // POST engagement
-        given()
-            .when()
-                .auth()
-                .oauth2(token)
-                .body(body)
-                .contentType(ContentType.JSON)
-                .post("/engagements")
-            .then()
-                .statusCode(201)
-                .body("customer_name", equalTo(engagement.getCustomerName()))
-                .body("project_name", equalTo(engagement.getProjectName()))
-                .body("project_id", nullValue())
-                .body("last_update_by_name", equalTo("jdoe@test.com"))
-                .body("last_update_by_email", equalTo("jdoe@test.com"));
-
-
-    }
-
-    @Test
-    void testPostEngagementWithAuthAndRoleHasBlankUsernameClaim() throws Exception {
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/jwt/user-claims/JwtClaimsAllNoNameBlankUsername.json", timeClaims);
-
-        Engagement engagement = mockEngagement();
-        engagement.setDescription(SCENARIO.SUCCESS.getValue());
-
-        String body = quarkusJsonb.toJson(engagement);
-
-        // POST engagement
-        given()
-            .when()
-                .auth()
-                .oauth2(token)
-                .body(body)
-                .contentType(ContentType.JSON)
-                .post("/engagements")
-            .then()
-                .statusCode(201)
-                .body("customer_name", equalTo(engagement.getCustomerName()))
-                .body("project_name", equalTo(engagement.getProjectName()))
-                .body("project_id", nullValue())
-                .body("last_update_by_name", equalTo("jdoe@test.com"))
-                .body("last_update_by_email", equalTo("jdoe@test.com"));
-
-
-    }
-
-    @Test
-    void testPostEngagementWithAuthAndRoleHasNoEmailClaim() throws Exception {
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/jwt/user-claims/JwtClaimsAllNoNameNoUsernameNoEmail.json", timeClaims);
-
-        Engagement engagement = mockEngagement();
-        engagement.setDescription(SCENARIO.SUCCESS.getValue());
-
-        String body = quarkusJsonb.toJson(engagement);
-
-        // POST engagement
-        given()
-            .when()
-                .auth()
-                .oauth2(token)
-                .body(body)
-                .contentType(ContentType.JSON)
-                .post("/engagements")
-            .then()
-                .statusCode(201)
-                .body("customer_name", equalTo(engagement.getCustomerName()))
-                .body("project_name", equalTo(engagement.getProjectName()))
-                .body("project_id", nullValue())
-                .body("last_update_by_name", equalTo("lodestar-email"))
-                .body("last_update_by_email", equalTo("lodestar-email"));
-
-
-    }
-
-    @Test
-    void testPostEngagementWithAuthAndRoleHasEmptyEmailClaim() throws Exception {
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/jwt/user-claims/JwtClaimsAllNoNameNoUsernameEmptyEmail.json", timeClaims);
-
-        Engagement engagement = mockEngagement();
-        engagement.setDescription(SCENARIO.SUCCESS.getValue());
-
-        String body = quarkusJsonb.toJson(engagement);
-
-        // POST engagement
-        given()
-            .when()
-                .auth()
-                .oauth2(token)
-                .body(body)
-                .contentType(ContentType.JSON)
-                .post("/engagements")
-            .then()
-                .statusCode(201)
-                .body("customer_name", equalTo(engagement.getCustomerName()))
-                .body("project_name", equalTo(engagement.getProjectName()))
-                .body("project_id", nullValue())
-                .body("last_update_by_name", equalTo("lodestar-email"))
-                .body("last_update_by_email", equalTo("lodestar-email"));
-
-
-    }
-
-    @Test
-    void testPostEngagementWithAuthAndRoleHasBlankEmailClaim() throws Exception {
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/jwt/user-claims/JwtClaimsAllNoNameNoUsernameBlankEmail.json", timeClaims);
-
-        Engagement engagement = mockEngagement();
-        engagement.setDescription(SCENARIO.SUCCESS.getValue());
-
-        String body = quarkusJsonb.toJson(engagement);
-
-        // POST engagement
-        given()
-            .when()
-                .auth()
-                .oauth2(token)
-                .body(body)
-                .contentType(ContentType.JSON)
-                .post("/engagements")
-            .then()
-                .statusCode(201)
-                .body("customer_name", equalTo(engagement.getCustomerName()))
-                .body("project_name", equalTo(engagement.getProjectName()))
-                .body("project_id", nullValue())
-                .body("last_update_by_name", equalTo("lodestar-email"))
-                .body("last_update_by_email", equalTo("lodestar-email"));
+                .body("last_update_by_name", equalTo(lastUpdateName))
+                .body("last_update_by_email", equalTo(lastUpdateEmail));
 
 
     }
@@ -1381,6 +1045,9 @@ public class EngagementResourceTest {
                 .body("project_name", equalTo(engagement.getProjectName()))
                 .body("project_id", nullValue());
 
+        // delay for async process
+        TimeUnit.SECONDS.sleep(1);
+
         // GET
         given()
             .when()
@@ -1391,7 +1058,7 @@ public class EngagementResourceTest {
                 .statusCode(200)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("project_id", nullValue());
+                .body("project_id", equalTo(1234));
 
         // Run sync
         given()
@@ -1465,6 +1132,9 @@ public class EngagementResourceTest {
                 .body("project_name", equalTo(engagement.getProjectName()))
                 .body("project_id", nullValue());
 
+        // delay for async process
+        TimeUnit.SECONDS.sleep(1);
+
         // GET
         given()
             .when()
@@ -1475,7 +1145,7 @@ public class EngagementResourceTest {
                 .statusCode(200)
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
-                .body("project_id", nullValue());
+                .body("project_id", equalTo(1234));
 
         // Run sync
         given()
@@ -1725,6 +1395,7 @@ public class EngagementResourceTest {
         Engagement e1 = mockMinimumEngagement("c1", "p1");
         HostingEnvironment he1 = mockHostingEnvironment("env1", "p1");
         e1.setHostingEnvironments(Arrays.asList(he1));
+        e1.setDescription(SCENARIO.SUCCESS.getValue());
 
         String body = quarkusJsonb.toJson(e1);
 
@@ -1745,6 +1416,7 @@ public class EngagementResourceTest {
         // create second engagement with conflicting hosting environment subdomain
         HostingEnvironment he2 = mockHostingEnvironment("unique", "p2");
         e2.setHostingEnvironments(Arrays.asList(he2));
+        e2.setDescription(SCENARIO.SUCCESS.getValue());
 
         body = quarkusJsonb.toJson(e2);
 
@@ -1763,6 +1435,9 @@ public class EngagementResourceTest {
         e2 = quarkusJsonb.fromJson(responseBody, Engagement.class);
 
         body = quarkusJsonb.toJson(e2);
+
+        // delay for async process
+        TimeUnit.SECONDS.sleep(1);
 
         given()
             .when()
@@ -1786,6 +1461,7 @@ public class EngagementResourceTest {
         Engagement e1 = mockMinimumEngagement("c1", "p1");
         HostingEnvironment he1 = mockHostingEnvironment("env1", "p1");
         e1.setHostingEnvironments(Arrays.asList(he1));
+        e1.setDescription(SCENARIO.SUCCESS.getValue());
 
         String body = quarkusJsonb.toJson(e1);
 
@@ -1802,6 +1478,7 @@ public class EngagementResourceTest {
 
         // create another engagement
         Engagement e2 = mockMinimumEngagement("c2", "anotherProject");
+        e2.setDescription(SCENARIO.SUCCESS.getValue());
 
         body = quarkusJsonb.toJson(e2);
 
@@ -1824,6 +1501,9 @@ public class EngagementResourceTest {
         e2.setHostingEnvironments(Arrays.asList(he2));
 
         body = quarkusJsonb.toJson(e2);
+
+        // delay for async process
+        TimeUnit.SECONDS.sleep(1);
 
         given()
             .when()

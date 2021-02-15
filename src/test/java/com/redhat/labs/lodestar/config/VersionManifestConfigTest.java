@@ -13,13 +13,13 @@ import io.quarkus.test.junit.QuarkusTest;
 
 @EmbeddedMongoTest
 @QuarkusTest
-public class VersionManifestConfigTest {
+class VersionManifestConfigTest {
 
     @Inject
     VersionManifestConfig vmc;
     
     @Test
-    public void testYaml() throws JsonProcessingException {
+    void testYaml() throws JsonProcessingException {
         
         VersionManifest vm = vmc.getVersionData();
 

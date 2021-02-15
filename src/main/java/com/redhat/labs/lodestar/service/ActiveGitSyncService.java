@@ -11,13 +11,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.redhat.labs.lodestar.model.ActiveSync;
-import com.redhat.labs.lodestar.model.event.BackendEvent;
+import com.redhat.labs.lodestar.model.event.EventType;
 import com.redhat.labs.lodestar.repository.ActiveSyncRepository;
 
 import io.quarkus.panache.common.Sort;
 import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
 import io.vertx.mutiny.core.eventbus.EventBus;
+import lombok.Getter;
 
 public class ActiveGitSyncService {
 
@@ -29,6 +30,7 @@ public class ActiveGitSyncService {
     @Inject
     EventBus eventBus;
 
+    @Getter
     private final UUID uuid = UUID.randomUUID();
 
     private boolean active = false;
@@ -63,7 +65,7 @@ public class ActiveGitSyncService {
         // get record from db
         List<ActiveSync> syncRecordList = activeSyncRepository.listAll(Sort.ascending("lastUpdated"));
 
-        if (syncRecordList.size() == 0) {
+        if (syncRecordList.isEmpty()) {
 
             LOGGER.debug("no active found, inserting active record for instance {}", uuid);
 
@@ -87,7 +89,7 @@ public class ActiveGitSyncService {
             active = true;
 
             // shouldn't happen, but remove extra records if more than one exists
-            if (syncRecordList.size() > 0) {
+            if (!syncRecordList.isEmpty()) {
 
                 LOGGER.debug("found multiple control records, performing cleanup");
                 for (ActiveSync record : syncRecordList) {
@@ -117,31 +119,13 @@ public class ActiveGitSyncService {
 
     }
 
-    /**
-     * Triggers push of modified engagements at scheduled timeframe to indicate all
-     * modifications in the database should be pushed to Git.
-     */
-    @Scheduled(cron = "{auto.save.cron.expr}")
-    void pushModififedEngagementsToGit() {
-
-        if (active) {
-
-            LOGGER.trace("{} emitting a process time elapsed event.", uuid);
-            BackendEvent event = BackendEvent.createPushToGitRequestedEvent();
-            eventBus.sendAndForget(event.getEventType().getEventBusAddress(), event);
-
-        }
-
-    }
-
     @Scheduled(cron = "{auto.repopulate.cron.expr}")
     void repopulateDbIfEmpty() {
 
         // sync mongo with git if no engagements found in mongo
         if (active) {
 
-            BackendEvent refreshDbEvent = BackendEvent.createDatabaseRefreshRequestedEvent();
-            eventBus.sendAndForget(refreshDbEvent.getEventType().getEventBusAddress(), refreshDbEvent);
+            eventBus.sendAndForget(EventType.REFRESH_DATABASE_EVENT_ADDRESS, EventType.REFRESH_DATABASE_EVENT_ADDRESS);
 
         }
 
@@ -150,12 +134,9 @@ public class ActiveGitSyncService {
     @Scheduled(every = "10s")
     void checkForNullUuids() {
 
-        if(active && !performedUuidCheck) {
-            LOGGER.debug("producing set uuid event.");
+        if (active && !performedUuidCheck) {
             // check for null uuids only once
-            BackendEvent setUuidEvent = BackendEvent.createSetNullUuidRequestedEvent();
-            eventBus.sendAndForget(setUuidEvent.getEventType().getEventBusAddress(), setUuidEvent);
-            // only need to do once
+            eventBus.sendAndForget(EventType.SET_UUID_EVENT_ADDRESS, EventType.SET_UUID_EVENT_ADDRESS);
             performedUuidCheck = true;
         }
 

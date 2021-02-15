@@ -2,6 +2,7 @@ package com.redhat.labs.lodestar.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -15,13 +16,19 @@ import javax.ws.rs.WebApplicationException;
 
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
-import org.mockito.internal.util.collections.Sets;
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import com.redhat.labs.lodestar.model.Artifact;
+import com.redhat.labs.lodestar.model.Category;
+import com.redhat.labs.lodestar.model.Commit;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.EngagementUser;
 import com.redhat.labs.lodestar.model.GitlabProject;
 import com.redhat.labs.lodestar.model.Hook;
+import com.redhat.labs.lodestar.model.HostingEnvironment;
 import com.redhat.labs.lodestar.model.Launch;
+import com.redhat.labs.lodestar.model.UseCase;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
 import com.redhat.labs.lodestar.utils.EmbeddedMongoTest;
 
@@ -68,7 +75,8 @@ class EngagementServiceTest {
         EngagementUser user1 = mockEngagementUser("jj@example.com", "John", "Johnson", "admin", "1234");
         EngagementUser user2 = mockEngagementUser("js@example.com", "Jeff", "Smith", "observer", "6789");
         Engagement existing = mockMinimumEngagement("c1", "p1", "00000");
-        existing.setEngagementUsers(Sets.newSet(user1, user2));
+        existing.setEngagementUsers(Sets.newHashSet(user1, user2));
+        existing.setProjectId(1234);
 
         // requested update engagement
         Engagement toUpdate = mockMinimumEngagement("c1", "p1", "00000");
@@ -93,12 +101,13 @@ class EngagementServiceTest {
 
         // persisted engagement
         Engagement existing = mockMinimumEngagement("c1", "p1", "00000");
+        existing.setProjectId(1234);
 
         // requested update engagement
         EngagementUser user1 = mockEngagementUser("jj@example.com", "John", "Johnson", "admin", null);
 
         Engagement toUpdate = mockMinimumEngagement("c1", "p1", "00000");
-        toUpdate.setEngagementUsers(Sets.newSet(user1));
+        toUpdate.setEngagementUsers(Sets.newHashSet(user1));
         toUpdate.setLastUpdate(ZonedDateTime.now(ZoneId.of("Z")).toString());
 
         // repository mocks
@@ -130,12 +139,13 @@ class EngagementServiceTest {
         // persisted engagement
         EngagementUser user1 = mockEngagementUser("jj@example.com", "John", "Johnson", "admin", "1234");
         Engagement existing = mockMinimumEngagement("c1", "p1", "00000");
-        existing.setEngagementUsers(Sets.newSet(user1));
+        existing.setEngagementUsers(Sets.newHashSet(user1));
+        existing.setProjectId(1234);
 
         // requested update engagement
         EngagementUser user2 = mockEngagementUser("js@example.com", "Jeff", "Smith", "observer", null);
         Engagement toUpdate = mockMinimumEngagement("c1", "p1", "00000");
-        toUpdate.setEngagementUsers(Sets.newSet(user1, user2));
+        toUpdate.setEngagementUsers(Sets.newHashSet(user1, user2));
         toUpdate.setLastUpdate(ZonedDateTime.now(ZoneId.of("Z")).toString());
 
         // repository mocks
@@ -188,11 +198,11 @@ class EngagementServiceTest {
 
         EngagementUser user1 = mockEngagementUser("jj@example.com", "John", "Johnson", "admin", "1234");
         Engagement e1 = mockMinimumEngagement("c1", "p1", "1234");
-        e1.setEngagementUsers(Sets.newSet(user1));
+        e1.setEngagementUsers(Sets.newHashSet(user1));
 
         EngagementUser user2 = mockEngagementUser("js@example.com", "Jeff", "Smith", "observer", null);
         Engagement e2 = mockMinimumEngagement("c1", "p1", "5678");
-        e2.setEngagementUsers(Sets.newSet(user2));
+        e2.setEngagementUsers(Sets.newHashSet(user2));
 
         Mockito.when(repository.streamAll()).thenReturn(Stream.of(e1, e2));
 
@@ -205,11 +215,11 @@ class EngagementServiceTest {
 
         EngagementUser user1 = mockEngagementUser("jj@example.com", "John", "Johnson", "admin", "1234");
         Engagement e1 = mockMinimumEngagement("c1", "p1", null);
-        e1.setEngagementUsers(Sets.newSet(user1));
+        e1.setEngagementUsers(Sets.newHashSet(user1));
 
         EngagementUser user2 = mockEngagementUser("js@example.com", "Jeff", "Smith", "observer", null);
         Engagement e2 = mockMinimumEngagement("c1", "p1", "5678");
-        e2.setEngagementUsers(Sets.newSet(user2));
+        e2.setEngagementUsers(Sets.newHashSet(user2));
 
         Mockito.when(repository.streamAll()).thenReturn(Stream.of(e1, e2));
 
@@ -255,6 +265,90 @@ class EngagementServiceTest {
 
         Mockito.verify(repository).delete(e);
 
+    }
+
+    @Test
+    void testClone() {
+        
+        Engagement e = Engagement.builder().build();
+        Engagement clone = engagementService.clone(e);
+
+        assertNotSame(e, clone);
+        
+    }
+
+    @Test
+    void testDeepCopyWithSubCollections() {
+
+        Engagement e = Engagement.builder().hostingEnvironments(Lists.newArrayList(createHostingEnvironment()))
+                .engagementUsers(Sets.newHashSet(createEngagementUser())).commits(Lists.newArrayList(createCommit()))
+                .categories(Lists.newArrayList(createCategory())).useCases(Lists.newArrayList(createUseCase()))
+                .artifacts(Lists.newArrayList(createArtifact())).build();
+
+        Engagement copy = engagementService.clone(e);
+
+        assertNotSame(e, copy);
+
+        // hosting environments
+        assertNotSame(e.getHostingEnvironments(), copy.getHostingEnvironments());
+        assertEquals(1, e.getHostingEnvironments().size());
+        assertEquals(1, copy.getHostingEnvironments().size());
+        assertNotSame(e.getHostingEnvironments().get(0), copy.getHostingEnvironments().get(0));
+
+        // engagement users
+        assertNotSame(e.getEngagementUsers(), copy.getEngagementUsers());
+        assertEquals(1, e.getEngagementUsers().size());
+        assertEquals(1, copy.getEngagementUsers().size());
+        assertNotSame(e.getEngagementUsers().iterator().next(), copy.getEngagementUsers().iterator().next());
+
+        // commits
+        assertNotSame(e.getCommits(), copy.getCommits());
+        assertEquals(1, e.getCommits().size());
+        assertEquals(1, copy.getCommits().size());
+        assertNotSame(e.getCommits().get(0), copy.getCommits().get(0));
+
+        // categories
+        assertNotSame(e.getCategories(), copy.getCategories());
+        assertEquals(1, e.getCategories().size());
+        assertEquals(1, copy.getCategories().size());
+        assertNotSame(e.getCategories().get(0), copy.getCategories().get(0));
+
+        // use case
+        assertNotSame(e.getUseCases(), copy.getUseCases());
+        assertEquals(1, e.getUseCases().size());
+        assertEquals(1, copy.getUseCases().size());
+        assertNotSame(e.getUseCases().get(0), copy.getUseCases().get(0));
+
+        // artifacts
+        assertNotSame(e.getArtifacts(), copy.getArtifacts());
+        assertEquals(1, e.getArtifacts().size());
+        assertEquals(1, copy.getArtifacts().size());
+        assertNotSame(e.getArtifacts().get(0), copy.getArtifacts().get(0));
+
+    }
+
+    HostingEnvironment createHostingEnvironment() {
+        return HostingEnvironment.builder().environmentName("some-environment").build();
+    }
+
+    EngagementUser createEngagementUser() {
+        return EngagementUser.builder().firstName("bob").lastName("smith").build();
+    }
+
+    Commit createCommit() {
+        return Commit.builder().id("1234").build();
+    }
+
+    Category createCategory() {
+        return Category.builder().name("cat1").build();
+    }
+
+    UseCase createUseCase() {
+        return UseCase.builder().id("4321").build();
+    }
+
+    Artifact createArtifact() {
+        return Artifact.builder().title("art1").build();
     }
 
     Engagement mockMinimumEngagement(String customerName, String projectName, String uuid) {
