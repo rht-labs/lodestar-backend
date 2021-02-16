@@ -180,7 +180,6 @@ public class EngagementService {
         Engagement existing = getByIdOrName(engagement).orElseThrow(
                 () -> new WebApplicationException("no engagement found, use POST to create", HttpStatus.SC_NOT_FOUND));
 
-        validateProjectIdExists(existing);
         String currentLastUpdated = engagement.getLastUpdate();
         validateHostingEnvironments(engagement.getHostingEnvironments());
         validateSubdomainOnUpdate(engagement);
@@ -207,20 +206,6 @@ public class EngagementService {
         eventBus.sendAndForget(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, copy);
 
         return updated;
-
-    }
-
-    /**
-     * Throws a {@link WebApplicationException} if the project ID is missing from
-     * the given {@link Engagement}.
-     * 
-     * @param engagement
-     */
-    void validateProjectIdExists(Engagement engagement) {
-
-        if (null == engagement.getProjectId()) {
-            throw new WebApplicationException("cannot updated engagement: missing project id.", 500);
-        }
 
     }
 
