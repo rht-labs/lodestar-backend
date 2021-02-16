@@ -19,7 +19,7 @@
 		<quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
 		<quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
 		<quarkus.platform.version>1.6.1.Final</quarkus.platform.version>
-		<surefire-plugin.version>2.22.1</surefire-plugin.version>
+		<surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
 		<sonar.projectKey>rht-labs_open-management-portal-backend</sonar.projectKey>
 		<sonar.organization>rht-labs</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
@@ -136,7 +136,7 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>${surefire-plugin.version}</version>
 				<configuration>
-					<excludedGroups>integration</excludedGroups>
+					<excludedGroups>integration,repository</excludedGroups>
 					<systemPropertyVariables>
 						<jacoco-agent.destfile>${project.build.directory}/jacoco-ut.exec</jacoco-agent.destfile>
 						<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
@@ -151,8 +151,8 @@
 							<goal>test</goal>
 						</goals>
 						<configuration>
-							<excludedGroups>!integration</excludedGroups>
-							<groups>integration</groups>
+							<excludedGroups>!(integration | repository)</excludedGroups>
+							<groups>integration | repository</groups>
 							<systemPropertyVariables>
 								<jacoco-agent.destfile>${project.build.directory}/jacoco-it.exec</jacoco-agent.destfile>
 							</systemPropertyVariables>

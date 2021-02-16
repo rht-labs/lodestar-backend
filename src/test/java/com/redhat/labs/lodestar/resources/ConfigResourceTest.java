@@ -12,29 +12,16 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import com.redhat.labs.lodestar.repository.ActiveSyncRepository;
-import com.redhat.labs.lodestar.repository.EngagementRepository;
-import com.redhat.labs.lodestar.service.ConfigService;
 import com.redhat.labs.lodestar.utils.TokenUtils;
 
 import io.quarkus.test.junit.QuarkusTest;
-import io.quarkus.test.junit.mockito.InjectMock;
 
 @QuarkusTest
 @Tag("integration")
-class ConfigResourceTest {
+class ConfigResourceTest extends EngagementResourceTestHelper {
 
     @ConfigProperty(name = "configFileCacheKey", defaultValue = "schema/config.yml")
     String configFileCacheKey;
-
-    @InjectMock
-    ConfigService service;
-
-    @InjectMock
-    ActiveSyncRepository acRepository;
-
-    @InjectMock
-    EngagementRepository eRepository;
 
     @Test
     void testGetConfigTokenHasWrongRole() throws Exception {
@@ -60,8 +47,7 @@ class ConfigResourceTest {
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsReader.json", timeClaims);
 
-        
-        Mockito.when(service.getConfigData(null)).thenReturn(Response.ok(body).build());
+        Mockito.when(gitApiClient.getConfigFile()).thenReturn(Response.ok(body).build());
 
         given()
             .when()
@@ -84,7 +70,7 @@ class ConfigResourceTest {
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsReader.json", timeClaims);
 
-        Mockito.when(service.getConfigData("v2")).thenReturn(Response.ok(body).build());
+        Mockito.when(gitApiClient.getConfigFileV2()).thenReturn(Response.ok(body).build());
 
         given()
             .headers("Accept-version", "v2")

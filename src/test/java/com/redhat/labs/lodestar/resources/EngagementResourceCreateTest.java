@@ -10,6 +10,7 @@ import java.util.Optional;
 
 import javax.ws.rs.core.Response;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -24,6 +25,7 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 
 @QuarkusTest
+@Tag("integration")
 class EngagementServiceCreateTest extends EngagementResourceTestHelper {
 
     @Test

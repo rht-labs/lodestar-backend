@@ -157,18 +157,6 @@ class EngagementServiceTest {
     }
 
     @Test
-    void testUpdatePersistedHasNoProjectId() {
-
-        Engagement e = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
-        Mockito.when(repository.findByUuid("1234")).thenReturn(Optional.of(e));
-
-        WebApplicationException wae = assertThrows(WebApplicationException.class, () -> service.update(e));
-        assertEquals(500, wae.getResponse().getStatus());
-        assertEquals("cannot updated engagement: missing project id.", wae.getMessage());
-
-    }
-
-    @Test
     void testUpdateDuplicateSubdomainInHostingEnvironments() {
 
         Engagement e = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
