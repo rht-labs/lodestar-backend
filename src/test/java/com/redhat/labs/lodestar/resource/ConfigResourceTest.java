@@ -1,4 +1,4 @@
-package com.redhat.labs.lodestar.resources;
+package com.redhat.labs.lodestar.resource;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
@@ -12,13 +12,14 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 import com.redhat.labs.lodestar.utils.TokenUtils;
 
 import io.quarkus.test.junit.QuarkusTest;
 
 @QuarkusTest
-@Tag("integration")
-class ConfigResourceTest extends EngagementResourceTestHelper {
+@Tag("nested")
+class ConfigResourceTest extends IntegrationTestHelper {
 
     @ConfigProperty(name = "configFileCacheKey", defaultValue = "schema/config.yml")
     String configFileCacheKey;

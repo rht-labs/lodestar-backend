@@ -1,4 +1,4 @@
-package com.redhat.labs.lodestar.resources;
+package com.redhat.labs.lodestar.resource;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
@@ -9,6 +9,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.apache.commons.compress.utils.Sets;
 import org.junit.jupiter.api.Tag;
@@ -21,6 +22,7 @@ import com.google.common.collect.Lists;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.EngagementUser;
 import com.redhat.labs.lodestar.model.Launch;
+import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 import com.redhat.labs.lodestar.utils.MockUtils;
 import com.redhat.labs.lodestar.utils.TokenUtils;
 
@@ -29,8 +31,8 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 
 @QuarkusTest
-@Tag("integration")
-class EngagementResourceUpdateTest extends EngagementResourceTestHelper {
+@Tag("nested")
+class EngagementResourceUpdateTest extends IntegrationTestHelper {
 
     @Test
     void testPutEngagementWithAuthAndRoleSuccess() throws Exception {
@@ -354,6 +356,59 @@ class EngagementResourceUpdateTest extends EngagementResourceTestHelper {
 
         Mockito.verify(eRepository, Mockito.times(0)).deleteAll();
         Mockito.verify(eRepository).persist(Mockito.anyIterable());
+
+    }
+
+    @Test
+    void testPutEngagementByNamesWithAuthAndRoleSuccess() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Engagement persisted = MockUtils.mockMinimumEngagement("c1", "e2", "1234");
+        persisted.setProjectId(1234);
+        persisted.setLastUpdate(ZonedDateTime.now(ZoneId.of("Z")).toString());
+        Engagement toUpdate = MockUtils.cloneEngagement(persisted);
+        toUpdate.setUuid(null);
+        toUpdate.setDescription("testing");
+
+        Mockito.when(eRepository.findByCustomerNameAndProjectName("c1", "e2")).thenReturn(Optional.of(persisted));
+        Mockito.when(eRepository.updateEngagementIfLastUpdateMatched(Mockito.any(), Mockito.eq(toUpdate.getLastUpdate()), Mockito.any())).thenReturn(Optional.of(toUpdate));
+
+        String body = quarkusJsonb.toJson(toUpdate);
+
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .body(body)
+                .contentType(ContentType.JSON)
+                .put("/engagements/customers/c1/projects/e2")
+            .then()
+                .statusCode(200)
+                .body("customer_name", equalTo(toUpdate.getCustomerName()))
+                .body("project_name", equalTo(toUpdate.getProjectName()))
+                .body("project_id", equalTo(1234))
+                .body("description", equalTo(toUpdate.getDescription()));
+
+    }
+
+    @Test
+    void testPutSetUuidsWithAuthAndRoleSuccess() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Mockito.when(eRepository.streamAll()).thenReturn(Stream.of());
+
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .contentType(ContentType.JSON)
+                .put("/engagements/uuids/set")
+            .then()
+                .statusCode(200);
 
     }
     

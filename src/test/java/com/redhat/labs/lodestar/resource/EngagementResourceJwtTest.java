@@ -1,4 +1,4 @@
-package com.redhat.labs.lodestar.resources;
+package com.redhat.labs.lodestar.resource;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
@@ -11,6 +11,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 
 import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 import com.redhat.labs.lodestar.utils.MockUtils;
 import com.redhat.labs.lodestar.utils.TokenUtils;
 
@@ -18,8 +19,8 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 
 @QuarkusTest
-@Tag("integration")
-class EngagementResourceJwtTest extends EngagementResourceTestHelper {
+@Tag("nested")
+class EngagementResourceJwtTest extends IntegrationTestHelper {
 
     @ParameterizedTest
     @CsvSource({

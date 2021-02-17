@@ -1,4 +1,4 @@
-package com.redhat.labs.lodestar.resources;
+package com.redhat.labs.lodestar.resource;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.hasItem;
@@ -10,14 +10,15 @@ import org.mockito.Mockito;
 
 import com.redhat.labs.lodestar.model.Version;
 import com.redhat.labs.lodestar.model.status.VersionManifestV1;
+import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 import com.redhat.labs.lodestar.utils.ResourceLoader;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 
 @QuarkusTest
-@Tag("integration")
-class VersionResourceTest extends EngagementResourceTestHelper {
+@Tag("nested")
+class VersionResourceTest extends IntegrationTestHelper {
 
     @Test
     void testValidResourceVersion() {

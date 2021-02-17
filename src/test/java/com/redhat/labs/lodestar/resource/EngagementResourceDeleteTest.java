@@ -1,4 +1,4 @@
-package com.redhat.labs.lodestar.resources;
+package com.redhat.labs.lodestar.resource;
 
 import static io.restassured.RestAssured.given;
 
@@ -11,14 +11,15 @@ import org.mockito.Mockito;
 
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.Launch;
+import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 import com.redhat.labs.lodestar.utils.MockUtils;
 import com.redhat.labs.lodestar.utils.TokenUtils;
 
 import io.quarkus.test.junit.QuarkusTest;
 
 @QuarkusTest
-@Tag("integration")
-class EngagementResourceDeleteTest extends EngagementResourceTestHelper {
+@Tag("nested")
+class EngagementResourceDeleteTest extends IntegrationTestHelper {
 
     @Test
     void testDeleteEngagementNotFound() throws Exception {

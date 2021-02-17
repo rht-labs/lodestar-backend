@@ -1,4 +1,4 @@
-package com.redhat.labs.lodestar.resources;
+package com.redhat.labs.lodestar.resource;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -17,6 +17,7 @@ import org.mockito.Mockito;
 import com.google.common.collect.Lists;
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 import com.redhat.labs.lodestar.utils.MockUtils;
 import com.redhat.labs.lodestar.utils.TokenUtils;
 
@@ -25,8 +26,8 @@ import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 
 @QuarkusTest
-@Tag("integration")
-class EngagementResourceGetTest extends EngagementResourceTestHelper {
+@Tag("nested")
+class EngagementResourceGetTest extends IntegrationTestHelper {
 
     @Test
     void testGetEngagementWithAuthAndRoleSuccess() throws Exception {
@@ -124,6 +125,47 @@ class EngagementResourceGetTest extends EngagementResourceTestHelper {
 
     }
 
+    @Test
+    void testGetAllWithExcludeAndInclude() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+        
+        // get all
+        Response r =given()
+            .auth()
+            .oauth2(token)
+            .queryParam("include", "somevalue")
+            .queryParam("exclude", "anothervalue")
+            .contentType(ContentType.JSON)
+        .when()
+            .get("/engagements");
+
+        assertEquals(400, r.getStatusCode());
+
+    }
+
+    @Test
+    void testGetAllWithInclude() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+        
+        // get all
+        Response r =given()
+            .auth()
+            .oauth2(token)
+            .queryParam("include", "somevalue")
+            .contentType(ContentType.JSON)
+        .when()
+            .get("/engagements");
+
+        assertEquals(200, r.getStatusCode());
+        Engagement[] engagements = r.getBody().as(Engagement[].class);
+        assertEquals(0, engagements.length);
+
+    }
+
     @ParameterizedTest
     @MethodSource("nullEmptyBlankSource")
     void testGetCategories(String input) throws Exception {
@@ -211,6 +253,30 @@ class EngagementResourceGetTest extends EngagementResourceTestHelper {
         .then()
             .statusCode(200)
             .body(containsString("a1"));
+
+    }
+
+    @Test
+    void testGetEngagementByNamesWithAuthAndRoleSuccess() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Engagement engagement = MockUtils.mockMinimumEngagement("c1", "e1", "1234");
+        engagement.setProjectId(1234);
+        Mockito.when(eRepository.findByCustomerNameAndProjectName("c1", "e1", Optional.empty())).thenReturn(Optional.of(engagement));
+
+        // GET
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .get("/engagements/customers/c1/projects/e1")
+            .then()
+                .statusCode(200)
+                .body("customer_name", equalTo(engagement.getCustomerName()))
+                .body("project_name", equalTo(engagement.getProjectName()))
+                .body("project_id", equalTo(1234));
 
     }
 

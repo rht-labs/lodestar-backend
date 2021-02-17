@@ -15,10 +15,10 @@
 		<maven.compiler.target>11</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<quarkus-plugin.version>1.6.1.Final</quarkus-plugin.version>
+		<quarkus-plugin.version>1.11.3.Final</quarkus-plugin.version>
 		<quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
 		<quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-		<quarkus.platform.version>1.6.1.Final</quarkus.platform.version>
+		<quarkus.platform.version>1.11.3.Final</quarkus.platform.version>
 		<surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
 		<sonar.projectKey>rht-labs_open-management-portal-backend</sonar.projectKey>
 		<sonar.organization>rht-labs</sonar.organization>
@@ -136,7 +136,7 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>${surefire-plugin.version}</version>
 				<configuration>
-					<excludedGroups>integration,repository</excludedGroups>
+					<excludedGroups>integration,nested</excludedGroups>
 					<systemPropertyVariables>
 						<jacoco-agent.destfile>${project.build.directory}/jacoco-ut.exec</jacoco-agent.destfile>
 						<java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
@@ -151,8 +151,8 @@
 							<goal>test</goal>
 						</goals>
 						<configuration>
-							<excludedGroups>!(integration | repository)</excludedGroups>
-							<groups>integration | repository</groups>
+							<excludedGroups>!integration</excludedGroups>
+							<groups>integration</groups>
 							<systemPropertyVariables>
 								<jacoco-agent.destfile>${project.build.directory}/jacoco-it.exec</jacoco-agent.destfile>
 							</systemPropertyVariables>

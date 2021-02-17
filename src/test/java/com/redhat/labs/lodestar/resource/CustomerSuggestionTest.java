@@ -1,4 +1,4 @@
-package com.redhat.labs.lodestar.resources;
+package com.redhat.labs.lodestar.resource;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -15,14 +15,15 @@ import org.mockito.Mockito;
 import com.google.common.collect.Lists;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.service.EngagementService;
+import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 import com.redhat.labs.lodestar.utils.MockUtils;
 import com.redhat.labs.lodestar.utils.TokenUtils;
 
 import io.quarkus.test.junit.QuarkusTest;
 
 @QuarkusTest
-@Tag("integration")
-class CustomerSuggestionTest extends EngagementResourceTestHelper {
+@Tag("nested")
+class CustomerSuggestionTest extends IntegrationTestHelper {
 	private static final String ANSWER = "Red Hat";
 	private static final String SUGGESTION_URL = "/engagements/customers/suggest";
 	

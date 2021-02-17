@@ -1,4 +1,4 @@
-package com.redhat.labs.lodestar.resources;
+package com.redhat.labs.lodestar.resource;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
@@ -18,6 +18,7 @@ import org.mockito.Mockito;
 
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.HostingEnvironment;
+import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 import com.redhat.labs.lodestar.utils.MockUtils;
 import com.redhat.labs.lodestar.utils.TokenUtils;
 
@@ -25,8 +26,8 @@ import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 
 @QuarkusTest
-@Tag("integration")
-class EngagementServiceCreateTest extends EngagementResourceTestHelper {
+@Tag("nested")
+class EngagementResourceCreateTest extends IntegrationTestHelper {
 
     @Test
     void testPostEngagementWithWrongRole() throws Exception {
@@ -58,7 +59,6 @@ class EngagementServiceCreateTest extends EngagementResourceTestHelper {
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
         Engagement engagement = MockUtils.mockMinimumEngagement("c1", "e1", "9090");
-//        engagement.setDescription(SCENARIO.SUCCESS.getValue());
         Mockito.when(gitApiClient.createOrUpdateEngagement(Mockito.any(), Mockito.anyString(), Mockito.anyString())).thenReturn(Response.ok(engagement).header("Location", "some/path/to/id/1234").build());
 
         String body = quarkusJsonb.toJson(engagement);
