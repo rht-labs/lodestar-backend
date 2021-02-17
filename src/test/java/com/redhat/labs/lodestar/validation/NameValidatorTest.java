@@ -1,21 +1,19 @@
 package com.redhat.labs.lodestar.validation;
 
-import javax.inject.Inject;
-
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.wildfly.common.Assert;
 
-import com.redhat.labs.lodestar.utils.EmbeddedMongoTest;
-
-import io.quarkus.test.junit.QuarkusTest;
-
-@EmbeddedMongoTest
-@QuarkusTest
 class NameValidatorTest {
 
-    @Inject
     NameValidator validator;
+    
+    @BeforeEach
+    void setup() {
+        validator = new NameValidator();
+        validator.validNameRegex = "^(\\p{L}|\\p{N}|_)[\\p{L}\\p{N}\\p{Z}-_\\.\\(\\)]*$";
+    }
 
     private static String[] invalidValues() {
         return new String[] { null, "", "   ", "(Diw34 Id (d)._", ")Diw34 Id (d)._", ".Diw34 Id (d)._",

@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 
 import org.slf4j.Logger;
@@ -15,7 +14,6 @@ import com.redhat.labs.lodestar.model.event.EventType;
 import com.redhat.labs.lodestar.repository.ActiveSyncRepository;
 
 import io.quarkus.panache.common.Sort;
-import io.quarkus.runtime.StartupEvent;
 import io.quarkus.scheduler.Scheduled;
 import io.vertx.mutiny.core.eventbus.EventBus;
 import lombok.Getter;
@@ -35,21 +33,6 @@ public class ActiveGitSyncService {
 
     private boolean active = false;
     private boolean performedUuidCheck = false;
-
-    /**
-     * Check to see if application should take the active role for sync processes.
-     * Then, requests that the database be refreshed if it does not contain data
-     * already.
-     * 
-     * @param event
-     */
-    void onStart(@Observes StartupEvent event) {
-
-        LOGGER.debug("starting instance {}", uuid);
-        // try to set active flag
-        checkIfActive();
-
-    }
 
     /**
      * Sets the active status to true if this application instance is performing the

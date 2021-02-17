@@ -2,6 +2,7 @@ package com.redhat.labs.lodestar.rest.client;
 
 import java.util.List;
 
+import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.Encoded;
 import javax.ws.rs.GET;
@@ -21,6 +22,7 @@ import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.Status;
 import com.redhat.labs.lodestar.model.Version;
 
+@ApplicationScoped
 @RegisterRestClient(configKey = "lodestar.gitlab.api")
 @RegisterProvider(value = LodeStarGitLabAPIServiceResponseMapper.class, priority = 50)
 public interface LodeStarGitLabAPIService {

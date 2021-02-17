@@ -7,29 +7,24 @@ import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
-import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.event.EventType;
-import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
-import com.redhat.labs.lodestar.utils.EmbeddedMongoTest;
+import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.vertx.mutiny.core.eventbus.EventBus;
 
-@EmbeddedMongoTest
 @QuarkusTest
-class EventServiceTest {
+@Tag("integration")
+class EventServiceTest extends IntegrationTestHelper {
 
     @InjectMock
     EngagementService engagementService;
-
-    @InjectMock
-    @RestClient
-    LodeStarGitLabAPIService gitApiClient;
 
     @Inject
     EventBus eventBus;
@@ -114,7 +109,7 @@ class EventServiceTest {
 
         eventBus.sendAndForget(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, e);
 
-        Mockito.verify(gitApiClient, Mockito.timeout(2000).times(2)).createOrUpdateEngagement(e, "someone",
+        Mockito.verify(gitApiClient, Mockito.timeout(5000).times(2)).createOrUpdateEngagement(e, "someone",
                 "someone@example.com");
         Mockito.verify(engagementService, Mockito.timeout(2000).times(0)).setProjectId("1234", 5678);
 

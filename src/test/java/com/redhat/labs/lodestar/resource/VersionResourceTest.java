@@ -1,22 +1,31 @@
-package com.redhat.labs.lodestar.resources;
+package com.redhat.labs.lodestar.resource;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.hasItem;
 import static org.hamcrest.CoreMatchers.is;
 
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
-import com.redhat.labs.lodestar.utils.EmbeddedMongoTest;
+import com.redhat.labs.lodestar.model.Version;
+import com.redhat.labs.lodestar.model.status.VersionManifestV1;
+import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
+import com.redhat.labs.lodestar.utils.ResourceLoader;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 
-@EmbeddedMongoTest
 @QuarkusTest
-class VersionResourceTest {
+@Tag("nested")
+class VersionResourceTest extends IntegrationTestHelper {
 
     @Test
     void testValidResourceVersion() {
+
+        Version v = Version.builder().gitCommit("abcdef").gitTag("v1.1").build();
+        Mockito.when(gitApiClient.getVersion()).thenReturn(v);
+
         given()
         .when()
             .contentType(ContentType.JSON)
@@ -30,6 +39,9 @@ class VersionResourceTest {
     @Test
     void testValidResourceVersion1() {
 
+        Version v = Version.builder().gitCommit("abcdef").gitTag("v1.1").build();
+        Mockito.when(gitApiClient.getVersion()).thenReturn(v);
+        
         given()
         .when()
             .contentType(ContentType.JSON)
@@ -87,6 +99,10 @@ class VersionResourceTest {
 
     @Test
     void testValidResourceVersionManifest() {
+
+        String json = ResourceLoader.load("status-service/version-manifest.yaml");
+        VersionManifestV1 vm = quarkusJsonb.fromJson(json, VersionManifestV1.class);
+        Mockito.when(statusApiClient.getVersionManifestV1()).thenReturn(vm);
 
         given()
         .when()

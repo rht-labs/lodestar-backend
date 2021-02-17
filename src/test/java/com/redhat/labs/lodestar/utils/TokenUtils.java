@@ -42,6 +42,7 @@ public class TokenUtils {
         return generateTokenString(pk, "/privateKey.pem", jsonResName, timeClaims);
     }
 
+    @SuppressWarnings("deprecation")
     public static String generateTokenString(PrivateKey privateKey, String kid,
             String jsonResName, Map<String, Long> timeClaims) throws Exception {
 
