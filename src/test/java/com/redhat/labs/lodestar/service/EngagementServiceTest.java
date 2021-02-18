@@ -18,7 +18,7 @@ import javax.json.bind.JsonbConfig;
 import javax.json.bind.config.PropertyNamingStrategy;
 import javax.ws.rs.WebApplicationException;
 
-
+import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,6 +75,25 @@ class EngagementServiceTest {
     }
 
     // create
+
+    @ParameterizedTest
+    @ValueSource(strings = { "customer", "project" })
+    void testCreateNamesTooLong(String name) {
+
+        Engagement e = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
+        String value = StringUtils.repeat("a", 256);
+
+        if ("customer".equals(name)) {
+            e.setCustomerName(value);
+        } else {
+            e.setProjectName(value);
+        }
+
+        WebApplicationException wae = assertThrows(WebApplicationException.class, () -> service.create(e));
+        assertEquals(400, wae.getResponse().getStatus());
+        assertEquals("names cannot be greater than 255 characters.", wae.getMessage());
+
+    }
 
     @Test
     void testCreateAlreadyExists() {
@@ -144,6 +163,34 @@ class EngagementServiceTest {
 
     // update
 
+    @ParameterizedTest
+    @ValueSource(strings = { "customer", "project" })
+    void testUpdateNamesTooLong(String name) {
+
+        String value = StringUtils.repeat("a", 256);
+
+        Engagement toUpdate = MockUtils.mockMinimumEngagement("c3", "p3", "1234");
+        toUpdate.setProjectId(1111);
+        EngagementUser user1 = MockUtils.mockEngagementUser("b.s@example.com", "bill", "smith", "dev", null, true);
+        toUpdate.setEngagementUsers(Sets.newHashSet(user1));
+
+        if ("customer".equals(name)) {
+            toUpdate.setCustomerName(value);
+        } else {
+            toUpdate.setProjectName(value);
+        }
+
+        Engagement persisted = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
+        persisted.setProjectId(1111);
+
+        Mockito.when(repository.findByUuid("1234")).thenReturn(Optional.of(persisted));
+
+        WebApplicationException wae = assertThrows(WebApplicationException.class, () -> service.create(toUpdate));
+        assertEquals(400, wae.getResponse().getStatus());
+        assertEquals("names cannot be greater than 255 characters.", wae.getMessage());
+
+    }
+    
     @Test
     void testUpdateDoesNotExist() {
 

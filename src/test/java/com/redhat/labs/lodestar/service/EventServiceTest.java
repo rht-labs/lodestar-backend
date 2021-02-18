@@ -137,6 +137,25 @@ class EventServiceTest extends IntegrationTestHelper {
     }
 
     @Test
+    void testConsumeUpdateEngagementEventRetryEngagementRemoved() {
+
+        Response created = Response.status(201).header("Location", "some/path/to/id/5678").build();
+        Engagement e = Engagement.builder().uuid("1234").customerName("c1").projectName("p1")
+                .lastUpdateByName("someone").lastUpdateByEmail("someone@example.com")
+                .lastUpdate(ZonedDateTime.now(ZoneId.of("Z")).toString()).build();
+
+        Mockito.when(gitApiClient.createOrUpdateEngagement(Mockito.any(), Mockito.anyString(), Mockito.anyString()))
+                .thenThrow(new WebApplicationException(500)).thenReturn(created);
+        Mockito.when(engagementService.getByUuid(Mockito.anyString(), Mockito.any())).thenThrow(new WebApplicationException(404));
+
+        eventBus.sendAndForget(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, e);
+
+        Mockito.verify(gitApiClient, Mockito.timeout(1000).times(1)).createOrUpdateEngagement(e, "someone",
+                "someone@example.com");
+
+    }
+
+    @Test
     void testConsumeUpdateEngagementEventMaxRetriesReached() {
 
         Mockito.when(gitApiClient.createOrUpdateEngagement(Mockito.any(), Mockito.anyString(), Mockito.anyString()))
