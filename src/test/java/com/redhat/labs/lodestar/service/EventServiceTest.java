@@ -152,7 +152,6 @@ class EventServiceTest extends IntegrationTestHelper {
 
         Mockito.verify(gitApiClient, Mockito.timeout(1000).times(1)).createOrUpdateEngagement(e, "someone",
                 "someone@example.com");
-//        Mockito.verify(engagementService, Mockito.timeout(1000).times(0)).setProjectId("1234", 5678);
 
     }
 
