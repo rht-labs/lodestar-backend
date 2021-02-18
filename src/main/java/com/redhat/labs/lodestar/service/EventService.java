@@ -127,12 +127,22 @@ public class EventService {
 
             Engagement engagement = event.getEngagement();
 
-            // get current engagement from db
-            Engagement persisted = engagementService.getByUuid(engagement.getUuid(), Optional.empty());
+            try {
 
-            // only resend if not updated
-            if (null != persisted && persisted.getLastUpdate().equals(engagement.getLastUpdate())) {
-                createOrUpdateEngagement(event, false);
+                // get current engagement from db
+                Engagement persisted = engagementService.getByUuid(engagement.getUuid(), Optional.empty());
+
+                // only resend if exists and not updated
+                if (null != persisted && persisted.getLastUpdate().equals(engagement.getLastUpdate())) {
+                    createOrUpdateEngagement(event, false);
+                }
+
+            } catch (WebApplicationException wae) {
+                // exit if engagement deleted after event sent
+                if (wae.getResponse().getStatus() == 404) {
+                    LOGGER.info("cancelling retry event because engagement with id {} not found in db.",
+                            engagement.getUuid());
+                }
             }
 
         });
@@ -165,7 +175,7 @@ public class EventService {
             if (seconds > eventRetryMaxDelay) {
                 seconds = eventRetryMaxDelay;
             }
-            
+
             try {
                 TimeUnit.SECONDS.sleep(seconds);
             } catch (InterruptedException e) {
@@ -174,7 +184,7 @@ public class EventService {
 
             // run configured method
             runnable.run();
-            
+
         }
 
     }

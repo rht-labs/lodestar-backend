@@ -147,6 +147,10 @@ public class EngagementService {
         engagement.setCustomerName(engagement.getCustomerName().trim());
         engagement.setProjectName(engagement.getProjectName().trim());
 
+        // names cannot be greater than 255 in length because of gitlab
+        validateNameLength(engagement.getCustomerName());
+        validateNameLength(engagement.getProjectName());
+
     }
 
     /**
@@ -219,6 +223,10 @@ public class EngagementService {
      */
     void validateCustomerAndProjectNames(Engagement toUpdate, Engagement existing) {
 
+        // names cannot be greater than 255 in length because of gitlab
+        validateNameLength(toUpdate.getCustomerName());
+        validateNameLength(toUpdate.getProjectName());
+
         // return if names have not changed
         if (toUpdate.getCustomerName().equals(existing.getCustomerName())
                 && toUpdate.getProjectName().equals(existing.getProjectName())) {
@@ -236,6 +244,21 @@ public class EngagementService {
         throw new WebApplicationException("failed to change name(s).  engagement with customer name '"
                 + toUpdate.getCustomerName() + "' and project '" + toUpdate.getProjectName() + "' already exists.",
                 409);
+
+    }
+
+    /**
+     * Throws a {@link WebApplicationException} if the provided name is greater than
+     * 255 characters.
+     * 
+     * @param name
+     */
+    void validateNameLength(String name) {
+
+        if (name.length() > 255) {
+            throw new WebApplicationException("names cannot be greater than 255 characters.",
+                    HttpStatus.SC_BAD_REQUEST);
+        }
 
     }
 
