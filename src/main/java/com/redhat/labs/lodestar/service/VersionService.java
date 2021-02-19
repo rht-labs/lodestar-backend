@@ -6,7 +6,7 @@ import javax.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
-import com.redhat.labs.lodestar.model.ApplicationVersion;
+import com.redhat.labs.lodestar.model.status.ApplicationVersion;
 import com.redhat.labs.lodestar.model.status.VersionManifest;
 import com.redhat.labs.lodestar.rest.client.LodeStarStatusApiClient;
 
@@ -38,7 +38,7 @@ public class VersionService {
      * @return
      */
     public VersionManifest getVersionManifestV1FromStatusClient() {
-        return statusApiClient.getVersionManifestV1();
+        return statusApiClient.getVersionManifest();
     }
 
 }

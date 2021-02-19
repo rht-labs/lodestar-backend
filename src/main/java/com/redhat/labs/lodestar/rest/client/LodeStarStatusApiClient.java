@@ -17,7 +17,7 @@ public interface LodeStarStatusApiClient {
     @GET
     @Produces("application/json")
     @Path("/api/v1/version/manifest")
-    public VersionManifest getVersionManifestV1();
+    public VersionManifest getVersionManifest();
 
     @GET
     @Path("/api/v1/status")

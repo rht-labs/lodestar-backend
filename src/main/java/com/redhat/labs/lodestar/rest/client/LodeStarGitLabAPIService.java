@@ -20,7 +20,7 @@ import com.redhat.labs.lodestar.exception.mapper.LodeStarGitLabAPIServiceRespons
 import com.redhat.labs.lodestar.model.Commit;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.Status;
-import com.redhat.labs.lodestar.model.ApplicationVersion;
+import com.redhat.labs.lodestar.model.status.ApplicationVersion;
 
 @ApplicationScoped
 @RegisterRestClient(configKey = "lodestar.gitlab.api")

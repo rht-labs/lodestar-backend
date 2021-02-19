@@ -1,4 +1,4 @@
-package com.redhat.labs.lodestar.model;
+package com.redhat.labs.lodestar.model.status;
 
 import javax.json.bind.annotation.JsonbProperty;
 

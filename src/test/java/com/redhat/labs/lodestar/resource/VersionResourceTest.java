@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import com.redhat.labs.lodestar.model.ApplicationVersion;
 import com.redhat.labs.lodestar.model.status.VersionManifest;
 import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 import com.redhat.labs.lodestar.utils.ResourceLoader;
@@ -53,7 +52,7 @@ class VersionResourceTest extends IntegrationTestHelper {
 
         String json = ResourceLoader.load("status-service/version-manifest.yaml");
         VersionManifest vm = quarkusJsonb.fromJson(json, VersionManifest.class);
-        Mockito.when(statusApiClient.getVersionManifestV1()).thenReturn(vm);
+        Mockito.when(statusApiClient.getVersionManifest()).thenReturn(vm);
 
         given()
         .when()
