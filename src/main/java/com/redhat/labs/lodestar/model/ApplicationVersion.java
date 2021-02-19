@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Version {
+public class ApplicationVersion {
     
     private String application;
     @JsonbProperty("git_commit")

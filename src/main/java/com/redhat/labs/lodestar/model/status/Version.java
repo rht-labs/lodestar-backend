@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class VersionV1 {
+public class Version {
 
     private String name;
     private String value;

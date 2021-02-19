@@ -6,8 +6,8 @@ import javax.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
-import com.redhat.labs.lodestar.model.Version;
-import com.redhat.labs.lodestar.model.status.VersionManifestV1;
+import com.redhat.labs.lodestar.model.ApplicationVersion;
+import com.redhat.labs.lodestar.model.status.VersionManifest;
 import com.redhat.labs.lodestar.rest.client.LodeStarStatusApiClient;
 
 @ApplicationScoped
@@ -24,20 +24,20 @@ public class VersionService {
     LodeStarStatusApiClient statusApiClient;
 
     /**
-     * Returns the configured {@link Version} containing the git commit and git tag.
+     * Returns the configured {@link ApplicationVersion} containing the git commit and git tag.
      * 
      * @return
      */
-    public Version getBackendVersion() {
-        return Version.builder().gitCommit(gitCommit).gitTag(gitTag).build();
+    public ApplicationVersion getBackendVersion() {
+        return ApplicationVersion.builder().gitCommit(gitCommit).gitTag(gitTag).build();
     }
 
     /**
-     * Returns the {@link VersionManifestV1} from the LodeStar Status Service.
+     * Returns the {@link VersionManifest} from the LodeStar Status Service.
      * 
      * @return
      */
-    public VersionManifestV1 getVersionManifestV1FromStatusClient() {
+    public VersionManifest getVersionManifestV1FromStatusClient() {
         return statusApiClient.getVersionManifestV1();
     }
 

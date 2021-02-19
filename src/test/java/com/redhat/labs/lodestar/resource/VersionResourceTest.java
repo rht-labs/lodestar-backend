@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import com.redhat.labs.lodestar.model.Version;
-import com.redhat.labs.lodestar.model.status.VersionManifestV1;
+import com.redhat.labs.lodestar.model.ApplicationVersion;
+import com.redhat.labs.lodestar.model.status.VersionManifest;
 import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 import com.redhat.labs.lodestar.utils.ResourceLoader;
 
@@ -23,7 +23,7 @@ class VersionResourceTest extends IntegrationTestHelper {
     @Test
     void testValidResourceVersion() {
 
-        Version v = Version.builder().gitCommit("abcdef").gitTag("v1.1").build();
+        ApplicationVersion v = ApplicationVersion.builder().gitCommit("abcdef").gitTag("v1.1").build();
         Mockito.when(gitApiClient.getVersion()).thenReturn(v);
 
         given()
@@ -39,7 +39,7 @@ class VersionResourceTest extends IntegrationTestHelper {
     @Test
     void testValidResourceVersion1() {
 
-        Version v = Version.builder().gitCommit("abcdef").gitTag("v1.1").build();
+        ApplicationVersion v = ApplicationVersion.builder().gitCommit("abcdef").gitTag("v1.1").build();
         Mockito.when(gitApiClient.getVersion()).thenReturn(v);
         
         given()
@@ -101,7 +101,7 @@ class VersionResourceTest extends IntegrationTestHelper {
     void testValidResourceVersionManifest() {
 
         String json = ResourceLoader.load("status-service/version-manifest.yaml");
-        VersionManifestV1 vm = quarkusJsonb.fromJson(json, VersionManifestV1.class);
+        VersionManifest vm = quarkusJsonb.fromJson(json, VersionManifest.class);
         Mockito.when(statusApiClient.getVersionManifestV1()).thenReturn(vm);
 
         given()

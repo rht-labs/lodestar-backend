@@ -14,7 +14,7 @@ import org.eclipse.microprofile.metrics.annotation.Counted;
 import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 
-import com.redhat.labs.lodestar.model.status.VersionManifestV1;
+import com.redhat.labs.lodestar.model.status.VersionManifest;
 import com.redhat.labs.lodestar.service.VersionService;
 
 /**
@@ -49,7 +49,7 @@ public class VersionResource {
     @Timed(name = "versionManifestResourceTimer")
     @Counted(name = "versionManifestResourceCounter")
     @Operation(summary = "Returns the Version Manifest from LodeStar Status")
-    public VersionManifestV1 getStatusVersionManifest() {
+    public VersionManifest getStatusVersionManifest() {
         return versionService.getVersionManifestV1FromStatusClient();
     }
 
