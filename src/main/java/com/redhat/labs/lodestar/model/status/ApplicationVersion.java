@@ -1,4 +1,4 @@
-package com.redhat.labs.lodestar.model;
+package com.redhat.labs.lodestar.model.status;
 
 import javax.json.bind.annotation.JsonbProperty;
 
@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Version {
+public class ApplicationVersion {
     
     private String application;
     @JsonbProperty("git_commit")

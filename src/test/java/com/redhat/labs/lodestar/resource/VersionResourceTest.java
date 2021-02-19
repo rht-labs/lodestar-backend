@@ -8,8 +8,7 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import com.redhat.labs.lodestar.model.Version;
-import com.redhat.labs.lodestar.model.status.VersionManifestV1;
+import com.redhat.labs.lodestar.model.status.VersionManifest;
 import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 import com.redhat.labs.lodestar.utils.ResourceLoader;
 
@@ -23,45 +22,9 @@ class VersionResourceTest extends IntegrationTestHelper {
     @Test
     void testValidResourceVersion() {
 
-        Version v = Version.builder().gitCommit("abcdef").gitTag("v1.1").build();
-        Mockito.when(gitApiClient.getVersion()).thenReturn(v);
-
         given()
         .when()
             .contentType(ContentType.JSON)
-            .get("/api/v1/version")
-        .then()
-            .statusCode(200)
-            .body("containers.version",hasItem("master-abcdef"))
-            .body("containers.version", hasItem("v1.1"));
-    }   
-
-    @Test
-    void testValidResourceVersion1() {
-
-        Version v = Version.builder().gitCommit("abcdef").gitTag("v1.1").build();
-        Mockito.when(gitApiClient.getVersion()).thenReturn(v);
-        
-        given()
-        .when()
-            .contentType(ContentType.JSON)
-            .header("Accept-version", "v1")
-            .get("/api/version")
-        .then()
-            .statusCode(200)
-            .statusCode(200)
-            .body("containers.version",hasItem("master-abcdef"))
-            .body("containers.version", hasItem("v1.1"));
-
-    }
-
-    @Test
-    void testValidResourceVersion2() {
-
-        given()
-        .when()
-            .contentType(ContentType.JSON)
-            .header("Accept-version", "v2")
             .get("/api/version")
         .then()
             .statusCode(200)
@@ -85,24 +48,11 @@ class VersionResourceTest extends IntegrationTestHelper {
     }
 
     @Test
-    void testValidResourceVersionInvalidAcceptVersion() {
-
-        given()
-        .when()
-            .contentType(ContentType.JSON)
-            .header("Accept-version", "v8")
-            .get("/api/version")
-        .then()
-            .statusCode(400);
-
-    }
-
-    @Test
     void testValidResourceVersionManifest() {
 
         String json = ResourceLoader.load("status-service/version-manifest.yaml");
-        VersionManifestV1 vm = quarkusJsonb.fromJson(json, VersionManifestV1.class);
-        Mockito.when(statusApiClient.getVersionManifestV1()).thenReturn(vm);
+        VersionManifest vm = quarkusJsonb.fromJson(json, VersionManifest.class);
+        Mockito.when(statusApiClient.getVersionManifest()).thenReturn(vm);
 
         given()
         .when()

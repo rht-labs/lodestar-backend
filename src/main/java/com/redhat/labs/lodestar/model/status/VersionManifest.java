@@ -11,9 +11,9 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class VersionManifestV1 {
+public class VersionManifest {
 
-    private VersionV1 mainVersion;
-    private List<VersionV1> componentVersions;
+    private Version mainVersion;
+    private List<Version> componentVersions;
 
 }

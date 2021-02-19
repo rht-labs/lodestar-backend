@@ -8,7 +8,7 @@ import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
-import com.redhat.labs.lodestar.model.status.VersionManifestV1;
+import com.redhat.labs.lodestar.model.status.VersionManifest;
 
 @ApplicationScoped
 @RegisterRestClient(configKey = "lodestar.status.api")
@@ -17,7 +17,7 @@ public interface LodeStarStatusApiClient {
     @GET
     @Produces("application/json")
     @Path("/api/v1/version/manifest")
-    public VersionManifestV1 getVersionManifestV1();
+    public VersionManifest getVersionManifest();
 
     @GET
     @Path("/api/v1/status")
