@@ -37,7 +37,7 @@ public class VersionService {
      * 
      * @return
      */
-    public VersionManifest getVersionManifestV1FromStatusClient() {
+    public VersionManifest getVersionManifest() {
         return statusApiClient.getVersionManifest();
     }
 

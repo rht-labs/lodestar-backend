@@ -50,7 +50,7 @@ public class VersionResource {
     @Counted(name = "versionManifestResourceCounter")
     @Operation(summary = "Returns the Version Manifest from LodeStar Status")
     public VersionManifest getStatusVersionManifest() {
-        return versionService.getVersionManifestV1FromStatusClient();
+        return versionService.getVersionManifest();
     }
 
 }
