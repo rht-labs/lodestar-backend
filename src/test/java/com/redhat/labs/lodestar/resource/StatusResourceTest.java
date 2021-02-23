@@ -48,7 +48,6 @@ class StatusResourceTest extends IntegrationTestHelper {
 
         Mockito.verify(gitApiClient).getStatus("jello", "exists");
         Mockito.verify(gitApiClient).getCommits("jello", "exists");
-        Mockito.verify(eRepository).update(Mockito.any(Engagement.class));
 
     } 
     
@@ -71,7 +70,6 @@ class StatusResourceTest extends IntegrationTestHelper {
 
         Mockito.verify(gitApiClient, Mockito.times(0)).getStatus("jello", "exists");
         Mockito.verify(gitApiClient).getCommits("jello", "exists");
-        Mockito.verify(eRepository).update(Mockito.any(Engagement.class));
 
     } 
 

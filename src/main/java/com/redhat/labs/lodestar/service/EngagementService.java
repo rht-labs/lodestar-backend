@@ -2,7 +2,6 @@ package com.redhat.labs.lodestar.service;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -468,7 +467,7 @@ public class EngagementService {
      * @param hook
      * @return
      */
-    public Engagement updateStatusAndCommits(Hook hook) {
+    public void updateStatusAndCommits(Hook hook) {
         LOGGER.debug("Hook for {} {}", hook.getCustomerName(), hook.getEngagementName());
 
         // create engagement for get
@@ -477,18 +476,37 @@ public class EngagementService {
 
         Engagement persisted = getByIdOrName(search).orElseGet(() -> getEngagementFromNamespace(hook));
 
+        // send update status event
         if (hook.didFileChange(statusFile)) {
-            Status status = gitApi.getStatus(hook.getCustomerName(), hook.getEngagementName());
-            persisted.setStatus(status);
+            eventBus.sendAndForget(EventType.UPDATE_STATUS_EVENT_ADDRESS, persisted);
         }
 
-        List<Commit> commits = gitApi.getCommits(hook.getCustomerName(), hook.getEngagementName());
-        persisted.setCommits(commits);
+        // send update commits event
+        eventBus.sendAndForget(EventType.UPDATE_COMMITS_EVENT_ADDRESS, persisted);
 
-        // update in db
-        repository.update(persisted);
+    }
 
-        return persisted;
+    /**
+     * Updates the {@link Status} for the given UUID in the database.
+     * 
+     * @param uuid
+     * @param status
+     */
+    public void setStatus(String uuid, Status status) {
+        LOGGER.trace("\tupdating {} with status {}", uuid, status);
+        repository.setStatus(uuid, status);
+    }
+
+    /**
+     * Updates the {@link List} of {@link Commit}s for the given UUID in the
+     * database.
+     * 
+     * @param uuid
+     * @param commits
+     */
+    public void setCommits(String uuid, List<Commit> commits) {
+        LOGGER.trace("\tupdating {} with {} commits.", uuid, commits.size());
+        repository.setCommits(uuid, commits);
     }
 
     /**
@@ -753,45 +771,35 @@ public class EngagementService {
      */
     public void syncGitToDatabase(boolean purgeFirst) {
 
-        // get all engagements from git
-        List<Engagement> engagementList = gitApi.getEngagments();
-        // push engagements to db
-        syncGitToDatabase(engagementList, purgeFirst);
+        if (purgeFirst) {
+            eventBus.sendAndForget(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS,
+                    EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS);
+        } else {
+            eventBus.sendAndForget(EventType.LOAD_DATABASE_EVENT_ADDRESS, EventType.LOAD_DATABASE_EVENT_ADDRESS);
+        }
 
     }
 
     /**
-     * Inserts all {@link Engagement} from the {@link List} that are not already in
-     * the database. If the purgeFirst flag is set, the database will be cleared
-     * before the insert. {@link List} of {@link Engagement}.
+     * Persists the given {@link Engagement} into the database if not found.
      * 
-     * @param engagementList
+     * @param engagement
      */
-    void syncGitToDatabase(List<Engagement> engagementList, boolean purgeFirst) {
+    boolean persistEngagementIfNotFound(Engagement engagement) {
 
-        if (purgeFirst) {
+        if (getByIdOrName(engagement).isEmpty()) {
 
-            // remove all from database
-            deleteAll();
+            LOGGER.trace("persisting engagment {}:{}:{}", engagement.getUuid(), engagement.getCustomerName(),
+                    engagement.getProjectName());
+
+            engagement.setLastUpdate(getZuluTimeAsString());
+            repository.persist(engagement);
+
+            return true;
 
         }
 
-        // There's probably a better way to to this all on the mongo side. Should be
-        // updated if possible.
-
-        List<Engagement> toInsert = new ArrayList<>();
-        String lastUpdate = getZuluTimeAsString();
-
-        // filter any engagements that already exist and set modified
-        engagementList.stream().filter(engagement -> !getByIdOrName(engagement).isPresent()).forEach(engagement -> {
-            engagement.setLastUpdate(lastUpdate);
-            toInsert.add(engagement);
-        });
-
-        LOGGER.debug("inserting {} engagements of {} into the database.", toInsert.size(), engagementList.size());
-
-        // insert
-        repository.persist(toInsert);
+        return false;
 
     }
 

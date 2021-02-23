@@ -108,7 +108,7 @@ class ActiveGitSyncServiceTest {
         service.repopulateDbIfEmpty();
 
         Mockito.verify(eventBus,
-                Mockito.times(0)).sendAndForget(Mockito.eq(EventType.REFRESH_DATABASE_EVENT_ADDRESS), Mockito.any());
+                Mockito.times(0)).sendAndForget(Mockito.eq(EventType.LOAD_DATABASE_EVENT_ADDRESS), Mockito.any());
 
     }
 
@@ -122,7 +122,7 @@ class ActiveGitSyncServiceTest {
 
         service.repopulateDbIfEmpty();
 
-        Mockito.verify(eventBus).sendAndForget(Mockito.eq(EventType.REFRESH_DATABASE_EVENT_ADDRESS), Mockito.any());
+        Mockito.verify(eventBus).sendAndForget(Mockito.eq(EventType.LOAD_DATABASE_EVENT_ADDRESS), Mockito.any());
 
     }
 

@@ -190,7 +190,7 @@ class EngagementServiceTest {
         assertEquals("names cannot be greater than 255 characters.", wae.getMessage());
 
     }
-    
+
     @Test
     void testUpdateDoesNotExist() {
 
@@ -387,15 +387,12 @@ class EngagementServiceTest {
         Mockito.when(gitApi.getCommits("nope", "nada"))
                 .thenReturn(Lists.newArrayList(MockUtils.mockCommit("status.json", false)));
 
-        Engagement updated = service.updateStatusAndCommits(hook);
+        service.updateStatusAndCommits(hook);
 
-        assertNotNull(updated);
-        assertNull(updated.getStatus());
-        assertNotNull(updated.getCommits());
-        assertEquals(1, updated.getCommits().size());
-
-        Mockito.verify(gitApi, Mockito.times(0)).getStatus("nope", "nada");
-        Mockito.verify(repository).update(updated);
+        Mockito.verify(eventBus).sendAndForget(Mockito.eq(EventType.UPDATE_COMMITS_EVENT_ADDRESS),
+                Mockito.any(Engagement.class));
+        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(Mockito.eq(EventType.UPDATE_STATUS_EVENT_ADDRESS),
+                Mockito.any(Engagement.class));
 
     }
 
@@ -411,15 +408,12 @@ class EngagementServiceTest {
         Mockito.when(gitApi.getCommits("nope", "nada"))
                 .thenReturn(Lists.newArrayList(MockUtils.mockCommit("status.json", false)));
 
-        Engagement updated = service.updateStatusAndCommits(hook);
+        service.updateStatusAndCommits(hook);
 
-        assertNotNull(updated);
-        assertNotNull(updated.getStatus());
-        assertNotNull(updated.getCommits());
-        assertEquals(1, updated.getCommits().size());
-
-        Mockito.verify(gitApi).getStatus("nope", "nada");
-        Mockito.verify(repository).update(updated);
+        Mockito.verify(eventBus).sendAndForget(Mockito.eq(EventType.UPDATE_COMMITS_EVENT_ADDRESS),
+                Mockito.any(Engagement.class));
+        Mockito.verify(eventBus).sendAndForget(Mockito.eq(EventType.UPDATE_STATUS_EVENT_ADDRESS),
+                Mockito.any(Engagement.class));
 
     }
 
@@ -703,30 +697,24 @@ class EngagementServiceTest {
     @Test
     void testSyncGitToDatabasePurgeFirst() {
 
-        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
-        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "9876");
-        Mockito.when(gitApi.getEngagments()).thenReturn(Lists.newArrayList(e1, e2));
-        Mockito.when(repository.findByUuid("1234")).thenReturn(Optional.of(e1));
-
         service.syncGitToDatabase(true);
 
-        Mockito.verify(repository).deleteAll();
-        Mockito.verify(repository).persist(Mockito.anyIterable());
+        Mockito.verify(eventBus).sendAndForget(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS,
+                EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS);
+        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(EventType.LOAD_DATABASE_EVENT_ADDRESS,
+                EventType.LOAD_DATABASE_EVENT_ADDRESS);
 
     }
 
     @Test
     void testSyncGitToDatabaseDoNotPurgeFirst() {
 
-        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
-        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "9876");
-        Mockito.when(gitApi.getEngagments()).thenReturn(Lists.newArrayList(e1, e2));
-        Mockito.when(repository.findByUuid("1234")).thenReturn(Optional.of(e1));
-
         service.syncGitToDatabase(false);
 
-        Mockito.verify(repository, Mockito.times(0)).deleteAll();
-        Mockito.verify(repository).persist(Mockito.anyIterable());
+        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS,
+                EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS);
+        Mockito.verify(eventBus).sendAndForget(EventType.LOAD_DATABASE_EVENT_ADDRESS,
+                EventType.LOAD_DATABASE_EVENT_ADDRESS);
 
     }
 

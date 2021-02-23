@@ -41,8 +41,10 @@ import com.mongodb.client.model.ReturnDocument;
 import com.mongodb.client.model.Sorts;
 import com.redhat.labs.lodestar.model.Artifact;
 import com.redhat.labs.lodestar.model.Category;
+import com.redhat.labs.lodestar.model.Commit;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.FilterOptions;
+import com.redhat.labs.lodestar.model.Status;
 
 import io.quarkus.mongodb.panache.PanacheMongoRepository;
 
@@ -172,8 +174,7 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
                 group("$artifacts.lower_type"), project(new Document().append("type", "$_id")),
                 sort(Sorts.ascending("type"))), Artifact.class);
 
-        return StreamSupport.stream(iterable.spliterator(), false).map(Artifact::getType)
-                .collect(Collectors.toList());
+        return StreamSupport.stream(iterable.spliterator(), false).map(Artifact::getType).collect(Collectors.toList());
 
     }
 
@@ -189,6 +190,42 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
 
         Bson filter = eq("uuid", uuid);
         Bson update = set("projectId", projectId);
+
+        FindOneAndUpdateOptions optionAfter = new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER);
+
+        return Optional.ofNullable(this.mongoCollection().findOneAndUpdate(filter, update, optionAfter));
+
+    }
+
+    /**
+     * Sets the {@link Status} for the given UUID.
+     * 
+     * @param uuid
+     * @param status
+     * @return
+     */
+    public Optional<Engagement> setStatus(String uuid, Status status) {
+
+        Bson filter = eq("uuid", uuid);
+        Bson update = set("status", status);
+
+        FindOneAndUpdateOptions optionAfter = new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER);
+
+        return Optional.ofNullable(this.mongoCollection().findOneAndUpdate(filter, update, optionAfter));
+
+    }
+
+    /**
+     * Sets the {@link Commit}s for the given UUID.
+     * 
+     * @param uuid
+     * @param commits
+     * @return
+     */
+    public Optional<Engagement> setCommits(String uuid, List<Commit> commits) {
+
+        Bson filter = eq("uuid", uuid);
+        Bson update = set("commits", commits);
 
         FindOneAndUpdateOptions optionAfter = new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER);
 
