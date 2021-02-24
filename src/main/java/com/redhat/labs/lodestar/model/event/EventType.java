@@ -20,7 +20,6 @@ public class EventType {
     public static final String GET_PAGE_OF_ENGAGEMENTS_EVENT_ADDRESS = "get.page.of.engagements.event";
     public static final String PERSIST_ENGAGEMENT_LIST_EVENT_ADDRESS = "persist.engagement.list.event";
     public static final String PERSIST_ENGAGEMENT_EVENT_ADDRESS = "persist.engagement.event";
-    public static final String SET_STATUS_COMMITS_EVENT_ADDRESS = "set.status.commits.event.address";
     public static final String UPDATE_COMMITS_EVENT_ADDRESS = "update.commits.event";
     public static final String UPDATE_STATUS_EVENT_ADDRESS = "update.status.event";
 

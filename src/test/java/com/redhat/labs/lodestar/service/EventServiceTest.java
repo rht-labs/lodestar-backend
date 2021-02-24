@@ -264,7 +264,7 @@ class EventServiceTest extends IntegrationTestHelper {
         // send load db event
         eventBus.sendAndForget(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS, EventType.LOAD_DATABASE_EVENT_ADDRESS);
 
-        Mockito.verify(engagementService).deleteAll();
+        Mockito.verify(engagementService, Mockito.timeout(1000)).deleteAll();
         Mockito.verify(engagementService, Mockito.timeout(1000).times(2)).setCommits(Mockito.anyString(), Mockito.anyList());
         Mockito.verify(engagementService, Mockito.timeout(1000).times(2)).setStatus(Mockito.anyString(), Mockito.any(Status.class));
 
