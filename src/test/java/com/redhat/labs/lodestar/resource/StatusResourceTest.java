@@ -69,7 +69,7 @@ class StatusResourceTest extends IntegrationTestHelper {
             .statusCode(200);
 
         Mockito.verify(gitApiClient, Mockito.times(0)).getStatus("jello", "exists");
-        Mockito.verify(gitApiClient).getCommits("jello", "exists");
+        Mockito.verify(gitApiClient, Mockito.timeout(1000)).getCommits("jello", "exists");
 
     } 
 
