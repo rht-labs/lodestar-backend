@@ -586,7 +586,7 @@ public class EngagementService {
      * Used by the {@link GitSyncService} to delete all {@link Engagement} from the
      * data store before re-populating from Git.
      */
-    void deleteAll() {
+    public void deleteAll() {
         repository.deleteAll();
     }
 
@@ -785,7 +785,7 @@ public class EngagementService {
      * 
      * @param engagement
      */
-    boolean persistEngagementIfNotFound(Engagement engagement) {
+    public boolean persistEngagementIfNotFound(Engagement engagement) {
 
         if (getByIdOrName(engagement).isEmpty()) {
 
@@ -801,15 +801,6 @@ public class EngagementService {
 
         return false;
 
-    }
-
-    /**
-     * Returns a {@link List} of {@link Engagement} where {@link FileAction} is set.
-     * 
-     * @return
-     */
-    List<Engagement> getModifiedEngagements() {
-        return repository.findByModified();
     }
 
     /**

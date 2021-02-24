@@ -322,7 +322,7 @@ public class EventService {
      * creates a GET_PAGE_OF_ENGAGEMENTS_EVENT for each remaining page of results.
      */
     private void getEngagements() {
-LOGGER.debug("get engagements called");
+
         // get first page of engagements
         Response response = getPageOfEngagements(1);
 

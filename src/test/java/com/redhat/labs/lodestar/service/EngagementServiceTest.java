@@ -754,4 +754,30 @@ class EngagementServiceTest {
 
     }
 
+    @Test
+    void testPersistEngagementIfNotFound() {
+
+        Engagement e = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
+        
+        Mockito.when(repository.findByUuid("1234")).thenReturn(Optional.empty());
+
+        assertTrue(service.persistEngagementIfNotFound(e));
+
+        Mockito.verify(repository).persist(Mockito.any(Engagement.class));
+
+    }
+
+    @Test
+    void testPersistEngagementIfNotFoundFound() {
+
+        Engagement e = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
+        
+        Mockito.when(repository.findByUuid("1234")).thenReturn(Optional.of(e));
+
+        assertFalse(service.persistEngagementIfNotFound(e));
+
+        Mockito.verify(repository, Mockito.times(0)).persist(Mockito.any(Engagement.class));
+
+    }
+    
 }
