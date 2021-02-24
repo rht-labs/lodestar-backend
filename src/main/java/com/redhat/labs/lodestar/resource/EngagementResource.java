@@ -33,12 +33,10 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.FilterOptions;
-import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
 import com.redhat.labs.lodestar.service.EngagementService;
 
 @RequestScoped
@@ -57,10 +55,6 @@ public class EngagementResource {
 
     public static final String ACCESS_CONTROL_EXPOSE_HEADER = "Access-Control-Expose-Headers";
     public static final String LAST_UPDATE_HEADER = "last-update";
-
-    @Inject
-    @RestClient
-    LodeStarGitLabAPIService gitApi;
 
     @Inject
     JsonWebToken jwt;
