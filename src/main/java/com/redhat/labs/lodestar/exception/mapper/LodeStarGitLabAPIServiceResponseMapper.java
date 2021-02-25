@@ -21,10 +21,18 @@ public class LodeStarGitLabAPIServiceResponseMapper implements ResponseException
     }
 
     private String getBody(Response response) {
-        ByteArrayInputStream is = (ByteArrayInputStream) response.getEntity();
-        byte[] bytes = new byte[is.available()];
-        is.read(bytes, 0, is.available());
-        return new String(bytes);
+
+        if (response.hasEntity()) {
+
+            ByteArrayInputStream is = (ByteArrayInputStream) response.getEntity();
+            byte[] bytes = new byte[is.available()];
+            is.read(bytes, 0, is.available());
+            return new String(bytes);
+
+        }
+
+        return null;
+
     }
 
 }

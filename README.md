@@ -10,7 +10,7 @@ The JSON REST APIs consist of three resources types:
 
 * config
 * engagements
-* git sync
+* status
 * version
 
 The application, once running, also exposes a Swagger UI that will provide more details about each of the APIs described below.  It can be found using the `/swagger-ui` path for the application.
@@ -27,31 +27,93 @@ It's recommended to add the version header with the a version above v1. v1 retur
 
 ### Engagement Resource
 
-The engagements resource exposes an API that allows clients to create, retrieve, and delete engagement resources.  The unique key for an engagement consists of `customer_name` and `project_name`.  The following endpoints will update the configured Mongo DB and mark the records as modified so an asynchronous process can push the changes to Gitlab using the [Git API](https://github.com/rht-labs/lodestar-git-api).
+The engagements resource exposes an API that allows clients to create, retrieve, and delete engagement resources.  
+
+The unique key for an engagement is its `uuid` attribute.  
+
+The following endpoints are available for engagement resources:
 
 ```
-# create an engagement
-POST /engagements
-# update a specific engagement
-PUT  /engagements/customers/{customerId}/projects/{projectId}
-# adds launch data to an engagement and syncs with git api
-PUT  /engagements/launch
-# retrieve all engagements
-GET  /engagements
-# retrieve a specific engagement
-GET  /engagements/customers/{customerId}/projects/{projectId}
+POST ​/engagements
 ```
+Creates an engagement in the database and triggers event to push to GitLab.
+```
+PUT ​/engagements​/{uuid}
+```
+Updates the engagement with the given UUID in the database and triggers event to push to GitLab.
+```
+DEPRECATED: PUT ​/engagements​/customers​/{customerName}​/projects​/{projectName}
+```
+Updates the engagement with the given UUID in the database and triggers event to push to GitLab.
+```
+PUT​/engagements​/launch
+```
+Sets the engagement launch data in the database and triggers event to push to GitLab.
+```
+PUT ​/engagements​/refresh
+```
+Starts the process to insert any engagements in GitLab, but not in the database, into the database.  If the query parameter `purgeFirst` is set to true, the database will be cleared before inserting.
+```
+PUT ​/engagements​/uuids​/set
+```
+Starts the process to set any UUIDs for engagement or engagement users if missing.  All new engagements and users will have a UUID assigned at time of creation.  This process was for engagements and users created before functionality existed.
+```
+GET /engagements
+```
+Returns all engagements currently found in the database.
+```
+GET ​/engagements​/{uuid}
+```
+Returns the engagement for the given UUID.  A 404 will be returned if not found.
+```
+GET ​/engagements​/customers​/{customerName}​/projects​/{projectName}
+```
+Returns the engagement for the given UUID.  A 404 will be returned if not found.
+```
+GET ​/engagements​/artifact​/types
+```
+Returns all artifact types found in the database or ones that match the optional query param `suggest`.
+```
+GET ​/engagements​/categories
+```
+Returns all categories in the database or ones that match the optional query param `suggest`.
+```
+GET ​/engagements​/customers​/suggest
+```
+Returns a list of all customer names that match the required query param `suggest`.
+```
+HEAD ​/engagements​/{uuid}
+```
+Returns metadata for the engagement that matches provided UUID.
+```
+DEPRECATED: HEAD ​/engagements​/customers​/{customerName}​/projects​/{projectName}
+```
+Returns metadata for the engagement that matches provided UUID.
+```
+HEAD ​/engagements​/subdomain​/{subdomain}
+```
+Returns a 409 status if subdomain is already used.  Otherwise, a 200 is returned.
+```
+DELETE ​/engagements​/{id}
+```
+Deletes the engagement with the given UUID in the database and triggers event to push to GitLab.
 
-### Git Sync Resource
+### Status Resource
 
-There are two exposed endpoints that will allow clients to deliberately sync data from Mongo DB to Gitlab using the [Git API](https://github.com/rht-labs/lodestar-git-api) or to clear the data from the Mongo DB and insert all engagements from Gitlab.
+The status resource exposes APIs that allow external applications to notify the backend of changes.  It also exposes a proxy to the LodeStar Status API to get the current component status of all LodeStar components.
 
 ```
-# push all modified resources from Mongo DB to Gitlab
-PUT  /engagements/process/modified
-# clear Mongo DB, replace with engagement data from Gitlab
-PUT  /engagements/refresh
+GET ​/status
 ```
+Returns status of all configured components.
+```
+POST /status​/deleted
+```
+Triggers the deletion of an engagement with the customer and engagement names found in the body of the message.
+```
+POST /status​/hook
+```
+Triggers the update of Status and Commit data for the engagement that matches the customer and engagement names found in the body of the message.
 
 ### Version Resource
 
@@ -61,30 +123,26 @@ The version resource exposes an endpoint that will allow the client to determine
 GET  /api/v1/version
 ```
 
-### Events Resource
+## Scheduled Jobs
 
-The events resource is an endpoint that implements a websocket.  The current implementation requires a valid token to be passed using the `access-token` query parameter.  When connected, messages can be send using the websocket.
+There are currently 2 scheduled jobs that run on a given active node of the LodeStar Backend.
 
-The only messages currently pushed out to clients are modified `engagement` resources.  When an engagement is modified not using the REST APIs, a list of `engagement` resources will be placed on the websocket for processing by clients.  
+### GitLab to Database sync
 
-For example, a database refresh will put a list of all `engagements` loaded from Git into the database on to the websocket.  Or if the status of the engagement changes, a list containing the `engagement` that's status changed will be placed on the websocket.
+This job is responsible for inserting into the databse any engagement in GitLab that is not currently in the database.
 
-Messages passed from clients to the backend will be logged and ignored.  Only messages from the backend to clients has been implemented.
+The job interval can be set using the environment variable `AUTO_REPOP_CRON`, but is defaulted to every 5 minutes.
 
+For example:
 ```
-GET  /engagements/events?access-token=
-```
-
-## Scheduled Auto Sync to Git API
-
-A configurable auto sync feature allows data that has been modified in Mongo DB to be pushed to Gitlab using the [Git API](https://github.com/rht-labs/lodestar-git-api).  This feature is configured using a CRON expression that can be updated in the application.properties file or overridden using environment variables.
-
-```
-# defaults to sync every 30 seconds
-auto.save.cron.expr=0/30 * * * * ?
+auto.repopulate.cron.expr=${AUTO_REPOP_CRON:0 0/5 * * * ?}
 ```
 
-__NOTE:__ There is no current auto sync from Gitlab to Mongo DB.  The `/engagements/refresh` API can be used to force a refresh of the data in Mongo DB from Gitlab if changes have been made without using the Backend APIs
+By default, this does not insert or update any engagement that is already in the database.  Repopulation of the entire database can be triggered using the `PUT ​/engagements​/refresh` API and setting the query param `purgeFirst=true`.
+
+### Set Missing UUIDs
+
+This job is used to check once at startup for any engagements missing UUIDs for either the engagement or the engagement users.
 
 ## Configuration
 
@@ -95,6 +153,7 @@ The following environment variables are available:
 |------|---------------|----------|
 | JWT_LOGGING| INFO | False |
 | LODESTAR_BACKEND_LOGGING | INFO | False |
+| LODESTAR_BACKEND_MIN_LOGGING | TRACE | false |
 
 ### JWT
 
@@ -120,19 +179,40 @@ The following environment variables are available:
 |------|---------------|----------|
 | LODESTAR_GITLAB_API_URL   | http://lodestar-git-api:8080 | True |
 
+### Status API
+
+| Name | Example Value | Required |
+|------|---------------|----------|
+| LODESTAR_STATUS_API_URL |  http://lodestar-status:8080 | True |
+
 ### Version Resource
 
 | Name | Example Value | Required |
 |------|---------------|----------|
 | LODESTAR_BACKEND_GIT_COMMIT | not.set | False |
 | LODESTAR_BACKEND_GIT_TAG | not.set | False |
-| LODESTAR_BACKEND_VERSIONS_PATH | /config/version-manifest.yml | False |
 
-### Git Auto Sync
+### Status Resource
 
 | Name | Example Value | Required |
 |------|---------------|----------|
-| AUTO_SAVE_CRON_EXPR | 0/30 * * * * ? | False |
+| WEBHOOK_TOKEN | myToken | True |
+| CLEANUP_TOKEN | cToken | False |
+
+### Git Database Sync
+
+| Name | Example Value | Required |
+|------|---------------|----------|
+| AUTO_REPOP_CRON | 0 0/5 * * * ? | False |
+
+### Git Database Sync
+
+| Name | Example Value | Required |
+|------|---------------|----------|
+| EVENT_MAX_RETRIES | 5 | False |
+| EVENT_RETRY_DELAY_FACTOR | 2 | False |
+| EVENT_RETRY_MAX_DELAY | 60 | False |
+| EVENT_GET_PER_PAGE | 20 | False |
 
 ## Development
 

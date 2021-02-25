@@ -108,7 +108,7 @@ public class ActiveGitSyncService {
         // sync mongo with git if no engagements found in mongo
         if (active) {
 
-            eventBus.sendAndForget(EventType.REFRESH_DATABASE_EVENT_ADDRESS, EventType.REFRESH_DATABASE_EVENT_ADDRESS);
+            eventBus.sendAndForget(EventType.LOAD_DATABASE_EVENT_ADDRESS, EventType.LOAD_DATABASE_EVENT_ADDRESS);
 
         }
 

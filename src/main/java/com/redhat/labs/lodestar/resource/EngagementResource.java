@@ -25,11 +25,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import com.redhat.labs.lodestar.model.Category;
-import com.redhat.labs.lodestar.model.Engagement;
-import com.redhat.labs.lodestar.model.FilterOptions;
-import com.redhat.labs.lodestar.service.EngagementService;
-
 import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -38,6 +33,11 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
+
+import com.redhat.labs.lodestar.model.Category;
+import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.model.FilterOptions;
+import com.redhat.labs.lodestar.service.EngagementService;
 
 @RequestScoped
 @Path("/engagements")
@@ -204,7 +204,7 @@ public class EngagementResource {
     public Response refresh(@QueryParam("purgeFirst") Boolean purgeFirst) {
 
         // start the sync process
-        engagementService.syncGitToDatabase((null == purgeFirst) ? false : purgeFirst);
+        engagementService.syncGitToDatabase(Boolean.TRUE.equals(purgeFirst));
         return Response.accepted().build();
 
     }

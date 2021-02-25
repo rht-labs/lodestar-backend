@@ -18,7 +18,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 
-import com.google.common.collect.Lists;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.EngagementUser;
 import com.redhat.labs.lodestar.model.Launch;
@@ -317,10 +316,6 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
-        Engagement e = MockUtils.mockMinimumEngagement("c1", "e2", "1234");
-        Mockito.when(gitApiClient.getEngagments()).thenReturn(Lists.newArrayList(e));
-        Mockito.when(eRepository.findByUuid("1234")).thenReturn(Optional.empty());
-
         given()
             .auth()
             .oauth2(token)
@@ -330,9 +325,6 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
         .then()
             .statusCode(202);
 
-        Mockito.verify(eRepository).deleteAll();
-        Mockito.verify(eRepository).persist(Mockito.anyIterable());
-
     }
 
     @Test
@@ -340,10 +332,6 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
-
-        Engagement e = MockUtils.mockMinimumEngagement("c1", "e2", "1234");
-        Mockito.when(gitApiClient.getEngagments()).thenReturn(Lists.newArrayList(e));
-        Mockito.when(eRepository.findByUuid("1234")).thenReturn(Optional.empty());
 
         given()
             .auth()
@@ -353,9 +341,6 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
             .put("/engagements/refresh")
         .then()
             .statusCode(202);
-
-        Mockito.verify(eRepository, Mockito.times(0)).deleteAll();
-        Mockito.verify(eRepository).persist(Mockito.anyIterable());
 
     }
 

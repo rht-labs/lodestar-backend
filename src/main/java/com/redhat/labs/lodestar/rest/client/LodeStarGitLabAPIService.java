@@ -30,8 +30,10 @@ public interface LodeStarGitLabAPIService {
     @GET
     @Path("/api/v1/engagements")
     @Produces("application/json")
-    List<Engagement> getEngagments();
-    
+    Response getEngagments(@QueryParam("pagination") Boolean pagination, @QueryParam("page") Integer page,
+            @QueryParam("per_page") Integer perPage, @QueryParam("includeStatus") Boolean includeStatus,
+            @QueryParam("includeCommits") Boolean includeCommits);
+
     @GET
     @Path("/api/v1/engagements/namespace/{namespace}")
     @Produces("application/json")
@@ -42,12 +44,12 @@ public interface LodeStarGitLabAPIService {
     @Produces("application/json")
     Response createOrUpdateEngagement(Engagement engagement, @QueryParam("username") String username,
             @QueryParam("userEmail") String userEmail);
-    
+
     @GET
     @Path("/api/v1/engagements/customer/{customer}/{engagement}/status")
     @Produces("application/json")
     Status getStatus(@PathParam("customer") String customer, @PathParam("engagement") String engagement);
-    
+
     @GET
     @Path("/api/v1/engagements/customer/{customer}/{engagement}/commits")
     @Produces("application/json")
@@ -57,7 +59,7 @@ public interface LodeStarGitLabAPIService {
     @Path("/api/v1/engagements/customer/{customer}/{engagement}")
     @Produces("application/json")
     void deleteEngagement(@PathParam("customer") String customer, @PathParam("engagement") String engagement);
-    
+
     @GET
     @Path("/api/v1/config")
     @Produces("application/json")
