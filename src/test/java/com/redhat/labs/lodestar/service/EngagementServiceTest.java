@@ -697,7 +697,7 @@ class EngagementServiceTest {
     @Test
     void testSyncGitToDatabasePurgeFirst() {
 
-        service.syncGitToDatabase(true);
+        service.syncGitToDatabase(true, null, null);
 
         Mockito.verify(eventBus).sendAndForget(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS,
                 EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS);
@@ -709,11 +709,61 @@ class EngagementServiceTest {
     @Test
     void testSyncGitToDatabaseDoNotPurgeFirst() {
 
-        service.syncGitToDatabase(false);
+        service.syncGitToDatabase(false, null, null);
 
         Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS,
                 EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS);
         Mockito.verify(eventBus).sendAndForget(EventType.LOAD_DATABASE_EVENT_ADDRESS,
+                EventType.LOAD_DATABASE_EVENT_ADDRESS);
+
+    }
+
+    @Test
+    void testSyncGitToDatabaseWithProjectId() {
+
+        service.syncGitToDatabase(false, null, "1234");
+
+        Mockito.verify(eventBus).sendAndForget(EventType.DELETE_AND_RELOAD_ENGAGEMENT_EVENT_ADDRESS, "1234");
+        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS,
+                EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS);
+        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(EventType.LOAD_DATABASE_EVENT_ADDRESS,
+                EventType.LOAD_DATABASE_EVENT_ADDRESS);
+
+    }
+
+    @Test
+    void testSyncGitToDatabaseWithUuidFound() {
+
+        Engagement e = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
+        Mockito.when(repository.findByUuid("1234", Optional.empty())).thenReturn(Optional.of(e));
+
+        service.syncGitToDatabase(false, "1234", null);
+
+        Mockito.verify(eventBus).sendAndForget(EventType.DELETE_AND_RELOAD_ENGAGEMENT_EVENT_ADDRESS,
+                String.valueOf(e.getProjectId()));
+        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS,
+                EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS);
+        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(EventType.LOAD_DATABASE_EVENT_ADDRESS,
+                EventType.LOAD_DATABASE_EVENT_ADDRESS);
+
+    }
+
+    @Test
+    void testSyncGitToDatabaseWithUuidNotFound() {
+
+        Engagement e = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
+        Mockito.when(repository.findByUuid("1234", Optional.empty())).thenReturn(Optional.empty());
+
+        WebApplicationException wae = assertThrows(WebApplicationException.class,
+                () -> service.syncGitToDatabase(false, "1234", null));
+        assertEquals(404, wae.getResponse().getStatus());
+        assertEquals("no engagement found with id 1234", wae.getMessage());
+
+        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(EventType.DELETE_AND_RELOAD_ENGAGEMENT_EVENT_ADDRESS,
+                e);
+        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS,
+                EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS);
+        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(EventType.LOAD_DATABASE_EVENT_ADDRESS,
                 EventType.LOAD_DATABASE_EVENT_ADDRESS);
 
     }
@@ -758,7 +808,7 @@ class EngagementServiceTest {
     void testPersistEngagementIfNotFound() {
 
         Engagement e = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
-        
+
         Mockito.when(repository.findByUuid("1234")).thenReturn(Optional.empty());
 
         assertTrue(service.persistEngagementIfNotFound(e));
@@ -771,7 +821,7 @@ class EngagementServiceTest {
     void testPersistEngagementIfNotFoundFound() {
 
         Engagement e = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
-        
+
         Mockito.when(repository.findByUuid("1234")).thenReturn(Optional.of(e));
 
         assertFalse(service.persistEngagementIfNotFound(e));
@@ -779,5 +829,5 @@ class EngagementServiceTest {
         Mockito.verify(repository, Mockito.times(0)).persist(Mockito.any(Engagement.class));
 
     }
-    
+
 }

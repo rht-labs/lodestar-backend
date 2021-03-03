@@ -17,6 +17,8 @@ public class EventType {
 
     public static final String LOAD_DATABASE_EVENT_ADDRESS = "load.database.event";
     public static final String DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS = "delete.and.reload.database.event";
+    public static final String DELETE_AND_RELOAD_ENGAGEMENT_EVENT_ADDRESS = "delete.and.reload.engagement.event";
+    public static final String DELETE_ENGAGEMENT_FROM_DATABASE_EVENT_ADDRESS = "delete.engagement.from.database.event";
     public static final String GET_PAGE_OF_ENGAGEMENTS_EVENT_ADDRESS = "get.page.of.engagements.event";
     public static final String PERSIST_ENGAGEMENT_LIST_EVENT_ADDRESS = "persist.engagement.list.event";
     public static final String PERSIST_ENGAGEMENT_EVENT_ADDRESS = "persist.engagement.event";
