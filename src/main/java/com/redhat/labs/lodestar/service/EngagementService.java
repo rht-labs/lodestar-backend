@@ -764,18 +764,39 @@ public class EngagementService {
     }
 
     /**
-     * Retrieves the {@link List} of {@link Engagement} from the Git API and then
-     * calls the process to update the database.
+     * If UUID provided, send event to refresh the {@link Engagement} that matches
+     * the provided UUID. If no UUID is provided, all engagements will be refreshed
+     * using the Git data. If purgeFirst is true, the data in the database will be
+     * removed before the insert.
      * 
      * @param purgeFirst
+     * @param uuid
      */
-    public void syncGitToDatabase(boolean purgeFirst) {
+    public void syncGitToDatabase(boolean purgeFirst, String uuid, String projectId) {
 
-        if (purgeFirst) {
+        if (null != uuid) {
+
+            // find in database or throw 404
+            Engagement engagement = getByUuid(uuid, Optional.empty());
+
+            // send event for processing
+            eventBus.sendAndForget(EventType.DELETE_AND_RELOAD_ENGAGEMENT_EVENT_ADDRESS,
+                    String.valueOf(engagement.getProjectId()));
+
+        } else if (null != projectId) {
+
+            // send event for processing
+            eventBus.sendAndForget(EventType.DELETE_AND_RELOAD_ENGAGEMENT_EVENT_ADDRESS, projectId);
+
+        } else if (purgeFirst) {
+
             eventBus.sendAndForget(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS,
                     EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS);
+
         } else {
+
             eventBus.sendAndForget(EventType.LOAD_DATABASE_EVENT_ADDRESS, EventType.LOAD_DATABASE_EVENT_ADDRESS);
+
         }
 
     }

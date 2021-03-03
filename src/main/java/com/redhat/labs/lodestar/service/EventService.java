@@ -365,6 +365,48 @@ public class EventService {
     }
 
     /**
+     * Gets the engagement from the Git API and sends event to delete and reinsert.
+     * 
+     * @param engagement
+     */
+    @ConsumeEvent(value = EventType.DELETE_AND_RELOAD_ENGAGEMENT_EVENT_ADDRESS)
+    void consumeDeleteAndReLoadEngagementEvent(String projectId) {
+
+        if (null != projectId) {
+
+            // get engagement by project id from git api
+            Engagement found = gitApiClient.getEngagementByNamespace(String.valueOf(projectId));
+
+            if(null != found) {
+                // send event to delete existing engagement from database
+                eventBus.sendAndForget(EventType.DELETE_ENGAGEMENT_FROM_DATABASE_EVENT_ADDRESS, found);
+            }
+
+        }
+
+    }
+
+    /**
+     * Removes the {@link Engagement} based on UUID and sends event to reinsert.
+     * 
+     * @param engagement
+     */
+    @ConsumeEvent(value = EventType.DELETE_ENGAGEMENT_FROM_DATABASE_EVENT_ADDRESS)
+    void consumeDeleteEngagementFromDatabaseEvent(Engagement engagement) {
+
+        try {
+        // remove existing engagement from database
+        engagementService.deleteByUuid(engagement.getUuid());
+        } catch(WebApplicationException wae) {
+            LOGGER.info("no engagement found in database with id {}", engagement.getUuid());
+        }
+
+        // send event to insert engagement
+        eventBus.sendAndForget(EventType.PERSIST_ENGAGEMENT_EVENT_ADDRESS, engagement);
+
+    }
+
+    /**
      * Starts the process of inserting any {@link Engagement}s in Git that are not
      * in the database. Existing {@link Engagement}s will not be updated.
      * 

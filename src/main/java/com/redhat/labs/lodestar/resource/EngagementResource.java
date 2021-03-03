@@ -110,10 +110,11 @@ public class EngagementResource {
             @APIResponse(responseCode = "404", description = "Engagement resource with customer and project names does not exist"),
             @APIResponse(responseCode = "200", description = "Engagement resource found and returned") })
     @Operation(summary = "Returns the engagement resource for the given customer and project names.")
-    public Response get(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName, 
+    public Response get(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName,
             @QueryParam("include") String include, @QueryParam("exclude") String exclude) {
 
-        Engagement engagement = engagementService.getByCustomerAndProjectName(customerName, projectName, getFilterOptions(include, exclude));
+        Engagement engagement = engagementService.getByCustomerAndProjectName(customerName, projectName,
+                getFilterOptions(include, exclude));
         return Response.ok(engagement).header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
                 .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER).build();
 
@@ -129,7 +130,8 @@ public class EngagementResource {
     @Operation(deprecated = true, summary = "Returns metadata regarding the engagement resource for the given customer and project names.")
     public Response head(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName) {
 
-        Engagement engagement = engagementService.getByCustomerAndProjectName(customerName, projectName, Optional.empty());
+        Engagement engagement = engagementService.getByCustomerAndProjectName(customerName, projectName,
+                Optional.empty());
         return Response.ok().header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
                 .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER).build();
 
@@ -140,7 +142,7 @@ public class EngagementResource {
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "A list or empty list of engagement resources returned") })
     @Operation(summary = "Returns all engagement resources from the database.  Can be empty list if none found.")
-    public List<Engagement> getAll(@QueryParam("categories") String categories, @QueryParam("include") String include, 
+    public List<Engagement> getAll(@QueryParam("categories") String categories, @QueryParam("include") String include,
             @QueryParam("exclude") String exclude) {
         return engagementService.getAll(categories, getFilterOptions(include, exclude));
     }
@@ -199,12 +201,14 @@ public class EngagementResource {
     @Path("/refresh")
     @SecurityRequirement(name = "jwt", scopes = {})
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "404", description = "UUID provided, but no engagement found in database."),
             @APIResponse(responseCode = "202", description = "The request was accepted and will be processed.") })
     @Operation(summary = "Refreshes database with data in git, purging first if the query paramater set to true.")
-    public Response refresh(@QueryParam("purgeFirst") Boolean purgeFirst) {
+    public Response refresh(@QueryParam("purgeFirst") Boolean purgeFirst, @QueryParam("uuid") String uuid,
+            @QueryParam("projectId") String projectId) {
 
         // start the sync process
-        engagementService.syncGitToDatabase(Boolean.TRUE.equals(purgeFirst));
+        engagementService.syncGitToDatabase(Boolean.TRUE.equals(purgeFirst), uuid, projectId);
         return Response.accepted().build();
 
     }
@@ -229,7 +233,8 @@ public class EngagementResource {
             @APIResponse(responseCode = "404", description = "Engagement resource with id does not exist"),
             @APIResponse(responseCode = "200", description = "Engagement resource found and returned") })
     @Operation(summary = "Returns the engagement resource for the given id.")
-    public Response get(@PathParam("id") String uuid, @QueryParam("include") String include, @QueryParam("exclude") String exclude) {
+    public Response get(@PathParam("id") String uuid, @QueryParam("include") String include,
+            @QueryParam("exclude") String exclude) {
 
         Engagement engagement = engagementService.getByUuid(uuid, getFilterOptions(include, exclude));
         return Response.ok(engagement).header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
@@ -287,12 +292,12 @@ public class EngagementResource {
     @HEAD
     @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/subdomain/{subdomain}")
-    @APIResponses(value = {
-            @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "409", description = "Subdomain is already in use"),
             @APIResponse(responseCode = "200", description = "Engagement resource found and metadata returned in headers") })
     public Response uniqueSubdomain(@PathParam("subdomain") String subdomain) {
-        int status = engagementService.getBySubdomain(subdomain).isPresent() ? HttpStatus.SC_CONFLICT : HttpStatus.SC_OK;
+        int status = engagementService.getBySubdomain(subdomain).isPresent() ? HttpStatus.SC_CONFLICT
+                : HttpStatus.SC_OK;
         return Response.status(status).build();
     }
 
@@ -354,17 +359,17 @@ public class EngagementResource {
     private Optional<FilterOptions> getFilterOptions(String include, String exclude) {
 
         // throw bad request if both supplied
-        if(null != include && null != exclude) {
+        if (null != include && null != exclude) {
             throw new WebApplicationException("cannot use both include and exclude params", HttpStatus.SC_BAD_REQUEST);
         }
 
         // create options if either exist
-        if(null != include || null != exclude) {
+        if (null != include || null != exclude) {
             return Optional.of(FilterOptions.builder().include(include).exclude(exclude).build());
         }
 
         return Optional.empty();
-        
+
     }
 
 }
