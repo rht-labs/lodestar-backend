@@ -470,6 +470,13 @@ public class EngagementService {
     public void updateStatusAndCommits(Hook hook) {
         LOGGER.debug("Hook for {} {}", hook.getCustomerName(), hook.getEngagementName());
 
+        // refresh entire engagement if requested
+        if(hook.refreshEngagement()) {
+            LOGGER.debug("hook triggered refresh of engagement for project {}", hook.getProjectId());
+            syncGitToDatabase(false, null, String.valueOf(hook.getProjectId()));
+            return;
+        }
+
         // create engagement for get
         Engagement search = Engagement.builder().customerName(hook.getCustomerName())
                 .projectName(hook.getEngagementName()).build();
