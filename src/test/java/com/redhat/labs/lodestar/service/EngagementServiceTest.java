@@ -62,6 +62,7 @@ class EngagementServiceTest {
 
         service = new EngagementService();
         service.statusFile = "status.json";
+        service.commitFilteredMessages = Lists.newArrayList("manual_refresh");
         service.jsonb = jsonb;
         service.repository = repository;
         service.eventBus = eventBus;
@@ -385,7 +386,7 @@ class EngagementServiceTest {
                 .thenReturn(Optional.of(MockUtils.mockMinimumEngagement("nope", "nada", null)));
 
         Mockito.when(gitApi.getCommits("nope", "nada"))
-                .thenReturn(Lists.newArrayList(MockUtils.mockCommit("status.json", false)));
+                .thenReturn(Lists.newArrayList(MockUtils.mockCommit("status.json", false, "msg")));
 
         service.updateStatusAndCommits(hook);
 
@@ -406,13 +407,31 @@ class EngagementServiceTest {
 
         Mockito.when(gitApi.getStatus("nope", "nada")).thenReturn(MockUtils.mockStatus("green"));
         Mockito.when(gitApi.getCommits("nope", "nada"))
-                .thenReturn(Lists.newArrayList(MockUtils.mockCommit("status.json", false)));
+                .thenReturn(Lists.newArrayList(MockUtils.mockCommit("status.json", false, "msg")));
 
         service.updateStatusAndCommits(hook);
 
         Mockito.verify(eventBus).sendAndForget(Mockito.eq(EventType.UPDATE_COMMITS_EVENT_ADDRESS),
                 Mockito.any(Engagement.class));
         Mockito.verify(eventBus).sendAndForget(Mockito.eq(EventType.UPDATE_STATUS_EVENT_ADDRESS),
+                Mockito.any(Engagement.class));
+
+    }
+
+    @Test
+    void testUpdateStatusAndCommitsSuccessRefreshEngagement() {
+
+        Hook hook = MockUtils.mockHook("/nope/nada/iac", "/ nope / nada / iac", true, "status.json", "manual_refresh");
+        hook.setProjectId(1234);
+
+        service.commitFilteredMessages = Lists.newArrayList("manual_refresh");
+        service.updateStatusAndCommits(hook);
+
+        Mockito.verify(eventBus).sendAndForget(EventType.DELETE_AND_RELOAD_ENGAGEMENT_EVENT_ADDRESS, "1234");
+        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(Mockito.eq(EventType.UPDATE_COMMITS_EVENT_ADDRESS),
+                Mockito.any(Engagement.class));
+        Mockito.verify(eventBus, Mockito.times(
+                0)).sendAndForget(Mockito.eq(EventType.UPDATE_STATUS_EVENT_ADDRESS),
                 Mockito.any(Engagement.class));
 
     }

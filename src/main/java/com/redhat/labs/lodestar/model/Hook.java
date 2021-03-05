@@ -43,8 +43,8 @@ public class Hook {
         return "project_deleted".equals(eventName);
     }
 
-    public boolean refreshEngagement() {
-        return commits.stream().anyMatch(c -> "manual_refresh".equalsIgnoreCase(c.getMessage()));
+    public boolean containsAnyMessage(List<String> messages) {
+        return messages.stream().anyMatch(message -> commits.stream().anyMatch(c -> message.equals(c.getMessage())));
     }
 
 }

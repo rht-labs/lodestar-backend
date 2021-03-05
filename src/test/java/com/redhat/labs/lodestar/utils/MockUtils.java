@@ -56,18 +56,26 @@ public class MockUtils {
     public static Hook mockHook(String pathWithNamespace, String nameWithNamespace, boolean fileChanged,
             String fileName) {
         return Hook.builder().project(mockGitLabProject(pathWithNamespace, nameWithNamespace))
-                .commits(Lists.newArrayList(mockCommit(fileName, fileChanged))).build();
+                .commits(Lists.newArrayList(mockCommit(fileName, fileChanged, null))).build();
+    }
+
+    public static Hook mockHook(String pathWithNamespace, String nameWithNamespace, boolean fileChanged,
+            String fileName, String message) {
+        return Hook.builder().project(mockGitLabProject(pathWithNamespace, nameWithNamespace))
+                .commits(Lists.newArrayList(mockCommit(fileName, fileChanged, message))).build();
     }
 
     public static GitlabProject mockGitLabProject(String pathWithNamespace, String nameWithNamspace) {
         return GitlabProject.builder().pathWithNamespace(pathWithNamespace).nameWithNamespace(nameWithNamspace).build();
     }
 
-    public static Commit mockCommit(String fileName, boolean hasChanged) {
+    public static Commit mockCommit(String fileName, boolean hasChanged, String message) {
         CommitBuilder builder = Commit.builder();
         if (hasChanged) {
             builder.added(Lists.newArrayList("status.json"));
         }
+        String msg = (null == message) ? "message for commit" : "manual_refresh";
+        builder.message(msg);
         return builder.build();
     }
 

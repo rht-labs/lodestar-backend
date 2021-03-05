@@ -50,6 +50,9 @@ public class EngagementService {
     @ConfigProperty(name = "status.file")
     String statusFile;
 
+    @ConfigProperty(name = "commit.msg.filter.list", defaultValue = "not.set")
+    List<String> commitFilteredMessages;
+
     @Inject
     Jsonb jsonb;
 
@@ -471,7 +474,7 @@ public class EngagementService {
         LOGGER.debug("Hook for {} {}", hook.getCustomerName(), hook.getEngagementName());
 
         // refresh entire engagement if requested
-        if(hook.refreshEngagement()) {
+        if(hook.containsAnyMessage(commitFilteredMessages)) {
             LOGGER.debug("hook triggered refresh of engagement for project {}", hook.getProjectId());
             syncGitToDatabase(false, null, String.valueOf(hook.getProjectId()));
             return;
