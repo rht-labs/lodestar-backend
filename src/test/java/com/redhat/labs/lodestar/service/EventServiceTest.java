@@ -34,7 +34,7 @@ class EventServiceTest extends IntegrationTestHelper {
 
     @Inject
     EventBus eventBus;
-
+    
     @Test
     void testConsumeCreateEngagementEventSuccess() {
 

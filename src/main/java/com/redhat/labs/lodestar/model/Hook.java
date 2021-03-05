@@ -15,25 +15,26 @@ public class Hook {
 
     private String objectKind;
     private String eventName;
+    private Integer projectId;
     private List<Commit> commits;
     private GitlabProject project;
     private String groupId;
-    
+
     public boolean didFileChange(String fileName) {
-        for(Commit commit : commits) {
-            if(commit.didFileChange(fileName)) {
-                return true;    
+        for (Commit commit : commits) {
+            if (commit.didFileChange(fileName)) {
+                return true;
             }
         }
-        
+
         return false;
     }
-    
+
     public String getCustomerName() {
         return project.getCustomerNameFromName();
-        
+
     }
-    
+
     public String getEngagementName() {
         return project.getEngagementNameFromName();
     }
@@ -41,5 +42,9 @@ public class Hook {
     public boolean wasProjectDeleted() {
         return "project_deleted".equals(eventName);
     }
-    
+
+    public boolean containsAnyMessage(List<String> messages) {
+        return messages.stream().anyMatch(message -> commits.stream().anyMatch(c -> message.equals(c.getMessage())));
+    }
+
 }

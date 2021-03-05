@@ -375,7 +375,7 @@ public class EventService {
         if (null != projectId) {
 
             // get engagement by project id from git api
-            Engagement found = gitApiClient.getEngagementByNamespace(String.valueOf(projectId));
+            Engagement found = gitApiClient.getEngagementByNamespace(projectId);
 
             if(null != found) {
                 // send event to delete existing engagement from database
@@ -395,8 +395,8 @@ public class EventService {
     void consumeDeleteEngagementFromDatabaseEvent(Engagement engagement) {
 
         try {
-        // remove existing engagement from database
-        engagementService.deleteByUuid(engagement.getUuid());
+            // remove existing engagement from database
+            engagementService.deleteByUuid(engagement.getUuid());
         } catch(WebApplicationException wae) {
             LOGGER.info("no engagement found in database with id {}", engagement.getUuid());
         }
