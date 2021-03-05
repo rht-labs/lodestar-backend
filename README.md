@@ -199,6 +199,12 @@ The following environment variables are available:
 | WEBHOOK_TOKEN | myToken | True |
 | CLEANUP_TOKEN | cToken | False |
 
+### Engagements Resource
+
+| Name | Example Value | Required |
+|------|---------------|----------|
+| COMMIT_FILTERED_MESSAGE_LIST | manual_refresh | False |
+
 ### Git Database Sync
 
 | Name | Example Value | Required |
