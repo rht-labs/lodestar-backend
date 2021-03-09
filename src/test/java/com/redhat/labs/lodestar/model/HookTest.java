@@ -11,7 +11,7 @@ class HookTest {
     @Test
     void testContainsAnyMessageFound() {
 
-        Commit c1 = Commit.builder().message("message1").build();
+        Commit c1 = Commit.builder().message(null).build();
         Commit c2 = Commit.builder().message("message2").build();
         Commit c3 = Commit.builder().message("message3").build();
         Hook hook = Hook.builder().commits(Lists.newArrayList(c1, c2, c3)).build();
