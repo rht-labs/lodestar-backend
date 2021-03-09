@@ -44,7 +44,7 @@ public class Hook {
     }
 
     public boolean containsAnyMessage(List<String> messages) {
-        return messages.stream().anyMatch(message -> commits.stream().anyMatch(c -> message.startsWith(c.getMessage())));
+        return messages.stream().anyMatch(message -> commits.stream().anyMatch(c -> c.getMessage().startsWith(message)));
     }
 
 }
