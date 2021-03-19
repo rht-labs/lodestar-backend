@@ -35,6 +35,8 @@ import com.redhat.labs.lodestar.model.Hook;
 import com.redhat.labs.lodestar.model.HostingEnvironment;
 import com.redhat.labs.lodestar.model.Launch;
 import com.redhat.labs.lodestar.model.event.EventType;
+import com.redhat.labs.lodestar.model.filter.FilterOptions;
+import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
 import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
 import com.redhat.labs.lodestar.utils.MockUtils;
@@ -257,7 +259,7 @@ class EngagementServiceTest {
         other.setProjectId(2222);
 
         Mockito.when(repository.findByUuid("1234")).thenReturn(Optional.of(persisted));
-        Mockito.when(repository.findByCustomerNameAndProjectName("c3", "p3", Optional.empty()))
+        Mockito.when(repository.findByCustomerNameAndProjectName("c3", "p3", new FilterOptions()))
                 .thenReturn(Optional.of(other));
 
         WebApplicationException wae = assertThrows(WebApplicationException.class, () -> service.update(toUpdate));
@@ -279,7 +281,7 @@ class EngagementServiceTest {
         persisted.setProjectId(1111);
 
         Mockito.when(repository.findByUuid("1234")).thenReturn(Optional.of(persisted));
-        Mockito.when(repository.findByCustomerNameAndProjectName("c3", "p3", Optional.empty()))
+        Mockito.when(repository.findByCustomerNameAndProjectName("c3", "p3", new FilterOptions()))
                 .thenReturn(Optional.empty());
         Mockito.when(repository.updateEngagementIfLastUpdateMatched(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(Optional.of(toUpdate));
@@ -312,7 +314,7 @@ class EngagementServiceTest {
         Engagement persisted = MockUtils.cloneEngagement(toUpdate);
 
         Mockito.when(repository.findByUuid("1234")).thenReturn(Optional.of(persisted));
-        Mockito.when(repository.findByCustomerNameAndProjectName("c3", "p3", Optional.empty()))
+        Mockito.when(repository.findByCustomerNameAndProjectName("c3", "p3", new FilterOptions()))
                 .thenReturn(Optional.empty());
         Mockito.when(repository.updateEngagementIfLastUpdateMatched(Mockito.any(), Mockito.any(), Mockito.any()))
                 .thenReturn(Optional.of(toUpdate));
@@ -446,7 +448,7 @@ class EngagementServiceTest {
                 .thenReturn(Optional.empty());
 
         WebApplicationException wae = assertThrows(WebApplicationException.class,
-                () -> service.getByCustomerAndProjectName("c1", "p1", Optional.empty()));
+                () -> service.getByCustomerAndProjectName("c1", "p1", new FilterOptions()));
         assertEquals(404, wae.getResponse().getStatus());
         assertEquals("no engagement found with customer:project c1:p1", wae.getMessage());
 
@@ -459,7 +461,7 @@ class EngagementServiceTest {
                 repository.findByCustomerNameAndProjectName(Mockito.anyString(), Mockito.anyString(), Mockito.any()))
                 .thenReturn(Optional.of(MockUtils.mockMinimumEngagement("c1", "p1", "1234")));
 
-        Engagement e = service.getByCustomerAndProjectName("c1", "p1", Optional.empty());
+        Engagement e = service.getByCustomerAndProjectName("c1", "p1", new FilterOptions());
         assertNotNull(e);
         assertEquals("c1", e.getCustomerName());
         assertEquals("p1", e.getProjectName());
@@ -475,7 +477,7 @@ class EngagementServiceTest {
         Mockito.when(repository.findByUuid("1234")).thenReturn(Optional.empty());
 
         WebApplicationException wae = assertThrows(WebApplicationException.class,
-                () -> service.getByUuid("1234", Optional.empty()));
+                () -> service.getByUuid("1234", new FilterOptions()));
         assertEquals(404, wae.getResponse().getStatus());
         assertEquals("no engagement found with id 1234", wae.getMessage());
 
@@ -484,10 +486,10 @@ class EngagementServiceTest {
     @Test
     void testGetByUuid() {
 
-        Mockito.when(repository.findByUuid("1234", Optional.empty()))
+        Mockito.when(repository.findByUuid("1234", new FilterOptions()))
                 .thenReturn(Optional.of(MockUtils.mockMinimumEngagement("c1", "p1", "1234")));
 
-        Engagement e = service.getByUuid("1234", Optional.empty());
+        Engagement e = service.getByUuid("1234", new FilterOptions());
         assertNotNull(e);
         assertEquals("c1", e.getCustomerName());
         assertEquals("p1", e.getProjectName());
@@ -502,20 +504,21 @@ class EngagementServiceTest {
     @ValueSource(strings = { "  " })
     void testGetAllNoCategorySpecified(String categories) {
 
-        service.getAll(categories, Optional.empty());
+        service.getAll(new ListFilterOptions());
 
-        Mockito.verify(repository).findAll(Optional.empty());
-        Mockito.verify(repository, Mockito.times(0)).findByCategories(categories, Optional.empty());
+        Mockito.verify(repository).findAll(new ListFilterOptions());
+        Mockito.verify(repository, Mockito.times(0)).findCategories(new ListFilterOptions());
 
     }
 
     @Test
     void testGetAllWithCategories() {
 
-        service.getAll("hello", Optional.empty());
+        ListFilterOptions options = new ListFilterOptions();
+        options.setSuggestFieldName(Optional.of("hello"));
+        service.getAll(options);
 
-        Mockito.verify(repository, Mockito.times(0)).findAll(Optional.empty());
-        Mockito.verify(repository).findByCategories("hello", Optional.empty());
+        Mockito.verify(repository).findAll(options);
 
     }
 
@@ -524,9 +527,11 @@ class EngagementServiceTest {
     @Test
     void testGetSuggestionsNoneFound() {
 
-        Mockito.when(repository.findCustomerSuggestions("c")).thenReturn(Lists.newArrayList());
+        ListFilterOptions options = new ListFilterOptions();
+        options.setSuggestFieldName(Optional.of("c"));
+        Mockito.when(repository.findCustomerSuggestions(options)).thenReturn(Lists.newArrayList());
 
-        Collection<String> suggestions = service.getSuggestions("c");
+        Collection<String> suggestions = service.getSuggestions(options);
         assertNotNull(suggestions);
         assertTrue(suggestions.isEmpty());
 
@@ -537,9 +542,11 @@ class EngagementServiceTest {
 
         Engagement e1 = MockUtils.mockMinimumEngagement("customer1", "project1", "1234");
         Engagement e2 = MockUtils.mockMinimumEngagement("customer2", "project1", "5454");
-        Mockito.when(repository.findCustomerSuggestions("c")).thenReturn(Lists.newArrayList(e1, e2));
+        ListFilterOptions options = new ListFilterOptions();
+        options.setSuggestFieldName(Optional.of("c"));
+        Mockito.when(repository.findCustomerSuggestions(options)).thenReturn(Lists.newArrayList(e1.getCustomerName(), e2.getCustomerName()));
 
-        Collection<String> suggestions = service.getSuggestions("c");
+        Collection<String> suggestions = service.getSuggestions(options);
         assertNotNull(suggestions);
         assertEquals(2, suggestions.size());
         assertTrue(suggestions.contains("customer1"));
@@ -552,7 +559,7 @@ class EngagementServiceTest {
     @Test
     void testDeleteByCustomerAndProjectNameNotFound() {
 
-        Mockito.when(repository.findByCustomerNameAndProjectName("c1", "p1", Optional.empty()))
+        Mockito.when(repository.findByCustomerNameAndProjectName("c1", "p1", new FilterOptions()))
                 .thenReturn(Optional.empty());
 
         WebApplicationException wae = assertThrows(WebApplicationException.class,
@@ -566,7 +573,7 @@ class EngagementServiceTest {
     void testDeleteByCustomerAndProjectName() {
 
         Engagement e = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
-        Mockito.when(repository.findByCustomerNameAndProjectName("c1", "p1", Optional.empty()))
+        Mockito.when(repository.findByCustomerNameAndProjectName("c1", "p1", new FilterOptions()))
                 .thenReturn(Optional.of(e));
 
         service.deleteByCustomerAndProjectName("c1", "p1");
@@ -592,7 +599,7 @@ class EngagementServiceTest {
     void testDeleteByUuid() {
 
         Engagement e = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
-        Mockito.when(repository.findByUuid("1234", Optional.empty())).thenReturn(Optional.of(e));
+        Mockito.when(repository.findByUuid("1234", new FilterOptions())).thenReturn(Optional.of(e));
 
         service.deleteByUuid("1234");
 
@@ -619,7 +626,7 @@ class EngagementServiceTest {
 
         Engagement e = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
         e.setLaunch(Launch.builder().build());
-        Mockito.when(repository.findByUuid("1234", Optional.empty())).thenReturn(Optional.of(e));
+        Mockito.when(repository.findByUuid("1234", new FilterOptions())).thenReturn(Optional.of(e));
 
         WebApplicationException wae = assertThrows(WebApplicationException.class,
                 () -> service.deleteEngagement("1234"));
@@ -632,7 +639,7 @@ class EngagementServiceTest {
     void testDeleteEngagement() {
 
         Engagement e = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
-        Mockito.when(repository.findByUuid("1234", Optional.empty())).thenReturn(Optional.of(e));
+        Mockito.when(repository.findByUuid("1234", new FilterOptions())).thenReturn(Optional.of(e));
 
         service.deleteEngagement("1234");
 
@@ -648,18 +655,22 @@ class EngagementServiceTest {
     @ValueSource(strings = { " " })
     void testGetCategories(String match) {
 
-        service.getCategories(match);
+        ListFilterOptions options = new ListFilterOptions();
+        options.setSuggestFieldName(Optional.ofNullable(match));
+        service.getCategories(options);
 
-        Mockito.verify(repository).findAllCategoryWithCounts();
+        Mockito.verify(repository).findCategories(options);
 
     }
 
     @Test
     void testGetCategories() {
 
-        service.getCategories("match");
+        ListFilterOptions options = new ListFilterOptions();
+        options.setSuggestFieldName(Optional.of("match"));
+        service.getCategories(options);
 
-        Mockito.verify(repository).findCategorySuggestions("match");
+        Mockito.verify(repository).findCategories(options);
 
     }
 
@@ -670,18 +681,22 @@ class EngagementServiceTest {
     @ValueSource(strings = { " " })
     void testGetArtifactTypes(String match) {
 
-        service.getArtifactTypes(match);
+        ListFilterOptions options = new ListFilterOptions();
+        options.setSuggestFieldName(Optional.ofNullable(match));
+        service.getArtifactTypes(options);
 
-        Mockito.verify(repository).findAllArtifactTypes();
+        Mockito.verify(repository).findArtifactTypes(options);
 
     }
 
     @Test
     void testGetArtifactTypes() {
 
-        service.getArtifactTypes("something");
+        ListFilterOptions options = new ListFilterOptions();
+        options.setSuggestFieldName(Optional.of("something"));
+        service.getArtifactTypes(options);
 
-        Mockito.verify(repository).findArtifactTypeSuggestions("something");
+        Mockito.verify(repository).findArtifactTypes(options);
 
     }
 
@@ -754,7 +769,7 @@ class EngagementServiceTest {
     void testSyncGitToDatabaseWithUuidFound() {
 
         Engagement e = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
-        Mockito.when(repository.findByUuid("1234", Optional.empty())).thenReturn(Optional.of(e));
+        Mockito.when(repository.findByUuid("1234", new FilterOptions())).thenReturn(Optional.of(e));
 
         service.syncGitToDatabase(false, "1234", null);
 
@@ -771,7 +786,7 @@ class EngagementServiceTest {
     void testSyncGitToDatabaseWithUuidNotFound() {
 
         Engagement e = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
-        Mockito.when(repository.findByUuid("1234", Optional.empty())).thenReturn(Optional.empty());
+        Mockito.when(repository.findByUuid("1234", new FilterOptions())).thenReturn(Optional.empty());
 
         WebApplicationException wae = assertThrows(WebApplicationException.class,
                 () -> service.syncGitToDatabase(false, "1234", null));

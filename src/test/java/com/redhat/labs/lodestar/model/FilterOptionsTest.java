@@ -8,6 +8,8 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import com.redhat.labs.lodestar.model.filter.FilterOptions;
+
 class FilterOptionsTest {
 
     @Test

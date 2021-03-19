@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.service.EngagementService;
 import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 import com.redhat.labs.lodestar.utils.ResourceLoader;
@@ -86,7 +87,7 @@ class StatusResourceTest extends IntegrationTestHelper {
     @Test
     void testDeletedHook() {
         
-        Mockito.when(eRepository.findByCustomerNameAndProjectName("jello", "exists", Optional.empty()))
+        Mockito.when(eRepository.findByCustomerNameAndProjectName("jello", "exists", new FilterOptions()))
             .thenReturn(Optional.of(engagement));
         String body = ResourceLoader.load("StatusDeleted.json");
         

@@ -14,6 +14,7 @@ import org.mockito.Mockito;
 
 import com.google.common.collect.Lists;
 import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.service.EngagementService;
 import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 import com.redhat.labs.lodestar.utils.MockUtils;
@@ -40,7 +41,7 @@ class CustomerSuggestionTest extends IntegrationTestHelper {
 		Engagement engagement = MockUtils.mockMinimumEngagement(ANSWER, "p1", "1234");
 		engagement.setCustomerName(ANSWER);
 		
-		Mockito.when(eRepository.findCustomerSuggestions(Mockito.anyString())).thenReturn(Lists.newArrayList(engagement));
+		Mockito.when(eRepository.findCustomerSuggestions(Mockito.any(ListFilterOptions.class))).thenReturn(Lists.newArrayList(engagement.getCustomerName()));
 
 	}
 	

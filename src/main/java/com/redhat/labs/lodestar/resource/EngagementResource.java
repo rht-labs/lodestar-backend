@@ -7,7 +7,7 @@ import java.util.Optional;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.validation.Valid;
-import javax.validation.constraints.NotBlank;
+import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
@@ -18,7 +18,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -32,6 +31,7 @@ import org.eclipse.microprofile.metrics.annotation.Counted;
 import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SecuritySchemeType;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
@@ -39,7 +39,8 @@ import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Engagement;
-import com.redhat.labs.lodestar.model.FilterOptions;
+import com.redhat.labs.lodestar.model.filter.FilterOptions;
+import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.service.EngagementService;
 
 @RequestScoped
@@ -120,10 +121,9 @@ public class EngagementResource {
     @Counted(name = "engagement-get-counted")
     @Timed(name = "enagement-get-timer", unit = MetricUnits.MILLISECONDS)
     public Response get(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName,
-            @QueryParam("include") String include, @QueryParam("exclude") String exclude) {
+            @BeanParam FilterOptions filterOptions) {
 
-        Engagement engagement = engagementService.getByCustomerAndProjectName(customerName, projectName,
-                getFilterOptions(include, exclude));
+        Engagement engagement = engagementService.getByCustomerAndProjectName(customerName, projectName, filterOptions);
         return Response.ok(engagement).header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
                 .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER).build();
 
@@ -142,7 +142,7 @@ public class EngagementResource {
     public Response head(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName) {
 
         Engagement engagement = engagementService.getByCustomerAndProjectName(customerName, projectName,
-                Optional.empty());
+                new FilterOptions());
         return Response.ok().header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
                 .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER).build();
 
@@ -155,9 +155,15 @@ public class EngagementResource {
     @Operation(summary = "Returns all engagement resources from the database.  Can be empty list if none found.")
     @Counted(name = "engagement-get-all-counted")
     @Timed(name = "engagement-get-all-timer", unit = MetricUnits.MILLISECONDS)
-    public List<Engagement> getAll(@QueryParam("categories") String categories, @QueryParam("include") String include,
-            @QueryParam("exclude") String exclude) {
-        return engagementService.getAll(categories, getFilterOptions(include, exclude));
+    public List<Engagement> getAll(
+            @Parameter(deprecated = true, description = "use search instead") @QueryParam("categories") String categories,
+            @BeanParam ListFilterOptions filterOptions) {
+
+        // set suggest option if set
+        if (null != categories) {
+            filterOptions.addLikeSearchCriteria("categories.name", categories);
+        }
+        return engagementService.getAll(filterOptions);
     }
 
     @GET
@@ -168,10 +174,15 @@ public class EngagementResource {
     @Operation(summary = "Returns customers list")
     @Counted(name = "engagement-suggest-url-counted")
     @Timed(name = "engagement-suggest-url-timer", unit = MetricUnits.MILLISECONDS)
-    public Response findCustomers(@NotBlank @QueryParam("suggest") String match) {
+    public Response findCustomers(
+            @Parameter(deprecated = true, description = "use search instead") @QueryParam("suggest") String suggest,
+            @BeanParam ListFilterOptions filterOptions) {
 
-        Collection<String> customerSuggestions = engagementService.getSuggestions(match);
-
+        // add suggest to search string
+        if (null != suggest) {
+            filterOptions.addLikeSearchCriteria("customer_name", suggest);
+        }
+        Collection<String> customerSuggestions = engagementService.getSuggestions(filterOptions);
         return Response.ok(customerSuggestions).build();
     }
 
@@ -183,8 +194,13 @@ public class EngagementResource {
     @Operation(summary = "Returns customers list")
     @Counted(name = "engagement-get-all-categories-counted")
     @Timed(name = "engagement-get-all-categories-timer", unit = MetricUnits.MILLISECONDS)
-    public List<Category> getAllCategories(@QueryParam("suggest") String match) {
-        return engagementService.getCategories(match);
+    public List<Category> list(
+            @Parameter(deprecated = true, description = "use search instead") @QueryParam("suggest") String suggest,
+            @BeanParam ListFilterOptions filterOptions) {
+        if (null != suggest) {
+            filterOptions.addLikeSearchCriteria("categories.name", suggest);
+        }
+        return engagementService.getCategories(filterOptions);
     }
 
     @GET
@@ -195,8 +211,13 @@ public class EngagementResource {
     @Operation(summary = "Returns artifact type list")
     @Counted(name = "engagement-get-all-artifacts-counted")
     @Timed(name = "engagement-get-all-artifacts-timer", unit = MetricUnits.MILLISECONDS)
-    public List<String> getArtifactTypes(@QueryParam("suggest") String match) {
-        return engagementService.getArtifactTypes(match);
+    public List<String> getArtifactTypes(
+            @Parameter(deprecated = true, description = "use search instead") @QueryParam("suggest") String suggest,
+            @BeanParam ListFilterOptions filterOptions) {
+        if (null != suggest) {
+            filterOptions.addLikeSearchCriteria("artifacts.type", suggest);
+        }
+        return engagementService.getArtifactTypes(filterOptions);
     }
 
     @PUT
@@ -260,10 +281,9 @@ public class EngagementResource {
     @Operation(summary = "Returns the engagement resource for the given id.")
     @Counted(name = "engagement-get-by-uuid-counted")
     @Timed(name = "engagement-get-by-uuid-timer", unit = MetricUnits.MILLISECONDS)
-    public Response get(@PathParam("id") String uuid, @QueryParam("include") String include,
-            @QueryParam("exclude") String exclude) {
+    public Response get(@PathParam("id") String uuid, @BeanParam FilterOptions filterOptions) {
 
-        Engagement engagement = engagementService.getByUuid(uuid, getFilterOptions(include, exclude));
+        Engagement engagement = engagementService.getByUuid(uuid, filterOptions);
         return Response.ok(engagement).header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
                 .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER).build();
 
@@ -280,7 +300,7 @@ public class EngagementResource {
     @Timed(name = "engagement-head-by-uuid-timer", unit = MetricUnits.MILLISECONDS)
     public Response head(@PathParam("id") String uuid) {
 
-        Engagement engagement = engagementService.getByUuid(uuid, Optional.empty());
+        Engagement engagement = engagementService.getByUuid(uuid, new FilterOptions());
         return Response.ok().header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
                 .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER).build();
 
@@ -388,22 +408,6 @@ public class EngagementResource {
 
         // valid return
         return optional;
-
-    }
-
-    private Optional<FilterOptions> getFilterOptions(String include, String exclude) {
-
-        // throw bad request if both supplied
-        if (null != include && null != exclude) {
-            throw new WebApplicationException("cannot use both include and exclude params", HttpStatus.SC_BAD_REQUEST);
-        }
-
-        // create options if either exist
-        if (null != include || null != exclude) {
-            return Optional.of(FilterOptions.builder().include(include).exclude(exclude).build());
-        }
-
-        return Optional.empty();
 
     }
 
