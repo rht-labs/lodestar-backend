@@ -21,7 +21,9 @@ import com.redhat.labs.lodestar.model.HostingEnvironment;
 import com.redhat.labs.lodestar.model.Launch;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
+import com.redhat.labs.lodestar.model.filter.SimpleFilterOptions;
 import com.redhat.labs.lodestar.model.filter.SortOrder;
+import com.redhat.labs.lodestar.model.pagination.Page;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
 import com.redhat.labs.lodestar.utils.EmbeddedMongoTest;
 import com.redhat.labs.lodestar.utils.MockUtils;
@@ -250,23 +252,23 @@ class EngagementRepositoryTest {
 
       repository.persist(Lists.newArrayList(e1, e2));
 
-      ListFilterOptions fo = new ListFilterOptions();
-      fo.addLikeSearchCriteria("customer_name", "C");
+      SimpleFilterOptions fo = new SimpleFilterOptions();
+      fo.setSuggest("C");
       List<String> results = repository.findCustomerSuggestions(fo);
       assertEquals(1, results.size());
 
-      fo = new ListFilterOptions();
-      fo.addLikeSearchCriteria("customer_name", "c");
+      fo = new SimpleFilterOptions();
+      fo.setSuggest("c");
       results = repository.findCustomerSuggestions(fo);
       assertEquals(1, results.size());
 
-      fo = new ListFilterOptions();
-      fo.addLikeSearchCriteria("customer_name", "e");
+      fo = new SimpleFilterOptions();
+      fo.setSuggest("e");
       results = repository.findCustomerSuggestions(fo);
       assertEquals(1, results.size());
 
-      fo = new ListFilterOptions();
-      fo.addLikeSearchCriteria("customer_name", "1");
+      fo = new SimpleFilterOptions();
+      fo.setSuggest("1");
       results = repository.findCustomerSuggestions(fo);
       assertEquals(2, results.size());
 
@@ -290,18 +292,18 @@ class EngagementRepositoryTest {
 
         repository.persist(Lists.newArrayList(e1, e2));
 
-        ListFilterOptions options = new ListFilterOptions();
-        options.addLikeSearchCriteria("categories.name", "c");
+        SimpleFilterOptions options = new SimpleFilterOptions();
+        options.setSuggest("c");
         List<Category> results = repository.findCategories(options);
         assertEquals(2, results.size());
 
-        options = new ListFilterOptions();
-        options.addLikeSearchCriteria("categories.name", "c2");
+        options = new SimpleFilterOptions();
+        options.setSuggest("c2");
         results = repository.findCategories(options);
         assertEquals(1, results.size());
 
-        options = new ListFilterOptions();
-        options.addLikeSearchCriteria("categories.name", "E");
+        options = new SimpleFilterOptions();
+        options.setSuggest("E");
         results = repository.findCategories(options);
         assertEquals(2, results.size());
 
@@ -323,7 +325,7 @@ class EngagementRepositoryTest {
 
         repository.persist(Lists.newArrayList(e1, e2));
 
-        List<Category> results = repository.findCategories(new ListFilterOptions());
+        List<Category> results = repository.findCategories(new SimpleFilterOptions());
         assertEquals(4, results.size());
 
         results.stream().forEach(c -> {
@@ -359,21 +361,21 @@ class EngagementRepositoryTest {
 
         repository.persist(Lists.newArrayList(e1, e2));
 
-        ListFilterOptions options = new ListFilterOptions();
-        options.addLikeSearchCriteria("artifacts.type", "de");
+        SimpleFilterOptions options = new SimpleFilterOptions();
+        options.setSuggest("de");
 
         List<String> results = repository.findArtifactTypes(options);
         assertEquals(2, results.size());
         assertTrue(results.contains("demo"));
 
-        options = new ListFilterOptions();
-        options.addLikeSearchCriteria("artifacts.type", "V");
+        options = new SimpleFilterOptions();
+        options.setSuggest("V");
         results = repository.findArtifactTypes(options);
         assertEquals(1, results.size());
         assertTrue(results.contains("video"));
 
-        options = new ListFilterOptions();
-        options.addLikeSearchCriteria("artifacts.type", "St");        
+        options = new SimpleFilterOptions();
+        options.setSuggest("St");
         results = repository.findArtifactTypes(options);
         assertEquals(1, results.size());
         assertTrue(results.contains("status"));
@@ -395,7 +397,7 @@ class EngagementRepositoryTest {
 
         repository.persist(Lists.newArrayList(e1, e2));
 
-        List<String> results = repository.findArtifactTypes(new ListFilterOptions());
+        List<String> results = repository.findArtifactTypes(new SimpleFilterOptions());
         assertEquals(3, results.size());
         assertTrue(results.contains("demo"));
         assertTrue(results.contains("video"));
@@ -610,24 +612,6 @@ class EngagementRepositoryTest {
 
     }
 
-    // limit alone, limit with page/perpage
-
-    @Test
-    void testFindAllWithLimit() {
-
-        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c3", "1234");
-        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "c5", "4321");
-        Engagement e3 = MockUtils.mockMinimumEngagement("c2", "c4", "1111");
-        repository.persist(e1, e2, e3);
-
-        ListFilterOptions fo = new ListFilterOptions();
-        fo.setLimit(2);
-
-        List<Engagement> results = repository.findAll(fo);
-        assertEquals(2, results.size());
-
-    }
-
     // page without perpage, with perpage
 
     @Test
@@ -669,13 +653,34 @@ class EngagementRepositoryTest {
         fo = new ListFilterOptions();
         fo.setPage(1);
         fo.setPerPage(2);
-        fo.setLimit(1);
 
         results = repository.findAll(fo);
         assertEquals(2, results.size());
 
     }
 
+
+    // TODO: Paging with Headers Testing
     
+    @Test
+    void testAggregation() {
+
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c3", "1234");
+        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "c5", "4321");
+        Engagement e3 = MockUtils.mockMinimumEngagement("c2", "c4", "1111");
+        repository.persist(e1, e2, e3);
+
+        ListFilterOptions fo = new ListFilterOptions();
+//        fo.setSearch("customer_name=c2");
+        fo.setPage(3);
+        fo.setPerPage(1);
+        Page page = repository.findPage(fo);
+
+        System.out.println(page.getHeaders());
+        System.out.println(page.getLinkHeaders());
+        page.getEngagements().stream().forEach(e -> System.out.println(e));
+
+    }
+
 
 }

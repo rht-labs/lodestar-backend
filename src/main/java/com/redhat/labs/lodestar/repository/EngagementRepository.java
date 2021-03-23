@@ -34,6 +34,8 @@ import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.Status;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
+import com.redhat.labs.lodestar.model.filter.SimpleFilterOptions;
+import com.redhat.labs.lodestar.model.pagination.Page;
 
 import io.quarkus.mongodb.panache.PanacheMongoRepository;
 
@@ -249,6 +251,25 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
 
     }
 
+    /**
+     * Returns {@link Page} of results for the given {@link ListFilterOptions}.
+     * 
+     * @param filterOptions
+     * @return
+     */
+    public Page findPage(ListFilterOptions filterOptions) {
+
+        List<Bson> pipeline = MongoAggregationHelper.generatePagedAggregationPipeline(filterOptions);
+        Optional<Page> optional = StreamSupport.stream(mongoCollection().aggregate(pipeline, Page.class).spliterator(), false).findFirst();
+        Page page = optional.orElse(Page.builder().build());
+
+        page.setCurrentPage(filterOptions.getPage().orElse(1));
+        page.setPerPage(filterOptions.getPerPage().orElse(20));
+
+        return page;
+
+    }
+
     /*
      * 
      * GET List of Other Objects Methods
@@ -261,36 +282,42 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
      * @param input
      * @return
      */
-    public List<String> findCustomerSuggestions(ListFilterOptions options) {
+    public List<String> findCustomerSuggestions(SimpleFilterOptions options) {
 
+        ListFilterOptions lfo = options.from("customer_name");
+        
         // set options for group by and sort
-        options.setGroupByFieldName(Optional.of(CUSTOMER_NAME));
-        options.setSortFields(CUSTOMER_NAME);
+        lfo.setGroupByFieldName(Optional.of(CUSTOMER_NAME));
+        lfo.setSortFields(CUSTOMER_NAME);
 
-        List<Bson> pipeline = MongoAggregationHelper.generateAggregationPipeline(options);
+        List<Bson> pipeline = MongoAggregationHelper.generateAggregationPipeline(lfo);
         return listFromIterable(mongoCollection().aggregate(pipeline, Map.class)).stream()
-                .map(m -> m.get(options.getGroupByFieldName().get()).toString()).collect(Collectors.toList());
+                .map(m -> m.get(lfo.getGroupByFieldName().get()).toString()).collect(Collectors.toList());
 
     }
 
-    public List<Category> findCategories(ListFilterOptions options) {
+    public List<Category> findCategories(SimpleFilterOptions options) {
 
-        options.setUnwindFieldName(Optional.of(CATEGORIES));
-        options.setGroupByFieldName(Optional.of(CATEGORIES_NAME));
-        options.setSortFields(COUNT);
+        ListFilterOptions lfo = options.from("categories.name");
 
-        List<Bson> pipeline = MongoAggregationHelper.generateAggregationPipeline(options);
+        lfo.setUnwindFieldName(Optional.of(CATEGORIES));
+        lfo.setGroupByFieldName(Optional.of(CATEGORIES_NAME));
+        lfo.setSortFields(COUNT);
+
+        List<Bson> pipeline = MongoAggregationHelper.generateAggregationPipeline(lfo);
         return listFromIterable(mongoCollection().aggregate(pipeline, Category.class));
 
     }
 
-    public List<String> findArtifactTypes(ListFilterOptions options) {
+    public List<String> findArtifactTypes(SimpleFilterOptions options) {
 
-        options.setUnwindFieldName(Optional.of(ARTIFACTS));
-        options.setGroupByFieldName(Optional.of(ARTIFACTS_TYPE));
-        options.setSortFields(TYPE);
+        ListFilterOptions lfo = options.from("artifacts.type");
+        
+        lfo.setUnwindFieldName(Optional.of(ARTIFACTS));
+        lfo.setGroupByFieldName(Optional.of(ARTIFACTS_TYPE));
+        lfo.setSortFields(TYPE);
 
-        List<Bson> pipeline = MongoAggregationHelper.generateAggregationPipeline(options);
+        List<Bson> pipeline = MongoAggregationHelper.generateAggregationPipeline(lfo);
         return listFromIterable(mongoCollection().aggregate(pipeline, Artifact.class)).stream().map(Artifact::getType)
                 .collect(Collectors.toList());
 

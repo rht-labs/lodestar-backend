@@ -34,10 +34,6 @@ public class ListFilterOptions extends FilterOptions {
     @QueryParam("sortFields")
     private String sortFields;
 
-    @Parameter(name = "limit", required = false, description = "result list will be limited to the given number.  ignored if page supplied")
-    @QueryParam("limit")
-    private Integer limit;
-
     @Parameter(name = "page", required = false, description = "page number of results to return")
     @QueryParam("page")
     private Integer page;
@@ -60,10 +56,6 @@ public class ListFilterOptions extends FilterOptions {
 
     public Optional<String> getSortFields() {
         return Optional.ofNullable(sortFields);
-    }
-
-    public Optional<Integer> getLimit() {
-        return Optional.ofNullable(limit);
     }
 
     public Optional<Integer> getPage() {

@@ -1,6 +1,8 @@
 package com.redhat.labs.lodestar.repository;
 
 import static com.mongodb.client.model.Aggregates.addFields;
+import static com.mongodb.client.model.Aggregates.count;
+import static com.mongodb.client.model.Aggregates.facet;
 import static com.mongodb.client.model.Aggregates.group;
 import static com.mongodb.client.model.Aggregates.limit;
 import static com.mongodb.client.model.Aggregates.match;
@@ -9,9 +11,12 @@ import static com.mongodb.client.model.Aggregates.skip;
 import static com.mongodb.client.model.Aggregates.sort;
 import static com.mongodb.client.model.Aggregates.unwind;
 import static com.mongodb.client.model.Projections.exclude;
+import static com.mongodb.client.model.Projections.excludeId;
+import static com.mongodb.client.model.Projections.fields;
 import static com.mongodb.client.model.Projections.include;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -23,6 +28,7 @@ import org.bson.conversions.Bson;
 
 import com.mongodb.client.model.Accumulators;
 import com.mongodb.client.model.BsonField;
+import com.mongodb.client.model.Facet;
 import com.mongodb.client.model.Field;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.model.filter.SortOrder;
@@ -62,6 +68,72 @@ public class MongoAggregationHelper {
 
     }
 
+    public static List<Bson> generatePagedAggregationPipeline(ListFilterOptions filterOptions) {
+
+        List<Bson> pipeline = new ArrayList<>();
+        pipeline.addAll(queryPipeline(filterOptions));
+        pipeline.addAll(pagingAndLimitFacetPipeline(filterOptions));
+        pipeline.addAll(pagingProjectionPipeline());
+
+        return pipeline;
+
+    }
+
+    private static List<Bson> queryPipeline(ListFilterOptions filterOptions) {
+
+        // Create pipeline for search and sorting
+        List<Bson> pipeline = new ArrayList<>();
+
+        // unwind if required
+        unwindStage(pipeline, filterOptions);
+
+        // set match criteria
+        matchStage(pipeline, filterOptions);
+
+        // add lowercase field and group/count
+        addLowercaseFieldAndGroupStage(pipeline, filterOptions);
+
+        // sort results
+        sortStage(pipeline, filterOptions);
+
+        return pipeline;
+
+    }
+
+    private static List<Bson> pagingAndLimitFacetPipeline(ListFilterOptions filterOptions) {
+
+        // create pipeline for paging and limits
+        List<Bson> paging = new ArrayList<>();
+
+        // enable paging or limits
+        skipAndLimitStages(paging, filterOptions);
+
+        // add projection
+        projectionStage(paging, filterOptions);
+
+        // Create facets for engagements and total count
+        Facet engagements = new Facet("engagements", paging);
+        Facet count = new Facet("totalEngagements", count());
+        Bson facetStage = facet(engagements, count);
+
+        return Arrays.asList(facetStage);
+
+    }
+
+    private static List<Bson> pagingProjectionPipeline() {
+
+        // create documents for paging fields (engagements and totalEngagements)
+        Document d = new Document("$arrayElemAt", Arrays.asList("$totalEngagements.count", 0));
+        Document countField = new Document("totalEngagements", d);
+        Document engagementsField = new Document("engagements", "$engagements");
+
+        // projection for paging fields
+        Bson pageProjection = project(fields(engagementsField, countField));
+
+        return Arrays.asList(pageProjection);
+
+    }
+
     private static void unwindStage(List<Bson> pipeline, ListFilterOptions filterOptions) {
 
         Optional<String> unwindFieldName = filterOptions.getUnwindFieldName();
@@ -98,7 +170,7 @@ public class MongoAggregationHelper {
             pipeline.add(addFields(new Field<>(toLowerFieldName, toLowerDocument)));
 
             // Group by lowercase field and count
-            BsonField[] fields = new BsonField[] { Accumulators.addToSet(getNestedFieldName(fieldName), fieldNameVar), 
+            BsonField[] fields = new BsonField[] { Accumulators.addToSet(getNestedFieldName(fieldName), fieldNameVar),
                     Accumulators.sum(COUNT, 1) };
             pipeline.add(group(toLowerFieldNameVar, fields));
 
@@ -119,15 +191,12 @@ public class MongoAggregationHelper {
 
         Optional<Integer> page = filterOptions.getPage();
         Optional<Integer> perPage = filterOptions.getPerPage();
-        Optional<Integer> limit = filterOptions.getLimit();
+
         if (page.isPresent()) {
             Integer pageNumber = page.get();
             Integer pageSize = perPage.isPresent() ? perPage.get() : 20;
             pipeline.add(skip(pageSize * (pageNumber - 1)));
             pipeline.add(limit(pageSize));
-
-        } else if (limit.isPresent()) {
-            pipeline.add(limit(limit.get()));
         }
 
     }
@@ -147,13 +216,15 @@ public class MongoAggregationHelper {
             pipeline.add(project(include(List.copyOf(include.get()))));
         } else if (exclude.isPresent()) {
             pipeline.add(project(exclude(List.copyOf(exclude.get()))));
+        } else {
+            pipeline.add(project(fields(excludeId())));
         }
 
     }
 
     private static String getNestedFieldName(String fieldName) {
 
-        if(fieldName.contains(".")) {
+        if (fieldName.contains(".")) {
             return fieldName.substring(fieldName.lastIndexOf(".") + 1);
         }
 

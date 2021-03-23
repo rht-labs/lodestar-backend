@@ -21,6 +21,7 @@ import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
+import com.redhat.labs.lodestar.model.filter.SimpleFilterOptions;
 import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 import com.redhat.labs.lodestar.utils.MockUtils;
 import com.redhat.labs.lodestar.utils.TokenUtils;
@@ -179,7 +180,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
         
-        Mockito.when(eRepository.findCategories(Mockito.any(ListFilterOptions.class))).thenReturn(Lists.newArrayList(MockUtils.mockCategory("cat1")));
+        Mockito.when(eRepository.findCategories(Mockito.any(SimpleFilterOptions.class))).thenReturn(Lists.newArrayList(MockUtils.mockCategory("cat1")));
         
         // get suggestions
         Response r =given()
@@ -202,7 +203,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
         
-        Mockito.when(eRepository.findCategories(Mockito.any(ListFilterOptions.class))).thenReturn(Lists.newArrayList(MockUtils.mockCategory("sugar")));
+        Mockito.when(eRepository.findCategories(Mockito.any(SimpleFilterOptions.class))).thenReturn(Lists.newArrayList(MockUtils.mockCategory("sugar")));
         
         // get suggestions
         Response r =given()
@@ -226,7 +227,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
-        Mockito.when(eRepository.findArtifactTypes(new ListFilterOptions())).thenReturn(Lists.newArrayList("a1","a2"));
+        Mockito.when(eRepository.findArtifactTypes(new SimpleFilterOptions())).thenReturn(Lists.newArrayList("a1","a2"));
 
         given()
             .auth()
@@ -247,7 +248,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
-        Mockito.when(eRepository.findArtifactTypes(Mockito.any(ListFilterOptions.class))).thenReturn(Lists.newArrayList("a1"));
+        Mockito.when(eRepository.findArtifactTypes(Mockito.any(SimpleFilterOptions.class))).thenReturn(Lists.newArrayList("a1"));
 
         given()
             .auth()

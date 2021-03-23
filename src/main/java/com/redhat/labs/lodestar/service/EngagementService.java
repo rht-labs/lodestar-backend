@@ -34,6 +34,8 @@ import com.redhat.labs.lodestar.model.Status;
 import com.redhat.labs.lodestar.model.event.EventType;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
+import com.redhat.labs.lodestar.model.filter.SimpleFilterOptions;
+import com.redhat.labs.lodestar.model.pagination.Page;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
 import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
 
@@ -571,6 +573,17 @@ public class EngagementService {
     }
 
     /**
+     * Returns a {@link Page} of {@link Engagement} that matches the
+     * {@link ListFilterOptions}.
+     * 
+     * @param listFilterOptions
+     * @return
+     */
+    public Page getPage(ListFilterOptions listFilterOptions) {
+        return repository.findPage(listFilterOptions);
+    }
+
+    /**
      * Returns a {@link List} of all customer names in the data store that match the
      * input
      * 
@@ -579,7 +592,7 @@ public class EngagementService {
      * @return a {@link List} of all customer names in the data store that match the
      *         input
      */
-    public Collection<String> getSuggestions(ListFilterOptions filterOptions) {
+    public Collection<String> getSuggestions(SimpleFilterOptions filterOptions) {
         return repository.findCustomerSuggestions(filterOptions);
     }
 
@@ -646,7 +659,7 @@ public class EngagementService {
      * @param options
      * @return
      */
-    public List<Category> getCategories(ListFilterOptions options) {
+    public List<Category> getCategories(SimpleFilterOptions options) {
         return repository.findCategories(options);
     }
 
@@ -657,7 +670,7 @@ public class EngagementService {
      * @param match
      * @return
      */
-    public List<String> getArtifactTypes(ListFilterOptions filterOptions) {
+    public List<String> getArtifactTypes(SimpleFilterOptions filterOptions) {
         return repository.findArtifactTypes(filterOptions);
     }
 

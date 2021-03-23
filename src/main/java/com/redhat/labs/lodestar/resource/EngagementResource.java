@@ -41,6 +41,7 @@ import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
+import com.redhat.labs.lodestar.model.filter.SimpleFilterOptions;
 import com.redhat.labs.lodestar.service.EngagementService;
 
 @RequestScoped
@@ -174,14 +175,7 @@ public class EngagementResource {
     @Operation(summary = "Returns customers list")
     @Counted(name = "engagement-suggest-url-counted")
     @Timed(name = "engagement-suggest-url-timer", unit = MetricUnits.MILLISECONDS)
-    public Response findCustomers(
-            @Parameter(deprecated = true, description = "use search instead") @QueryParam("suggest") String suggest,
-            @BeanParam ListFilterOptions filterOptions) {
-
-        // add suggest to search string
-        if (null != suggest) {
-            filterOptions.addLikeSearchCriteria("customer_name", suggest);
-        }
+    public Response findCustomers(@BeanParam SimpleFilterOptions filterOptions) {
         Collection<String> customerSuggestions = engagementService.getSuggestions(filterOptions);
         return Response.ok(customerSuggestions).build();
     }
@@ -194,12 +188,7 @@ public class EngagementResource {
     @Operation(summary = "Returns customers list")
     @Counted(name = "engagement-get-all-categories-counted")
     @Timed(name = "engagement-get-all-categories-timer", unit = MetricUnits.MILLISECONDS)
-    public List<Category> list(
-            @Parameter(deprecated = true, description = "use search instead") @QueryParam("suggest") String suggest,
-            @BeanParam ListFilterOptions filterOptions) {
-        if (null != suggest) {
-            filterOptions.addLikeSearchCriteria("categories.name", suggest);
-        }
+    public List<Category> list( @BeanParam SimpleFilterOptions filterOptions) {
         return engagementService.getCategories(filterOptions);
     }
 
@@ -211,12 +200,7 @@ public class EngagementResource {
     @Operation(summary = "Returns artifact type list")
     @Counted(name = "engagement-get-all-artifacts-counted")
     @Timed(name = "engagement-get-all-artifacts-timer", unit = MetricUnits.MILLISECONDS)
-    public List<String> getArtifactTypes(
-            @Parameter(deprecated = true, description = "use search instead") @QueryParam("suggest") String suggest,
-            @BeanParam ListFilterOptions filterOptions) {
-        if (null != suggest) {
-            filterOptions.addLikeSearchCriteria("artifacts.type", suggest);
-        }
+    public List<String> getArtifactTypes(@BeanParam SimpleFilterOptions filterOptions) {
         return engagementService.getArtifactTypes(filterOptions);
     }
 

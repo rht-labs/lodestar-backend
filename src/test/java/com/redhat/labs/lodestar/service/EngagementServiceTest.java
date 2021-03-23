@@ -37,6 +37,7 @@ import com.redhat.labs.lodestar.model.Launch;
 import com.redhat.labs.lodestar.model.event.EventType;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
+import com.redhat.labs.lodestar.model.filter.SimpleFilterOptions;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
 import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
 import com.redhat.labs.lodestar.utils.MockUtils;
@@ -507,7 +508,7 @@ class EngagementServiceTest {
         service.getAll(new ListFilterOptions());
 
         Mockito.verify(repository).findAll(new ListFilterOptions());
-        Mockito.verify(repository, Mockito.times(0)).findCategories(new ListFilterOptions());
+        Mockito.verify(repository, Mockito.times(0)).findCategories(new SimpleFilterOptions());
 
     }
 
@@ -527,8 +528,8 @@ class EngagementServiceTest {
     @Test
     void testGetSuggestionsNoneFound() {
 
-        ListFilterOptions options = new ListFilterOptions();
-        options.setSuggestFieldName(Optional.of("c"));
+        SimpleFilterOptions options = new SimpleFilterOptions();
+        options.setSuggest("c");
         Mockito.when(repository.findCustomerSuggestions(options)).thenReturn(Lists.newArrayList());
 
         Collection<String> suggestions = service.getSuggestions(options);
@@ -542,8 +543,8 @@ class EngagementServiceTest {
 
         Engagement e1 = MockUtils.mockMinimumEngagement("customer1", "project1", "1234");
         Engagement e2 = MockUtils.mockMinimumEngagement("customer2", "project1", "5454");
-        ListFilterOptions options = new ListFilterOptions();
-        options.setSuggestFieldName(Optional.of("c"));
+        SimpleFilterOptions options = new SimpleFilterOptions();
+        options.setSuggest("c");
         Mockito.when(repository.findCustomerSuggestions(options)).thenReturn(Lists.newArrayList(e1.getCustomerName(), e2.getCustomerName()));
 
         Collection<String> suggestions = service.getSuggestions(options);
@@ -655,8 +656,8 @@ class EngagementServiceTest {
     @ValueSource(strings = { " " })
     void testGetCategories(String match) {
 
-        ListFilterOptions options = new ListFilterOptions();
-        options.setSuggestFieldName(Optional.ofNullable(match));
+        SimpleFilterOptions options = new SimpleFilterOptions();
+        options.setSuggest(match);
         service.getCategories(options);
 
         Mockito.verify(repository).findCategories(options);
@@ -666,8 +667,8 @@ class EngagementServiceTest {
     @Test
     void testGetCategories() {
 
-        ListFilterOptions options = new ListFilterOptions();
-        options.setSuggestFieldName(Optional.of("match"));
+        SimpleFilterOptions options = new SimpleFilterOptions();
+        options.setSuggest("match");
         service.getCategories(options);
 
         Mockito.verify(repository).findCategories(options);
@@ -681,8 +682,8 @@ class EngagementServiceTest {
     @ValueSource(strings = { " " })
     void testGetArtifactTypes(String match) {
 
-        ListFilterOptions options = new ListFilterOptions();
-        options.setSuggestFieldName(Optional.ofNullable(match));
+        SimpleFilterOptions options = new SimpleFilterOptions();
+        options.setSuggest(match);
         service.getArtifactTypes(options);
 
         Mockito.verify(repository).findArtifactTypes(options);
@@ -692,8 +693,8 @@ class EngagementServiceTest {
     @Test
     void testGetArtifactTypes() {
 
-        ListFilterOptions options = new ListFilterOptions();
-        options.setSuggestFieldName(Optional.of("something"));
+        SimpleFilterOptions options = new SimpleFilterOptions();
+        options.setSuggest("something");
         service.getArtifactTypes(options);
 
         Mockito.verify(repository).findArtifactTypes(options);
