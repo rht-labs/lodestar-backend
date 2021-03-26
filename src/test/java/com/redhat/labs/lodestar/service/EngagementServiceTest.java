@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -38,6 +39,7 @@ import com.redhat.labs.lodestar.model.event.EventType;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.model.filter.SimpleFilterOptions;
+import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
 import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
 import com.redhat.labs.lodestar.utils.MockUtils;
@@ -530,9 +532,11 @@ class EngagementServiceTest {
 
         SimpleFilterOptions options = new SimpleFilterOptions();
         options.setSuggest("c");
-        Mockito.when(repository.findCustomerSuggestions(options)).thenReturn(Lists.newArrayList());
+        PagedStringResults results = PagedStringResults.builder().results(Lists.newArrayList()).build();
+        Mockito.when(repository.findCustomerSuggestions(options)).thenReturn(results);
 
-        Collection<String> suggestions = service.getSuggestions(options);
+        PagedStringResults pagedResults = service.getSuggestions(options);
+        Collection<String> suggestions = pagedResults.getResults();
         assertNotNull(suggestions);
         assertTrue(suggestions.isEmpty());
 
@@ -544,10 +548,12 @@ class EngagementServiceTest {
         Engagement e1 = MockUtils.mockMinimumEngagement("customer1", "project1", "1234");
         Engagement e2 = MockUtils.mockMinimumEngagement("customer2", "project1", "5454");
         SimpleFilterOptions options = new SimpleFilterOptions();
+        PagedStringResults results = PagedStringResults.builder().results(Lists.newArrayList(e1.getCustomerName(), e2.getCustomerName())).build();
         options.setSuggest("c");
-        Mockito.when(repository.findCustomerSuggestions(options)).thenReturn(Lists.newArrayList(e1.getCustomerName(), e2.getCustomerName()));
+        Mockito.when(repository.findCustomerSuggestions(options)).thenReturn(results);
 
-        Collection<String> suggestions = service.getSuggestions(options);
+        PagedStringResults pagedResults = service.getSuggestions(options);
+        List<String> suggestions = pagedResults.getResults();
         assertNotNull(suggestions);
         assertEquals(2, suggestions.size());
         assertTrue(suggestions.contains("customer1"));

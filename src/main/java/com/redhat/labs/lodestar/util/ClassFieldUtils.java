@@ -21,6 +21,10 @@ public class ClassFieldUtils {
 
     public static String snakeToCamelCase(String value) {
 
+        if(!value.contains("_")) {
+            return value;
+        }
+
         // split lowercase value based on underscore
         List<String> tokens = Stream.of(value.toLowerCase().split("_")).collect(Collectors.toList());
 

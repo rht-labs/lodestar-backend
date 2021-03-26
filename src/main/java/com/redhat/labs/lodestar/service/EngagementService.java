@@ -2,7 +2,6 @@ package com.redhat.labs.lodestar.service;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
-import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -35,7 +34,9 @@ import com.redhat.labs.lodestar.model.event.EventType;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.model.filter.SimpleFilterOptions;
-import com.redhat.labs.lodestar.model.pagination.Page;
+import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
+import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
+import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
 import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
 
@@ -568,19 +569,19 @@ public class EngagementService {
      * 
      * @return
      */
-    public List<Engagement> getAll(ListFilterOptions filterOptions) {
+    public PagedEngagementResults getAll(ListFilterOptions filterOptions) {
         return repository.findAll(filterOptions);
     }
 
     /**
-     * Returns a {@link Page} of {@link Engagement} that matches the
+     * Returns a {@link PagedEngagementResults} of {@link Engagement} that matches the
      * {@link ListFilterOptions}.
      * 
      * @param listFilterOptions
      * @return
      */
-    public Page getPage(ListFilterOptions listFilterOptions) {
-        return repository.findPage(listFilterOptions);
+    public PagedEngagementResults getEngagementsPaged(ListFilterOptions listFilterOptions) {
+        return repository.findPagedEngagements(listFilterOptions);
     }
 
     /**
@@ -592,7 +593,7 @@ public class EngagementService {
      * @return a {@link List} of all customer names in the data store that match the
      *         input
      */
-    public Collection<String> getSuggestions(SimpleFilterOptions filterOptions) {
+    public PagedStringResults getSuggestions(SimpleFilterOptions filterOptions) {
         return repository.findCustomerSuggestions(filterOptions);
     }
 
@@ -659,7 +660,7 @@ public class EngagementService {
      * @param options
      * @return
      */
-    public List<Category> getCategories(SimpleFilterOptions options) {
+    public PagedCategoryResults getCategories(SimpleFilterOptions options) {
         return repository.findCategories(options);
     }
 
@@ -670,7 +671,7 @@ public class EngagementService {
      * @param match
      * @return
      */
-    public List<String> getArtifactTypes(SimpleFilterOptions filterOptions) {
+    public PagedStringResults getArtifactTypes(SimpleFilterOptions filterOptions) {
         return repository.findArtifactTypes(filterOptions);
     }
 

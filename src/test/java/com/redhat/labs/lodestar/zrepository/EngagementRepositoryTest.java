@@ -23,7 +23,9 @@ import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.model.filter.SimpleFilterOptions;
 import com.redhat.labs.lodestar.model.filter.SortOrder;
-import com.redhat.labs.lodestar.model.pagination.Page;
+import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
+import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
+import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
 import com.redhat.labs.lodestar.utils.EmbeddedMongoTest;
 import com.redhat.labs.lodestar.utils.MockUtils;
@@ -254,22 +256,26 @@ class EngagementRepositoryTest {
 
       SimpleFilterOptions fo = new SimpleFilterOptions();
       fo.setSuggest("C");
-      List<String> results = repository.findCustomerSuggestions(fo);
+      PagedStringResults pagedResults = repository.findCustomerSuggestions(fo); 
+      List<String> results = pagedResults.getResults();
       assertEquals(1, results.size());
 
       fo = new SimpleFilterOptions();
       fo.setSuggest("c");
-      results = repository.findCustomerSuggestions(fo);
+      pagedResults = repository.findCustomerSuggestions(fo);
+      results = pagedResults.getResults();
       assertEquals(1, results.size());
 
       fo = new SimpleFilterOptions();
       fo.setSuggest("e");
-      results = repository.findCustomerSuggestions(fo);
+      pagedResults = repository.findCustomerSuggestions(fo);
+      results = pagedResults.getResults();
       assertEquals(1, results.size());
 
       fo = new SimpleFilterOptions();
       fo.setSuggest("1");
-      results = repository.findCustomerSuggestions(fo);
+      pagedResults = repository.findCustomerSuggestions(fo);
+      results = pagedResults.getResults();
       assertEquals(2, results.size());
 
   }
@@ -294,17 +300,20 @@ class EngagementRepositoryTest {
 
         SimpleFilterOptions options = new SimpleFilterOptions();
         options.setSuggest("c");
-        List<Category> results = repository.findCategories(options);
+        PagedCategoryResults pagedResults = repository.findCategories(options);
+        List<Category> results = pagedResults.getResults();
         assertEquals(2, results.size());
 
         options = new SimpleFilterOptions();
         options.setSuggest("c2");
-        results = repository.findCategories(options);
+        pagedResults = repository.findCategories(options);
+        results = pagedResults.getResults();
         assertEquals(1, results.size());
 
         options = new SimpleFilterOptions();
         options.setSuggest("E");
-        results = repository.findCategories(options);
+        pagedResults = repository.findCategories(options);
+        results = pagedResults.getResults();
         assertEquals(2, results.size());
 
     }
@@ -325,7 +334,8 @@ class EngagementRepositoryTest {
 
         repository.persist(Lists.newArrayList(e1, e2));
 
-        List<Category> results = repository.findCategories(new SimpleFilterOptions());
+        PagedCategoryResults pagedResults = repository.findCategories(new SimpleFilterOptions());
+        List<Category> results = pagedResults.getResults();
         assertEquals(4, results.size());
 
         results.stream().forEach(c -> {
@@ -364,19 +374,22 @@ class EngagementRepositoryTest {
         SimpleFilterOptions options = new SimpleFilterOptions();
         options.setSuggest("de");
 
-        List<String> results = repository.findArtifactTypes(options);
+        PagedStringResults pagedResults = repository.findArtifactTypes(options); 
+        List<String> results = pagedResults.getResults();
         assertEquals(2, results.size());
         assertTrue(results.contains("demo"));
 
         options = new SimpleFilterOptions();
         options.setSuggest("V");
-        results = repository.findArtifactTypes(options);
+        pagedResults = repository.findArtifactTypes(options);
+        results = pagedResults.getResults();
         assertEquals(1, results.size());
         assertTrue(results.contains("video"));
 
         options = new SimpleFilterOptions();
         options.setSuggest("St");
-        results = repository.findArtifactTypes(options);
+        pagedResults = repository.findArtifactTypes(options);
+        results = pagedResults.getResults();
         assertEquals(1, results.size());
         assertTrue(results.contains("status"));
 
@@ -397,7 +410,8 @@ class EngagementRepositoryTest {
 
         repository.persist(Lists.newArrayList(e1, e2));
 
-        List<String> results = repository.findArtifactTypes(new SimpleFilterOptions());
+        PagedStringResults pagedResults = repository.findArtifactTypes(new SimpleFilterOptions()); 
+        List<String> results = pagedResults.getResults();
         assertEquals(3, results.size());
         assertTrue(results.contains("demo"));
         assertTrue(results.contains("video"));
@@ -414,7 +428,8 @@ class EngagementRepositoryTest {
         Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
         repository.persist(e1);
 
-        List<Engagement> results = repository.findAll(new ListFilterOptions());
+        PagedEngagementResults pagedResults = repository.findAll(new ListFilterOptions()); 
+        List<Engagement> results = pagedResults.getResults();
         assertEquals(1, results.size());
 
     }
@@ -428,7 +443,8 @@ class EngagementRepositoryTest {
         ListFilterOptions fo = new ListFilterOptions();
         fo.setInclude("uuid");
 
-        List<Engagement> results = repository.findAll(fo);
+        PagedEngagementResults pagedResults = repository.findAll(fo);
+        List<Engagement> results = pagedResults.getResults();
         assertEquals(1, results.size());
 
         Engagement result = results.get(0);
@@ -447,7 +463,8 @@ class EngagementRepositoryTest {
         ListFilterOptions fo = new ListFilterOptions();
         fo.setExclude("uuid");
 
-        List<Engagement> results = repository.findAll(fo);
+        PagedEngagementResults pagedResults = repository.findAll(fo);
+        List<Engagement> results = pagedResults.getResults();
         assertEquals(1, results.size());
 
         Engagement result = results.get(0);
@@ -467,11 +484,13 @@ class EngagementRepositoryTest {
         ListFilterOptions fo = new ListFilterOptions();
         fo.setSearch("customer_name=c1");
 
-        List<Engagement> results = repository.findAll(fo);
+        PagedEngagementResults pagedResults = repository.findAll(fo);
+        List<Engagement> results = pagedResults.getResults();
         assertEquals(1, results.size());
 
         fo.setSearch("customer_name=C1");
-        results = repository.findAll(fo);
+        pagedResults = repository.findAll(fo);
+        results = pagedResults.getResults();
         assertEquals(0, results.size());
 
 
@@ -487,11 +506,13 @@ class EngagementRepositoryTest {
         ListFilterOptions fo = new ListFilterOptions();
         fo.setSearch("customer_name like C");
 
-        List<Engagement> results = repository.findAll(fo);
+        PagedEngagementResults pagedResults = repository.findAll(fo);
+        List<Engagement> results = pagedResults.getResults();
         assertEquals(2, results.size());
 
         fo.setSearch("customer_name=e");
-        results = repository.findAll(fo);
+        pagedResults = repository.findAll(fo);
+        results = pagedResults.getResults();
         assertEquals(0, results.size());
 
 
@@ -507,7 +528,8 @@ class EngagementRepositoryTest {
         ListFilterOptions fo = new ListFilterOptions();
         fo.setSearch("exists launch");
 
-        List<Engagement> results = repository.findAll(fo);
+        PagedEngagementResults pagedResults = repository.findAll(fo);
+        List<Engagement> results = pagedResults.getResults();
         assertEquals(1, results.size());
 
     }
@@ -521,7 +543,8 @@ class EngagementRepositoryTest {
         ListFilterOptions fo = new ListFilterOptions();
         fo.setSearch("not exists launch");
 
-        List<Engagement> results = repository.findAll(fo);
+        PagedEngagementResults pagedResults = repository.findAll(fo);
+        List<Engagement> results = pagedResults.getResults();
         assertEquals(1, results.size());
 
     }
@@ -539,7 +562,8 @@ class EngagementRepositoryTest {
         ListFilterOptions fo = new ListFilterOptions();
         fo.setSortOrder(SortOrder.ASC);
 
-        List<Engagement> results = repository.findAll(fo);
+        PagedEngagementResults pagedResults = repository.findAll(fo);
+        List<Engagement> results = pagedResults.getResults();
         assertEquals(3, results.size());
 
         assertEquals("c1", results.get(0).getCustomerName());
@@ -550,13 +574,15 @@ class EngagementRepositoryTest {
         assertEquals("c5", results.get(2).getProjectName());
         
         fo.setSearch("customer_name=e");
-        results = repository.findAll(fo);
+        pagedResults = repository.findAll(fo);
+        results = pagedResults.getResults();
         assertEquals(0, results.size());
 
         fo = new ListFilterOptions();
         fo.setSortOrder(SortOrder.DESC);
 
-        results = repository.findAll(fo);
+        pagedResults = repository.findAll(fo);
+        results = pagedResults.getResults();
         assertEquals(3, results.size());
 
         assertEquals("c2", results.get(0).getCustomerName());
@@ -567,7 +593,8 @@ class EngagementRepositoryTest {
         assertEquals("c3", results.get(2).getProjectName());
         
         fo.setSearch("customer_name=e");
-        results = repository.findAll(fo);
+        pagedResults = repository.findAll(fo);
+        results = pagedResults.getResults();
         assertEquals(0, results.size());
 
     }
@@ -584,7 +611,8 @@ class EngagementRepositoryTest {
         fo.setSortOrder(SortOrder.ASC);
         fo.setSortFields("uuid");
 
-        List<Engagement> results = repository.findAll(fo);
+        PagedEngagementResults pagedResults = repository.findAll(fo);
+        List<Engagement> results = pagedResults.getResults();
         assertEquals(3, results.size());
 
         assertEquals("1111", results.get(0).getUuid());
@@ -592,14 +620,16 @@ class EngagementRepositoryTest {
         assertEquals("4321", results.get(2).getUuid());
 
         fo.setSearch("customer_name=e");
-        results = repository.findAll(fo);
+        pagedResults = repository.findAll(fo);
+        results = pagedResults.getResults();
         assertEquals(0, results.size());
 
         fo = new ListFilterOptions();
         fo.setSortOrder(SortOrder.DESC);
         fo.setSortFields("uuid");
 
-        results = repository.findAll(fo);
+        pagedResults = repository.findAll(fo);
+        results = pagedResults.getResults();
         assertEquals(3, results.size());
 
         assertEquals("4321", results.get(0).getUuid());
@@ -607,7 +637,8 @@ class EngagementRepositoryTest {
         assertEquals("1111", results.get(2).getUuid());
 
         fo.setSearch("customer_name=e");
-        results = repository.findAll(fo);
+        pagedResults = repository.findAll(fo);
+        results = pagedResults.getResults();
         assertEquals(0, results.size());
 
     }
@@ -626,7 +657,8 @@ class EngagementRepositoryTest {
         fo.setPage(1);
         fo.setPerPage(1);
 
-        List<Engagement> results = repository.findAll(fo);
+        PagedEngagementResults pagedResults = repository.findAll(fo);
+        List<Engagement> results = pagedResults.getResults();
         assertEquals(1, results.size());
         assertEquals("c1", results.get(0).getCustomerName());
         assertEquals("c3", results.get(0).getProjectName());
@@ -635,7 +667,8 @@ class EngagementRepositoryTest {
         fo.setPage(2);
         fo.setPerPage(1);
         
-        results = repository.findAll(fo);
+        pagedResults = repository.findAll(fo);
+        results = pagedResults.getResults();
         assertEquals(1, results.size());
         assertEquals("c2", results.get(0).getCustomerName());
         assertEquals("c4", results.get(0).getProjectName());
@@ -644,7 +677,8 @@ class EngagementRepositoryTest {
         fo.setPage(3);
         fo.setPerPage(1);
         
-        results = repository.findAll(fo);
+        pagedResults = repository.findAll(fo);
+        results = pagedResults.getResults();
         assertEquals(1, results.size());
         assertEquals("c2", results.get(0).getCustomerName());
         assertEquals("c5", results.get(0).getProjectName());
@@ -654,33 +688,14 @@ class EngagementRepositoryTest {
         fo.setPage(1);
         fo.setPerPage(2);
 
-        results = repository.findAll(fo);
+        pagedResults = repository.findAll(fo);
+        results = pagedResults.getResults();
         assertEquals(2, results.size());
 
     }
 
 
     // TODO: Paging with Headers Testing
-    
-    @Test
-    void testAggregation() {
-
-        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c3", "1234");
-        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "c5", "4321");
-        Engagement e3 = MockUtils.mockMinimumEngagement("c2", "c4", "1111");
-        repository.persist(e1, e2, e3);
-
-        ListFilterOptions fo = new ListFilterOptions();
-//        fo.setSearch("customer_name=c2");
-        fo.setPage(3);
-        fo.setPerPage(1);
-        Page page = repository.findPage(fo);
-
-        System.out.println(page.getHeaders());
-        System.out.println(page.getLinkHeaders());
-        page.getEngagements().stream().forEach(e -> System.out.println(e));
-
-    }
 
 
 }

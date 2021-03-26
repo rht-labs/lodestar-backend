@@ -31,17 +31,17 @@ import org.eclipse.microprofile.metrics.annotation.Counted;
 import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SecuritySchemeType;
-import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 
-import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.model.filter.SimpleFilterOptions;
+import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
+import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
 import com.redhat.labs.lodestar.service.EngagementService;
 
 @RequestScoped
@@ -156,15 +156,17 @@ public class EngagementResource {
     @Operation(summary = "Returns all engagement resources from the database.  Can be empty list if none found.")
     @Counted(name = "engagement-get-all-counted")
     @Timed(name = "engagement-get-all-timer", unit = MetricUnits.MILLISECONDS)
-    public List<Engagement> getAll(
-            @Parameter(deprecated = true, description = "use search instead") @QueryParam("categories") String categories,
-            @BeanParam ListFilterOptions filterOptions) {
+    public List<Engagement> getAll(@QueryParam("categories") String categories,
+            @BeanParam FilterOptions filterOptions) {
 
-        // set suggest option if set
+        ListFilterOptions options = new ListFilterOptions();
+        options.setInclude(filterOptions.getInclude());
+        options.setExclude(filterOptions.getExclude());
         if (null != categories) {
-            filterOptions.addLikeSearchCriteria("categories.name", categories);
+            options.addLikeSearchCriteria("categories.name", categories);
         }
-        return engagementService.getAll(filterOptions);
+
+        return engagementService.getAll(options).getResults();
     }
 
     @GET
@@ -175,8 +177,13 @@ public class EngagementResource {
     @Operation(summary = "Returns customers list")
     @Counted(name = "engagement-suggest-url-counted")
     @Timed(name = "engagement-suggest-url-timer", unit = MetricUnits.MILLISECONDS)
-    public Response findCustomers(@BeanParam SimpleFilterOptions filterOptions) {
-        Collection<String> customerSuggestions = engagementService.getSuggestions(filterOptions);
+    public Response findCustomers(@QueryParam("suggest") String suggest) {
+
+        SimpleFilterOptions filterOptions = SimpleFilterOptions.builder().page(1).perPage(1000).suggest(suggest)
+                .build();
+        PagedStringResults results = engagementService.getSuggestions(filterOptions);
+        Collection<String> customerSuggestions = results.getResults();
+
         return Response.ok(customerSuggestions).build();
     }
 
@@ -188,8 +195,13 @@ public class EngagementResource {
     @Operation(summary = "Returns customers list")
     @Counted(name = "engagement-get-all-categories-counted")
     @Timed(name = "engagement-get-all-categories-timer", unit = MetricUnits.MILLISECONDS)
-    public List<Category> list( @BeanParam SimpleFilterOptions filterOptions) {
-        return engagementService.getCategories(filterOptions);
+    public Response getAllCategories(@QueryParam("suggest") String suggest) {
+
+        SimpleFilterOptions filterOptions = SimpleFilterOptions.builder().page(1).perPage(1000).suggest(suggest)
+                .build();
+        PagedCategoryResults results = engagementService.getCategories(filterOptions);
+
+        return Response.ok(results.getResults()).build();
     }
 
     @GET
@@ -200,8 +212,11 @@ public class EngagementResource {
     @Operation(summary = "Returns artifact type list")
     @Counted(name = "engagement-get-all-artifacts-counted")
     @Timed(name = "engagement-get-all-artifacts-timer", unit = MetricUnits.MILLISECONDS)
-    public List<String> getArtifactTypes(@BeanParam SimpleFilterOptions filterOptions) {
-        return engagementService.getArtifactTypes(filterOptions);
+    public List<String> getArtifactTypes(@QueryParam("suggest") String suggest) {
+
+        SimpleFilterOptions filterOptions = SimpleFilterOptions.builder().page(1).perPage(1000).suggest(suggest)
+                .build();
+        return engagementService.getArtifactTypes(filterOptions).getResults();
     }
 
     @PUT

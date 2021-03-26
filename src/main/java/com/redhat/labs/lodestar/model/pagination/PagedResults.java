@@ -1,6 +1,5 @@
 package com.redhat.labs.lodestar.model.pagination;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,18 +8,17 @@ import java.util.stream.Collectors;
 import javax.ws.rs.core.Link;
 import javax.ws.rs.core.UriBuilder;
 
-import com.redhat.labs.lodestar.model.Engagement;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Page {
+public class PagedResults {
 
     private static final String CURRENT_PAGE = "page";
     private static final String PER_PAGE = "per_page";
@@ -39,7 +37,8 @@ public class Page {
     private static final String LAST = "last";
     private static final String LAST_PAGE_HEADER = String.format(PAGE_HEADER_FORMAT, LAST);
 
-    private Integer totalEngagements;
+    @Builder.Default
+    private Integer totalCount = 0;
 
     @Builder.Default
     private Integer currentPage = 1;
@@ -50,8 +49,6 @@ public class Page {
     private Map<String, Map<String, Integer>> linkHeaders = new HashMap<>();
     @Builder.Default
     private Map<String, Object> headers = new HashMap<>();
-    @Builder.Default
-    private List<Engagement> engagements = new ArrayList<>();
 
     public Map<String, Object> getHeaders() {
 
@@ -94,7 +91,7 @@ public class Page {
         setHeadersForRelation(FIRST, FIRST_PAGE_HEADER, 1);
 
         // last page set to total / per page rounded up
-        int totalPages = (int) Math.ceil((double) totalEngagements / perPage);
+        int totalPages = (int) Math.ceil((double) totalCount / perPage);
         setHeadersForRelation(LAST, LAST_PAGE_HEADER, totalPages);
 
         // set next if not greater than total

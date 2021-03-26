@@ -25,7 +25,10 @@ import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement
 import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
-import com.redhat.labs.lodestar.model.pagination.Page;
+import com.redhat.labs.lodestar.model.filter.SimpleFilterOptions;
+import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
+import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
+import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
 import com.redhat.labs.lodestar.service.EngagementService;
 
 @RequestScoped
@@ -53,12 +56,61 @@ public class GetListEngagementV2Resource {
         // set defaults for paging if not already set
         setPagingDefaults(filterOptions);
 
-        Page page = engagementService.getPage(filterOptions);
-        ResponseBuilder builder = Response.ok(page.getEngagements())
-                .links(page.getLinks(uriInfo.getAbsolutePathBuilder()));
+        PagedEngagementResults page = engagementService.getEngagementsPaged(filterOptions);
+        ResponseBuilder builder = Response.ok(page.getResults()).links(page.getLinks(uriInfo.getAbsolutePathBuilder()));
         page.getHeaders().entrySet().stream().forEach(e -> builder.header(e.getKey(), e.getValue()));
         return builder.build();
 
+    }
+
+    @GET
+    @Path("/customers")
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "200", description = "Customer data has been returned.") })
+    @Operation(summary = "Returns customers list")
+    @Counted(name = "engagement-suggest-url-counted")
+    @Timed(name = "engagement-suggest-url-timer", unit = MetricUnits.MILLISECONDS)
+    public Response findCustomers(@Context UriInfo uriInfo, @BeanParam SimpleFilterOptions filterOptions) {
+
+        PagedStringResults page = engagementService.getSuggestions(filterOptions);
+        ResponseBuilder builder = Response.ok(page.getResults()).links(page.getLinks(uriInfo.getAbsolutePathBuilder()));
+        page.getHeaders().entrySet().stream().forEach(e -> builder.header(e.getKey(), e.getValue()));
+        return builder.build();
+
+    }
+
+    @GET
+    @Path("/categories")
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "200", description = "Customer data has been returned.") })
+    @Operation(summary = "Returns customers list")
+    @Counted(name = "engagement-get-all-categories-counted")
+    @Timed(name = "engagement-get-all-categories-timer", unit = MetricUnits.MILLISECONDS)
+    public Response getAllCategories(@Context UriInfo uriInfo, @BeanParam SimpleFilterOptions filterOptions) {
+
+        PagedCategoryResults page = engagementService.getCategories(filterOptions);
+        ResponseBuilder builder = Response.ok(page.getResults()).links(page.getLinks(uriInfo.getAbsolutePathBuilder()));
+        page.getHeaders().entrySet().stream().forEach(e -> builder.header(e.getKey(), e.getValue()));
+        return builder.build();
+
+    }
+
+    @GET
+    @Path("/artifact/types")
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "200", description = "Artifact types have been returned.") })
+    @Operation(summary = "Returns artifact type list")
+    @Counted(name = "engagement-get-all-artifacts-counted")
+    @Timed(name = "engagement-get-all-artifacts-timer", unit = MetricUnits.MILLISECONDS)
+    public Response getArtifactTypes(@Context UriInfo uriInfo, @BeanParam SimpleFilterOptions filterOptions) {
+        
+        PagedStringResults page = engagementService.getArtifactTypes(filterOptions);
+        ResponseBuilder builder = Response.ok(page.getResults()).links(page.getLinks(uriInfo.getAbsolutePathBuilder()));
+        page.getHeaders().entrySet().stream().forEach(e -> builder.header(e.getKey(), e.getValue()));
+        return builder.build();
     }
 
     /**

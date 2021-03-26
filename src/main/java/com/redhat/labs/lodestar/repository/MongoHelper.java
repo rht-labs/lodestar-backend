@@ -22,6 +22,8 @@ import java.util.stream.Stream;
 
 import javax.ws.rs.WebApplicationException;
 
+import org.bson.BsonDocument;
+import org.bson.BsonString;
 import org.bson.conversions.Bson;
 
 import com.mongodb.client.model.Sorts;
@@ -248,6 +250,40 @@ public class MongoHelper {
 
         return bson;
 
+    }
+
+    static Bson getUnwindProjectField(String fieldName) {
+
+        String nestedFieldName = getNestedFieldName(fieldName);
+        String fromVariableName = getVariableName(fieldName);
+        return new BsonDocument(nestedFieldName, new BsonString(fromVariableName));
+
+    }
+
+    static String getLowercaseFieldName(String fieldName, boolean makeVariableName) {
+
+        StringBuilder builder = new StringBuilder();
+
+        if (makeVariableName) {
+            builder.append("$");
+        }
+
+        return builder.append(fieldName).append("-lower").toString();
+
+    }
+
+    static String getNestedFieldName(String fieldName) {
+
+        if (fieldName.contains(".")) {
+            return fieldName.substring(fieldName.lastIndexOf(".") + 1);
+        }
+
+        return fieldName;
+
+    }
+
+    static String getVariableName(String fieldName) {
+        return new StringBuilder("$").append(fieldName).toString();
     }
 
 }

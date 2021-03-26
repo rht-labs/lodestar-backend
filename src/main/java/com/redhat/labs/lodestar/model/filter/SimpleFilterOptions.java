@@ -5,10 +5,12 @@ import javax.ws.rs.QueryParam;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class SimpleFilterOptions {

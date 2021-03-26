@@ -43,7 +43,8 @@ public class ListFilterOptions extends FilterOptions {
     private Integer perPage;
 
     private Optional<String> suggestFieldName = Optional.empty();
-    private Optional<String> unwindFieldName = Optional.empty();    
+    private Optional<String> unwindFieldName = Optional.empty(); 
+    private Optional<String> unwindProjectFieldNames = Optional.empty();
     private Optional<String> groupByFieldName = Optional.empty();
 
     public Optional<String> getSearch() {
