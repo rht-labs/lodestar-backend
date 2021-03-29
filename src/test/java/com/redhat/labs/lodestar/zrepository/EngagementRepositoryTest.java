@@ -40,26 +40,25 @@ class EngagementRepositoryTest {
     @Inject
     EngagementRepository repository;
 
-
     // Set tests:
     // set project id
 
-  @Test
-  void testSetProjectId() {
+    @Test
+    void testSetProjectId() {
 
-      Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
-      repository.persist(e1);
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
+        repository.persist(e1);
 
-      Optional<Engagement> optional = repository.setProjectId("1234", 8888);
-      assertTrue(optional.isPresent());
-      assertEquals(8888, optional.get().getProjectId());
+        Optional<Engagement> optional = repository.setProjectId("1234", 8888);
+        assertTrue(optional.isPresent());
+        assertEquals(8888, optional.get().getProjectId());
 
-  }
+    }
 
-  @Test
-  void testSetProjectIdNotFound() {
-      assertTrue(repository.setProjectId("1234", 8888).isEmpty());
-  }
+    @Test
+    void testSetProjectIdNotFound() {
+        assertTrue(repository.setProjectId("1234", 8888).isEmpty());
+    }
 
     // set status
     // set commits
@@ -182,7 +181,7 @@ class EngagementRepositoryTest {
 
         FilterOptions fo = FilterOptions.builder().exclude("uuid").build();
 
-        Optional<Engagement> optional = repository.findByUuid("1234",fo);
+        Optional<Engagement> optional = repository.findByUuid("1234", fo);
         assertTrue(optional.isPresent());
         Engagement result = optional.get();
         assertNull(result.getUuid());
@@ -190,7 +189,7 @@ class EngagementRepositoryTest {
         assertNotNull(result.getProjectName());
 
     }
-    
+
     // find by customer project names
     // find by customer project names with filter options
 
@@ -246,39 +245,39 @@ class EngagementRepositoryTest {
     // Other:
     // find customer suggestions with list filter options
 
-  @Test
-  void testFindCustomerSuggestions() {
+    @Test
+    void testFindCustomerSuggestions() {
 
-      Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
-      Engagement e2 = MockUtils.mockMinimumEngagement("e1", "c2", "1234");
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
+        Engagement e2 = MockUtils.mockMinimumEngagement("e1", "c2", "1234");
 
-      repository.persist(Lists.newArrayList(e1, e2));
+        repository.persist(Lists.newArrayList(e1, e2));
 
-      SimpleFilterOptions fo = new SimpleFilterOptions();
-      fo.setSuggest("C");
-      PagedStringResults pagedResults = repository.findCustomerSuggestions(fo); 
-      List<String> results = pagedResults.getResults();
-      assertEquals(1, results.size());
+        SimpleFilterOptions fo = new SimpleFilterOptions();
+        fo.setSuggest("C");
+        PagedStringResults pagedResults = repository.findCustomerSuggestions(fo);
+        List<String> results = pagedResults.getResults();
+        assertEquals(1, results.size());
 
-      fo = new SimpleFilterOptions();
-      fo.setSuggest("c");
-      pagedResults = repository.findCustomerSuggestions(fo);
-      results = pagedResults.getResults();
-      assertEquals(1, results.size());
+        fo = new SimpleFilterOptions();
+        fo.setSuggest("c");
+        pagedResults = repository.findCustomerSuggestions(fo);
+        results = pagedResults.getResults();
+        assertEquals(1, results.size());
 
-      fo = new SimpleFilterOptions();
-      fo.setSuggest("e");
-      pagedResults = repository.findCustomerSuggestions(fo);
-      results = pagedResults.getResults();
-      assertEquals(1, results.size());
+        fo = new SimpleFilterOptions();
+        fo.setSuggest("e");
+        pagedResults = repository.findCustomerSuggestions(fo);
+        results = pagedResults.getResults();
+        assertEquals(1, results.size());
 
-      fo = new SimpleFilterOptions();
-      fo.setSuggest("1");
-      pagedResults = repository.findCustomerSuggestions(fo);
-      results = pagedResults.getResults();
-      assertEquals(2, results.size());
+        fo = new SimpleFilterOptions();
+        fo.setSuggest("1");
+        pagedResults = repository.findCustomerSuggestions(fo);
+        results = pagedResults.getResults();
+        assertEquals(2, results.size());
 
-  }
+    }
 
     // find categories with filter options
 
@@ -374,7 +373,7 @@ class EngagementRepositoryTest {
         SimpleFilterOptions options = new SimpleFilterOptions();
         options.setSuggest("de");
 
-        PagedStringResults pagedResults = repository.findArtifactTypes(options); 
+        PagedStringResults pagedResults = repository.findArtifactTypes(options);
         List<String> results = pagedResults.getResults();
         assertEquals(2, results.size());
         assertTrue(results.contains("demo"));
@@ -410,7 +409,7 @@ class EngagementRepositoryTest {
 
         repository.persist(Lists.newArrayList(e1, e2));
 
-        PagedStringResults pagedResults = repository.findArtifactTypes(new SimpleFilterOptions()); 
+        PagedStringResults pagedResults = repository.findArtifactTypes(new SimpleFilterOptions());
         List<String> results = pagedResults.getResults();
         assertEquals(3, results.size());
         assertTrue(results.contains("demo"));
@@ -428,7 +427,7 @@ class EngagementRepositoryTest {
         Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
         repository.persist(e1);
 
-        PagedEngagementResults pagedResults = repository.findAll(new ListFilterOptions()); 
+        PagedEngagementResults pagedResults = repository.findAll(new ListFilterOptions());
         List<Engagement> results = pagedResults.getResults();
         assertEquals(1, results.size());
 
@@ -493,7 +492,6 @@ class EngagementRepositoryTest {
         results = pagedResults.getResults();
         assertEquals(0, results.size());
 
-
     }
 
     @Test
@@ -514,7 +512,6 @@ class EngagementRepositoryTest {
         pagedResults = repository.findAll(fo);
         results = pagedResults.getResults();
         assertEquals(0, results.size());
-
 
     }
 
@@ -572,7 +569,7 @@ class EngagementRepositoryTest {
         assertEquals("c4", results.get(1).getProjectName());
         assertEquals("c2", results.get(2).getCustomerName());
         assertEquals("c5", results.get(2).getProjectName());
-        
+
         fo.setSearch("customer_name=e");
         pagedResults = repository.findAll(fo);
         results = pagedResults.getResults();
@@ -591,7 +588,7 @@ class EngagementRepositoryTest {
         assertEquals("c4", results.get(1).getProjectName());
         assertEquals("c1", results.get(2).getCustomerName());
         assertEquals("c3", results.get(2).getProjectName());
-        
+
         fo.setSearch("customer_name=e");
         pagedResults = repository.findAll(fo);
         results = pagedResults.getResults();
@@ -648,6 +645,8 @@ class EngagementRepositoryTest {
     @Test
     void testFindAllWithPaging() {
 
+        // TODO: check paging header generation
+
         Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c3", "1234");
         Engagement e2 = MockUtils.mockMinimumEngagement("c2", "c5", "4321");
         Engagement e3 = MockUtils.mockMinimumEngagement("c2", "c4", "1111");
@@ -666,23 +665,23 @@ class EngagementRepositoryTest {
         fo = new ListFilterOptions();
         fo.setPage(2);
         fo.setPerPage(1);
-        
+
         pagedResults = repository.findAll(fo);
         results = pagedResults.getResults();
         assertEquals(1, results.size());
         assertEquals("c2", results.get(0).getCustomerName());
         assertEquals("c4", results.get(0).getProjectName());
-        
+
         fo = new ListFilterOptions();
         fo.setPage(3);
         fo.setPerPage(1);
-        
+
         pagedResults = repository.findAll(fo);
         results = pagedResults.getResults();
         assertEquals(1, results.size());
         assertEquals("c2", results.get(0).getCustomerName());
         assertEquals("c5", results.get(0).getProjectName());
-        
+
         // test limit ignored if page set
         fo = new ListFilterOptions();
         fo.setPage(1);
@@ -694,8 +693,9 @@ class EngagementRepositoryTest {
 
     }
 
-
-    // TODO: Paging with Headers Testing
-
+    // TODO: By State (upcoming,active,past,terminating)
+    // TODO: By State (upcoming,active,past,terminating) with today specified
+    // TODO: By Range (start,end)
+    // TODO: By Range (start,end) with today
 
 }

@@ -62,10 +62,10 @@ public class MongoHelper {
 
         if (searchString.contains("state=")) {
 
-            Optional<String> status = findInComponentArray(components, "state");
+            Optional<String> state = findInComponentArray(components, "state");
             Optional<String> today = findInComponentArray(components, "today");
 
-            bson = findByStatus(status, today);
+            bson = findByState(state, today);
 
         } else {
 
@@ -232,7 +232,7 @@ public class MongoHelper {
 
     }
 
-    static Bson findByStatus(Optional<String> status, Optional<String> today) {
+    static Bson findByState(Optional<String> status, Optional<String> today) {
 
         String engagementStatus = status.orElse(EngagementState.UPCOMING.name());
         String localDate = today.orElse(LocalDate.now(ZoneId.of("Z")).toString());

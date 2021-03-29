@@ -13,12 +13,12 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import com.redhat.labs.lodestar.util.ClassFieldUtils;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class FilterOptions {

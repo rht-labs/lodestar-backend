@@ -12,11 +12,14 @@ import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import com.redhat.labs.lodestar.util.ClassFieldUtils;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
@@ -42,9 +45,13 @@ public class ListFilterOptions extends FilterOptions {
     @QueryParam("perPage")
     private Integer perPage;
 
+    @Builder.Default
     private Optional<String> suggestFieldName = Optional.empty();
-    private Optional<String> unwindFieldName = Optional.empty(); 
+    @Builder.Default
+    private Optional<String> unwindFieldName = Optional.empty();
+    @Builder.Default
     private Optional<String> unwindProjectFieldNames = Optional.empty();
+    @Builder.Default
     private Optional<String> groupByFieldName = Optional.empty();
 
     public Optional<String> getSearch() {
@@ -73,11 +80,20 @@ public class ListFilterOptions extends FilterOptions {
     }
 
     public void addLikeSearchCriteria(String fieldName, String value) {
+        addToSearchString(fieldName, value, false);
+    }
+    
+    public void addEqualsSearchCriteria(String fieldName, String value) {
+        addToSearchString(fieldName, value, true);
+    }
+
+    private void addToSearchString(String fieldName, String value, boolean exactMatch) {
 
         StringBuilder builder = getSearch().isPresent() ? new StringBuilder(search) : new StringBuilder();
 
         String[] split = value.split(",");
-        Stream.of(split).forEach(c -> builder.append("&").append(fieldName).append(" like ").append(value));
+        String operator = exactMatch ? "=" : " like ";
+        Stream.of(split).forEach(c -> builder.append("&").append(fieldName).append(operator).append(value));
         String newSearch = builder.toString();
         search = (newSearch.startsWith("&")) ? newSearch.substring(1) : newSearch;
 

@@ -6,7 +6,9 @@ import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -106,11 +108,39 @@ public class GetListEngagementV2Resource {
     @Counted(name = "engagement-get-all-artifacts-counted")
     @Timed(name = "engagement-get-all-artifacts-timer", unit = MetricUnits.MILLISECONDS)
     public Response getArtifactTypes(@Context UriInfo uriInfo, @BeanParam SimpleFilterOptions filterOptions) {
-        
+
         PagedStringResults page = engagementService.getArtifactTypes(filterOptions);
         ResponseBuilder builder = Response.ok(page.getResults()).links(page.getLinks(uriInfo.getAbsolutePathBuilder()));
         page.getHeaders().entrySet().stream().forEach(e -> builder.header(e.getKey(), e.getValue()));
         return builder.build();
+    }
+
+    @GET
+    @Path("/state/{state}")
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "200", description = "Engagements with state have been returned.") })
+    @Operation(summary = "Returns engagement list")
+    @Counted(name = "engagement-get-all-by-state-counted")
+    @Timed(name = "engagement-get-all--by-state-timer", unit = MetricUnits.MILLISECONDS)
+    public Response getByState(@Context UriInfo uriInfo, @PathParam("state") String state, @QueryParam("today") String today,
+            @BeanParam ListFilterOptions filterOptions) {
+
+        // set defaults for paging if not already set
+        setPagingDefaults(filterOptions);
+
+        // set state parameter
+        filterOptions.addEqualsSearchCriteria("state", state);
+
+        if(null != today) {
+            filterOptions.addEqualsSearchCriteria("today", today);
+        }
+
+        PagedEngagementResults page = engagementService.getEngagementsPaged(filterOptions);
+        ResponseBuilder builder = Response.ok(page.getResults()).links(page.getLinks(uriInfo.getAbsolutePathBuilder()));
+        page.getHeaders().entrySet().stream().forEach(e -> builder.header(e.getKey(), e.getValue()));
+        return builder.build();
+        
     }
 
     /**
