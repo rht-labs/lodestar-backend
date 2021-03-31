@@ -30,6 +30,10 @@ class EngagementResourceTest {
 	}
 
 	@Nested
+	class EngagementResourceV2Get extends EngagementResourceV2GetTest {
+	}
+	
+	@Nested
 	class EngagementResourceHead extends EngagementResourceHeadTest {
 	}
 

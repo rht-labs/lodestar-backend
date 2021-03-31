@@ -84,6 +84,10 @@ public class PagedResults {
 
     private void setHeadersForRelations() {
 
+        if(null == headers) {
+            headers = new HashMap<>();
+        }
+
         // current page
         setHeadersForRelation(CURRENT, CURRENT_PAGE_HEADER, currentPage);
 
@@ -91,7 +95,7 @@ public class PagedResults {
         setHeadersForRelation(FIRST, FIRST_PAGE_HEADER, 1);
 
         // last page set to total / per page rounded up
-        int totalPages = (int) Math.ceil((double) totalCount / perPage);
+        int totalPages = totalCount == 0 ? 1 : (int) Math.ceil((double) totalCount / perPage);
         setHeadersForRelation(LAST, LAST_PAGE_HEADER, totalPages);
 
         // set next if not greater than total

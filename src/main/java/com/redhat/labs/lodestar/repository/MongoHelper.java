@@ -6,7 +6,6 @@ import static com.mongodb.client.model.Filters.exists;
 import static com.mongodb.client.model.Filters.gt;
 import static com.mongodb.client.model.Filters.gte;
 import static com.mongodb.client.model.Filters.lt;
-import static com.mongodb.client.model.Filters.lte;
 import static com.mongodb.client.model.Filters.regex;
 
 import java.lang.reflect.Constructor;
@@ -177,16 +176,16 @@ public class MongoHelper {
     static Bson isActiveAfterStart(String start) {
 
         Bson launchExists = launchedBson(true);
-        Bson gte = gte("startDate", start);
-        return and(launchExists, gte);
+        Bson gt = gt("startDate", start);
+        return and(launchExists, gt);
 
     }
 
     static Bson isActiveBeforeEnd(String end) {
 
         Bson launchExists = launchedBson(true);
-        Bson lte = lte("startDate", end);
-        return and(launchExists, lte);
+        Bson lt = lt("startDate", end);
+        return and(launchExists, lt);
 
     }
 
