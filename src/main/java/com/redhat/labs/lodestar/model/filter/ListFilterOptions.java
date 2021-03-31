@@ -57,7 +57,7 @@ public class ListFilterOptions extends FilterOptions {
     public Optional<String> getSearch() {
         return Optional.ofNullable(search);
     }
-   
+
     public Optional<SortOrder> getSortOrder() {
         return Optional.ofNullable(sortOrder);
     }
@@ -82,7 +82,7 @@ public class ListFilterOptions extends FilterOptions {
     public void addLikeSearchCriteria(String fieldName, String value) {
         addToSearchString(fieldName, value, false);
     }
-    
+
     public void addEqualsSearchCriteria(String fieldName, String value) {
         addToSearchString(fieldName, value, true);
     }
@@ -96,6 +96,16 @@ public class ListFilterOptions extends FilterOptions {
         Stream.of(split).forEach(c -> builder.append("&").append(fieldName).append(operator).append(value));
         String newSearch = builder.toString();
         search = (newSearch.startsWith("&")) ? newSearch.substring(1) : newSearch;
+
+    }
+
+    public Optional<String> getSearchStringByField(String fieldName) {
+
+        if (getSearch().isEmpty()) {
+            return getSearch();
+        }
+
+        return Stream.of(search.split("&")).filter(s -> s.startsWith(fieldName)).findFirst();
 
     }
 

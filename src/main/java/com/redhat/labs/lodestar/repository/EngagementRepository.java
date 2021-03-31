@@ -347,7 +347,7 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
 
     public PagedStringResults findArtifactTypes(SimpleFilterOptions options) {
 
-        ListFilterOptions lfo = options.from(TYPE);       
+        ListFilterOptions lfo = options.from(ARTIFACTS_TYPE);       
         
         lfo.setUnwindFieldName(Optional.of(ARTIFACTS));
         lfo.setUnwindProjectFieldNames(Optional.of(ARTIFACTS_TYPE));

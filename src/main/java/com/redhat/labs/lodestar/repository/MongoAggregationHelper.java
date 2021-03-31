@@ -60,11 +60,11 @@ public class MongoAggregationHelper {
         // Create pipeline for search and sorting
         List<Bson> pipeline = new ArrayList<>();
 
-        // unwind if required
-        unwindStage(pipeline, filterOptions);
-
         // set match criteria
         matchStage(pipeline, filterOptions);
+
+        // unwind if required
+        unwindStage(pipeline, filterOptions);
 
         // add lowercase field and group/count
         addLowercaseFieldAndGroupStage(pipeline, filterOptions);
@@ -124,6 +124,15 @@ public class MongoAggregationHelper {
         // unwind based on field name
         pipeline.add(unwind(MongoHelper.getVariableName(unwindFieldName.get())));
 
+        // get unwind field search string
+        Optional<String> search = filterOptions.getSearchStringByField(unwindFieldName.get());
+        if (search.isPresent()) {
+            // reset search string
+            filterOptions.setSearch(search.get());
+            // match on unwind search string
+            matchStage(pipeline, filterOptions);
+        }
+
         Optional<String> projectFields = filterOptions.getUnwindProjectFieldNames();
         if (projectFields.isEmpty()) {
             return;
@@ -132,7 +141,7 @@ public class MongoAggregationHelper {
         // create include fields from fields
         String[] fields = projectFields.get().split(",");
         Bson[] excludeId = new Bson[] { excludeId() };
-        Bson[] bsonFields = Stream.of(fields).map(f -> MongoHelper.getUnwindProjectField(f)).toArray(Bson[]::new);
+        Bson[] bsonFields = Stream.of(fields).map(MongoHelper::getUnwindProjectField).toArray(Bson[]::new);
         Bson[] combined = Stream.of(excludeId, bsonFields).flatMap(Stream::of).toArray(Bson[]::new);
 
         // project fields after unwind
