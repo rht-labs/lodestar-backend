@@ -4,10 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,9 +19,11 @@ import org.junit.jupiter.api.Test;
 import com.google.common.collect.Lists;
 import com.redhat.labs.lodestar.model.Artifact;
 import com.redhat.labs.lodestar.model.Category;
+import com.redhat.labs.lodestar.model.Commit;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.HostingEnvironment;
 import com.redhat.labs.lodestar.model.Launch;
+import com.redhat.labs.lodestar.model.Status;
 import com.redhat.labs.lodestar.model.filter.EngagementState;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
@@ -45,6 +47,49 @@ class EngagementRepositoryTest {
     EngagementRepository repository;
 
     // Set tests:
+
+    // set status
+
+    @Test
+    void testSetStatus() {
+
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
+        repository.persist(e1);
+
+        Status status = Status.builder().build();
+        Optional<Engagement> optional = repository.setStatus("1234", status);
+        assertTrue(optional.isPresent());
+        assertNotNull(optional.get().getStatus());
+
+    }
+
+    @Test
+    void testSetStatusNotFound() {
+        assertTrue(repository.setStatus("1234", Status.builder().build()).isEmpty());
+    }
+
+    // set commits
+
+    @Test
+    void testSetCommits() {
+
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
+        repository.persist(e1);
+
+        Commit c = Commit.builder().id("111").build();
+        Optional<Engagement> optional = repository.setCommits("1234", Arrays.asList(c));
+        assertTrue(optional.isPresent());
+        assertNotNull(optional.get().getCommits());
+        assertEquals(1, optional.get().getCommits().size());
+        
+
+    }
+
+    @Test
+    void testSetCommitsNotFound() {
+        assertTrue(repository.setCommits("1234", Arrays.asList(Commit.builder().build())).isEmpty());
+    }
+
     // set project id
 
     @Test
