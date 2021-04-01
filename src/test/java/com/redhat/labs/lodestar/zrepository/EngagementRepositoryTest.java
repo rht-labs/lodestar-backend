@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -13,6 +14,7 @@ import java.util.Optional;
 
 import javax.inject.Inject;
 
+import org.gradle.internal.impldep.com.google.common.collect.Sets;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
@@ -21,6 +23,8 @@ import com.redhat.labs.lodestar.model.Artifact;
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Commit;
 import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.model.EngagementUser;
+import com.redhat.labs.lodestar.model.EngagementUserSummary;
 import com.redhat.labs.lodestar.model.HostingEnvironment;
 import com.redhat.labs.lodestar.model.Launch;
 import com.redhat.labs.lodestar.model.Status;
@@ -81,7 +85,6 @@ class EngagementRepositoryTest {
         assertTrue(optional.isPresent());
         assertNotNull(optional.get().getCommits());
         assertEquals(1, optional.get().getCommits().size());
-        
 
     }
 
@@ -850,20 +853,20 @@ class EngagementRepositoryTest {
         assertEquals(2, results.size());
 
     }
-    
+
     void setEngagementState(Engagement engagement, EngagementState state, Optional<String> today) {
 
         String localDate = today.orElse(LocalDate.now(ZoneId.of("Z")).toString());
 
         // set launch if not upcoming
-        if(!EngagementState.UPCOMING.equals(state)) {
+        if (!EngagementState.UPCOMING.equals(state)) {
             engagement.setLaunch(Launch.builder().build());
         }
-        
+
         // active - launched, enddate >= localdate
-        if(EngagementState.ACTIVE.equals(state)) {
+        if (EngagementState.ACTIVE.equals(state)) {
             engagement.setEndDate(localDate);
-        } else if (EngagementState.PAST.equals(state)){
+        } else if (EngagementState.PAST.equals(state)) {
 
             // localDate > endDate
             LocalDate adjusted = LocalDate.parse(localDate);
@@ -874,10 +877,10 @@ class EngagementRepositoryTest {
 
             // localDate > endDate < archiveDate
             LocalDate adjusted = LocalDate.parse(localDate);
-            
+
             String endDate = adjusted.minusDays(1).toString();
             engagement.setEndDate(endDate);
-    
+
             adjusted = LocalDate.parse(localDate);
             String archiveDate = adjusted.plusDays(1).toString();
             engagement.setArchiveDate(archiveDate);
@@ -889,28 +892,28 @@ class EngagementRepositoryTest {
     @Test
     void testGetEndagementsWithDateRange() {
 
-        String after = LocalDate.now(ZoneId.of("Z")).minusDays(15).toString();
-        String before = LocalDate.now(ZoneId.of("Z")).plusDays(15).toString();
+        String start = LocalDate.now(ZoneId.of("Z")).minusDays(15).toString();
+        String end = LocalDate.now(ZoneId.of("Z")).plusDays(15).toString();
 
         // date < after
         Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
         e1.setLaunch(Launch.builder().build());
-        e1.setStartDate(LocalDate.parse(after).minusDays(1).toString());
+        e1.setStartDate(LocalDate.parse(start).minusDays(1).toString());
 
         // date > before
         Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
         e2.setLaunch(Launch.builder().build());
-        e2.setStartDate(LocalDate.parse(before).plusDays(1).toString());
+        e2.setStartDate(LocalDate.parse(end).plusDays(1).toString());
 
         // date = after
         Engagement e3 = MockUtils.mockMinimumEngagement("c3", "p3", "3333");
         e3.setLaunch(Launch.builder().build());
-        e3.setStartDate(after);
+        e3.setStartDate(start);
 
         // date = before
         Engagement e4 = MockUtils.mockMinimumEngagement("c4", "p4", "4444");
         e4.setLaunch(Launch.builder().build());
-        e4.setStartDate(before);
+        e4.setStartDate(end);
 
         // before < date < after
         Engagement e5 = MockUtils.mockMinimumEngagement("c5", "p5", "5555");
@@ -921,13 +924,89 @@ class EngagementRepositoryTest {
 
         // find upcoming
         ListFilterOptions options = new ListFilterOptions();
-        options.addEqualsSearchCriteria("after", after);
-        options.addEqualsSearchCriteria("before", before);
+        options.addEqualsSearchCriteria("start", start);
+        options.addEqualsSearchCriteria("end", end);
         PagedEngagementResults pagedResults = repository.findPagedEngagements(options);
         List<Engagement> results = pagedResults.getResults();
         assertNotNull(results);
-        assertEquals(1, results.size());
-        assertEquals("5555", results.get(0).getUuid());
+        assertEquals(3, results.size());
+
+        List<String> uuidsWithinRange = Arrays.asList("3333", "4444", "5555");
+
+        results.stream().map(Engagement::getUuid).forEach(uuid -> {
+            if(!uuidsWithinRange.contains(uuid)) {
+                fail("uuid " + uuid + " not in valid uuid list " + uuidsWithinRange);
+            }
+        });
+
+    }
+
+    @Test
+    void testGetUserSummaryNoFilter() {
+
+        // region 1, one red hat user, one other user
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
+        EngagementUser user1 = MockUtils.mockEngagementUser("one@redhat.com", "o", "ne", "developer", "11", false);
+        EngagementUser user2 = MockUtils.mockEngagementUser("a@example.com", "a", "a", "developer", "99", false);
+        e1.setRegion("r1");
+        e1.setEngagementUsers(Sets.newHashSet(user1, user2));
+
+        // region 1, one red hat user, same other user, but capital
+        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
+        EngagementUser user3 = MockUtils.mockEngagementUser("two@redhat.com", "t", "wo", "admin", "22", false);
+        EngagementUser user4 = MockUtils.mockEngagementUser("A@example.com", "a", "a", "developer", "88", false);
+        e2.setRegion("r1");
+        e2.setEngagementUsers(Sets.newHashSet(user3, user4));
+
+        // region 2, one red hat user, one other user
+        Engagement e3 = MockUtils.mockMinimumEngagement("c3", "p3", "3333");
+        EngagementUser user5 = MockUtils.mockEngagementUser("three@redhat.com", "t", "hree", "developer", "33", false);
+        EngagementUser user6 = MockUtils.mockEngagementUser("b@example.com", "b", "b", "developer", "77", false);
+        e3.setRegion("r2");
+        e3.setEngagementUsers(Sets.newHashSet(user5, user6));
+
+        repository.persist(e1, e2, e3);
+
+        EngagementUserSummary summary = repository.findEngagementUserSummary(ListFilterOptions.builder().build());
+        assertNotNull(summary);
+        assertEquals(5, summary.getAllUsersCount());
+        assertEquals(3, summary.getRhUsersCount());
+        assertEquals(2, summary.getOtherUsersCount());
+
+    }
+
+    @Test
+    void testGetUserSummaryFiltered() {
+
+        // region 1, one red hat user, one other user
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
+        EngagementUser user1 = MockUtils.mockEngagementUser("one@redhat.com", "o", "ne", "developer", "11", false);
+        EngagementUser user2 = MockUtils.mockEngagementUser("a@example.com", "a", "a", "developer", "99", false);
+        e1.setRegion("r1");
+        e1.setEngagementUsers(Sets.newHashSet(user1, user2));
+
+        // region 1, one red hat user, same other user, but capital
+        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
+        EngagementUser user3 = MockUtils.mockEngagementUser("two@redhat.com", "t", "wo", "admin", "22", false);
+        EngagementUser user4 = MockUtils.mockEngagementUser("A@example.com", "a", "a", "developer", "88", false);
+        e2.setRegion("r1");
+        e2.setEngagementUsers(Sets.newHashSet(user3, user4));
+
+        // region 2, one red hat user, one other user
+        Engagement e3 = MockUtils.mockMinimumEngagement("c3", "p3", "3333");
+        EngagementUser user5 = MockUtils.mockEngagementUser("three@redhat.com", "t", "hree", "developer", "33", false);
+        EngagementUser user6 = MockUtils.mockEngagementUser("b@example.com", "b", "b", "developer", "77", false);
+        e3.setRegion("r2");
+        e3.setEngagementUsers(Sets.newHashSet(user5, user6));
+
+        repository.persist(e1, e2, e3);
+
+        EngagementUserSummary summary = repository
+                .findEngagementUserSummary(ListFilterOptions.builder().search("region=r1").build());
+        assertNotNull(summary);
+        assertEquals(3, summary.getAllUsersCount());
+        assertEquals(2, summary.getRhUsersCount());
+        assertEquals(1, summary.getOtherUsersCount());
 
     }
 

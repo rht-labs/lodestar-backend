@@ -38,7 +38,9 @@ import com.redhat.labs.lodestar.model.filter.SortOrder;
 public class MongoAggregationHelper {
 
     private static final String COUNT = "count";
+    private static final String TOTAL_COUNT = "totalCount";
     private static final String TO_LOWER_QUERY = "$toLower";
+    private static final String ARRAY_ELEMENT_AT = "$arrayElemAt";
 
     private MongoAggregationHelper() {
         throw new IllegalStateException("Utility class");
@@ -48,8 +50,20 @@ public class MongoAggregationHelper {
 
         List<Bson> pipeline = new ArrayList<>();
         pipeline.addAll(queryPipeline(filterOptions));
-        pipeline.addAll(pagingAndLimitFacetPipeline(filterOptions));
+        pipeline.addAll(pagingAndLimitPipeline(filterOptions));
         pipeline.addAll(pagingProjectionPipeline());
+
+        return pipeline;
+
+    }
+
+    public static List<Bson> generatePagedAggregationPipelineForUserSummary(ListFilterOptions filterOptions) {
+
+        List<Bson> pipeline = new ArrayList<>();
+
+        pipeline.addAll(queryPipeline(filterOptions));
+        pipeline.addAll(userSummaryFacets());
+        pipeline.addAll(userSummaryProjection());
 
         return pipeline;
 
@@ -76,7 +90,7 @@ public class MongoAggregationHelper {
 
     }
 
-    static List<Bson> pagingAndLimitFacetPipeline(ListFilterOptions filterOptions) {
+    static List<Bson> pagingAndLimitPipeline(ListFilterOptions filterOptions) {
 
         // create pipeline for paging and limits
         List<Bson> paging = new ArrayList<>();
@@ -89,18 +103,54 @@ public class MongoAggregationHelper {
 
         // Create facets for engagements and total count
         Facet engagements = new Facet("results", paging);
-        Facet count = new Facet("totalCount", count());
+        Facet count = new Facet(TOTAL_COUNT, count());
         Bson facetStage = facet(engagements, count);
 
         return Arrays.asList(facetStage);
 
     }
 
+    static List<Bson> userSummaryFacets() {
+
+        Facet count = new Facet(TOTAL_COUNT, count());
+
+        // match on rh users
+        List<Bson> rhUserPipeline = new ArrayList<>();
+        matchStage(rhUserPipeline, ListFilterOptions.builder().search("email like @redhat.com").build());
+        rhUserPipeline.add(count());
+        Facet rhUsers = new Facet("rhUsers", rhUserPipeline);
+
+        // match on rh users
+        List<Bson> otherUserPipeline = new ArrayList<>();
+        matchStage(otherUserPipeline, ListFilterOptions.builder().search("email not like @redhat.com").build());
+        otherUserPipeline.add(count());
+        Facet otherUsers = new Facet("otherUsers", otherUserPipeline);
+
+        Bson facetStage = facet(count, rhUsers, otherUsers);
+
+        return Arrays.asList(facetStage);
+
+    }
+
+    static List<Bson> userSummaryProjection() {
+
+        Document allUsersCount = new Document(ARRAY_ELEMENT_AT, Arrays.asList("$totalCount.count", 0));
+        Document allUsersCountField = new Document("allUsersCount", allUsersCount);
+        Document rhUsersCount = new Document(ARRAY_ELEMENT_AT, Arrays.asList("$rhUsers.count", 0));
+        Document rhUsersCountField = new Document("rhUsersCount", rhUsersCount);
+        Document otherUsersCount = new Document(ARRAY_ELEMENT_AT, Arrays.asList("$otherUsers.count", 0));
+        Document otherUsersCountField = new Document("otherUsersCount", otherUsersCount);
+
+        Bson summaryProjection = project(fields(allUsersCountField, rhUsersCountField, otherUsersCountField));
+        return Arrays.asList(summaryProjection);
+
+    }
+
     static List<Bson> pagingProjectionPipeline() {
 
         // create documents for paging fields (engagements and totalEngagements)
-        Document d = new Document("$arrayElemAt", Arrays.asList("$totalCount.count", 0));
-        Document countField = new Document("totalCount", d);
+        Document d = new Document(ARRAY_ELEMENT_AT, Arrays.asList("$totalCount.count", 0));
+        Document countField = new Document(TOTAL_COUNT, d);
         Document engagementsField = new Document("results", "$results");
 
         // projection for paging fields
@@ -233,280 +283,5 @@ public class MongoAggregationHelper {
         }
 
     }
-
-//    public static List<Bson> generateAggregationPipeline(ListFilterOptions filterOptions) {
-//
-//        List<Bson> pipeline = new ArrayList<>();
-//
-//        // unwind if required
-//        unwindStage(pipeline, filterOptions);
-//
-//        // set match criteria
-//        matchStage(pipeline, filterOptions);
-//
-//        // add lowercase field and group/count
-//        addLowercaseFieldAndGroupStage(pipeline, filterOptions);
-//
-//        // sort results
-//        sortStage(pipeline, filterOptions);
-//
-//        // enable paging or limits
-//        skipAndLimitStages(pipeline, filterOptions);
-//
-//        // add projection
-//        projectionStage(pipeline, filterOptions);
-//
-//        return pipeline;
-//
-//    }
-//
-//    public static List<Bson> generatePagedAggregationPipeline(ListFilterOptions filterOptions) {
-//
-//        List<Bson> pipeline = new ArrayList<>();
-//        pipeline.addAll(queryPipeline(filterOptions));
-////        pipeline.addAll(pagingAndLimitFacetPipeline(filterOptions));
-////        pipeline.addAll(pagingProjectionPipeline());
-//
-//        return pipeline;
-//
-//    }
-//
-//    public static List<Bson> generatePagedAggregationUnwoundPipeline(ListFilterOptions filterOptions) {
-//
-//        List<Bson> pipeline = new ArrayList<>();
-//        pipeline.addAll(queryPipeline(filterOptions));
-//        pipeline.addAll(pagingAndLimitFacetPipeline(filterOptions));
-//        pipeline.addAll(pagingProjectionPipeline());
-//
-//        return pipeline;
-//
-//    }
-//
-//    private static List<Bson> unwoundQueryPipeline(ListFilterOptions filterOptions) {
-//
-//        // Create pipeline for search and sorting
-//        List<Bson> pipeline = new ArrayList<>();
-//
-//        // unwind if required
-//        unwindStage(pipeline, filterOptions);
-//
-//        // set match criteria
-//        matchStage(pipeline, filterOptions);
-//
-//        // add lowercase field and group/count
-//        addLowercaseFieldAndGroupStage(pipeline, filterOptions);
-//
-//        // sort results
-//        sortStage(pipeline, filterOptions);
-//
-//        return pipeline;
-//
-//    }
-//
-////    private static List<Bson> projectUnwoundFields(ListFilterOptions filterOptions) {
-////
-////        Optional<String> unwindFieldName = filterOptions.getUnwindFieldName();
-////        if (unwindFieldName.isPresent()) {
-////            pipeline.add(unwind(new StringBuilder("$").append(unwindFieldName.get()).toString()));
-////
-////            Optional<String> groupByFieldName = filterOptions.getGroupByFieldName();
-////            if (groupByFieldName.isPresent()) {
-////                String fieldName = groupByFieldName.get();
-////                String nestedFieldName = getNestedFieldName(fieldName);
-////                Document unwound = new Document(nestedFieldName, "$" + fieldName);
-////                pipeline.add(project(fields(excludeId(), unwound)));
-////            }
-////
-////        }
-////
-////    }
-//
-//    private static String getVariableName(String fieldName) {
-//        return new StringBuilder("$").append(fieldName).toString();
-//    }
-//
-//    private static List<Bson> queryPipeline(ListFilterOptions filterOptions) {
-//
-//        // Create pipeline for search and sorting
-//        List<Bson> pipeline = new ArrayList<>();
-//
-//        // unwind if required
-//        unwindStage(pipeline, filterOptions);
-//
-//        // set match criteria
-//        matchStage(pipeline, filterOptions);
-//
-//        // add lowercase field and group/count
-//        addLowercaseFieldAndGroupStage(pipeline, filterOptions);
-//
-//        // sort results
-//        sortStage(pipeline, filterOptions);
-//
-//        return pipeline;
-//
-//    }
-//
-//    private static List<Bson> pagingAndLimitFacetPipeline(ListFilterOptions filterOptions) {
-//
-//        // create pipeline for paging and limits
-//        List<Bson> paging = new ArrayList<>();
-//
-//        // enable paging or limits
-//        skipAndLimitStages(paging, filterOptions);
-//
-//        // add projection
-//        projectionStage(paging, filterOptions);
-//
-//        // Create facets for engagements and total count
-//        Facet engagements = new Facet("results", paging);
-//        Facet count = new Facet("totalCount", count());
-//        Bson facetStage = facet(engagements, count);
-//
-//        return Arrays.asList(facetStage);
-//
-//    }
-//
-//    private static List<Bson> pagingProjectionPipeline() {
-//
-//        // create documents for paging fields (engagements and totalEngagements)
-//        Document d = new Document("$arrayElemAt", Arrays.asList("$totalCount.count", 0));
-//        Document countField = new Document("totalCount", d);
-//        Document engagementsField = new Document("results", "$results");
-//
-//        // projection for paging fields
-//        Bson pageProjection = project(fields(engagementsField, countField));
-//
-//        return Arrays.asList(pageProjection);
-//
-//    }
-//
-//    private static void unwindStage(List<Bson> pipeline, ListFilterOptions filterOptions) {
-//
-//        Optional<String> unwindFieldName = filterOptions.getUnwindFieldName();
-//        if (unwindFieldName.isPresent()) {
-//            pipeline.add(unwind(new StringBuilder("$").append(unwindFieldName.get()).toString()));
-//
-//            Optional<String> groupByFieldName = filterOptions.getGroupByFieldName();
-//            if (groupByFieldName.isPresent()) {
-//                String fieldName = groupByFieldName.get();
-//                String nestedFieldName = getNestedFieldName(fieldName);
-//                Document unwound = new Document(nestedFieldName, "$" + fieldName);
-//                pipeline.add(project(fields(excludeId(), unwound)));
-//            }
-//
-//        }
-//
-//    }
-//
-//    private static void matchStage(List<Bson> pipeline, ListFilterOptions filterOptions) {
-//
-//        Optional<String> search = filterOptions.getSearch();
-//        if (search.isPresent()) {
-//            Optional<Bson> bson = MongoHelper.buildSearchBson(search);
-//            if (bson.isPresent()) {
-//                pipeline.add(match(bson.get()));
-//            }
-//        }
-//
-//    }
-//
-//    private static void addLowercaseFieldAndGroupStage(List<Bson> pipeline, ListFilterOptions filterOptions) {
-//
-//        Optional<String> addFieldName = filterOptions.getGroupByFieldName();
-//        if (addFieldName.isPresent()) {
-//
-//            String fieldName = addFieldName.get();
-//            String fieldNameVar = new StringBuilder("$").append(fieldName).toString();
-//
-//            String toLowerFieldName = getLowercaseFieldName(fieldName, false);
-//            String toLowerFieldNameVar = getLowercaseFieldName(fieldName, true);
-//
-//            Document toLowerDocument = new Document(TO_LOWER_QUERY, fieldNameVar);
-//            pipeline.add(addFields(new Field<>(toLowerFieldName, toLowerDocument)));
-//
-//            // Group by lowercase field and count
-//            BsonField[] fields = new BsonField[] { // Accumulators.addToSet(getNestedFieldName(fieldName),
-//                                                   // fieldNameVar),
-//                    Accumulators.first("root", "$$ROOT"), Accumulators.sum(COUNT, 1) };
-//
-//            pipeline.add(group(toLowerFieldNameVar, fields));
-//
-////            pipeline.add(Aggregates
-////                    .replaceRoot(new Document("$mergeObjects", Arrays.asList("$root", new Document(COUNT, "$count")))));
-//
-//        }
-//
-//    }
-//
-//    public static String getLowercaseFieldName(String fieldName, boolean makeVariableName) {
-//
-//        StringBuilder builder = new StringBuilder();
-//
-//        if (makeVariableName) {
-//            builder.append("$");
-//        }
-//
-//        return builder.append(fieldName).append("-lower").toString();
-//
-//    }
-//
-//    private static void sortStage(List<Bson> pipeline, ListFilterOptions filterOptions) {
-//
-////        Optional<String> groupByNameFieldName = filterOptions.getGroupByFieldName();
-////        List<String> sortFields = groupByNameFieldName.isPresent()
-////                ? Arrays.asList(getLowercaseFieldName(groupByNameFieldName.get(), false))
-////                : filterOptions.getSortFieldsAsList();
-//        List<String> sortFields = filterOptions.getSortFieldsAsList();
-//        Bson sort = sort(MongoHelper.determineSort(filterOptions.getSortOrder().orElse(SortOrder.ASC),
-//                sortFields.toArray(new String[sortFields.size()])));
-//        pipeline.add(sort);
-//
-//    }
-//
-//    private static void skipAndLimitStages(List<Bson> pipeline, ListFilterOptions filterOptions) {
-//
-//        Optional<Integer> page = filterOptions.getPage();
-//        Optional<Integer> perPage = filterOptions.getPerPage();
-//
-//        if (page.isPresent()) {
-//            Integer pageNumber = page.get();
-//            Integer pageSize = perPage.isPresent() ? perPage.get() : 20;
-//            pipeline.add(skip(pageSize * (pageNumber - 1)));
-//            pipeline.add(limit(pageSize));
-//        }
-//
-//    }
-//
-//    private static void projectionStage(List<Bson> pipeline, ListFilterOptions filterOptions) {
-//
-//        Optional<String> groupByField = filterOptions.getGroupByFieldName();
-//        Optional<Set<String>> include = filterOptions.getIncludeList();
-//        Optional<Set<String>> exclude = filterOptions.getExcludeList();
-//
-//        if (include.isPresent() && exclude.isPresent()) {
-//            throw new WebApplicationException("cannot provide both include and exclude parameters", 400);
-//        } else if (include.isPresent()) {
-//            pipeline.add(project(fields(excludeId(), include(List.copyOf(include.get())))));
-//        } else if (exclude.isPresent()) {
-//            pipeline.add(project(fields(excludeId(), exclude(List.copyOf(exclude.get())))));
-//        } else if (groupByField.isPresent()) {
-//            String fieldName = getNestedFieldName(groupByField.get());
-//            pipeline.add(project(fields(excludeId(),
-//                    new Document().append(fieldName, "$" + groupByField.get()).append(COUNT, "$count"))));
-//        } else {
-//            pipeline.add(project(fields(excludeId())));
-//        }
-//
-//    }
-//
-//    private static String getNestedFieldName(String fieldName) {
-//
-//        if (fieldName.contains(".")) {
-//            return fieldName.substring(fieldName.lastIndexOf(".") + 1);
-//        }
-//
-//        return fieldName;
-//
-//    }
 
 }

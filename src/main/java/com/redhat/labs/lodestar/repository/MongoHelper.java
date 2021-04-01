@@ -6,7 +6,9 @@ import static com.mongodb.client.model.Filters.exists;
 import static com.mongodb.client.model.Filters.gt;
 import static com.mongodb.client.model.Filters.gte;
 import static com.mongodb.client.model.Filters.lt;
+import static com.mongodb.client.model.Filters.lte;
 import static com.mongodb.client.model.Filters.regex;
+import static com.mongodb.client.model.Filters.not;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -94,18 +96,21 @@ public class MongoHelper {
             String[] split = component.split("=");
             String fieldName = ClassFieldUtils.getFieldNameFromQueryName(split[0]);
             String value = split[1];
-            if ("after".equals(fieldName)) {
+            if ("start".equals(fieldName)) {
                 return Optional.of(isActiveAfterStart(value));
-            } else if ("before".equals(fieldName)) {
+            } else if ("end".equals(fieldName)) {
                 return Optional.of(isActiveBeforeEnd(value));
             } else {
                 return Optional.of(eq(fieldName, getObjectFromString(fieldName, value)));
             }
         } else if (component.contains("like")) {
-            String[] split = component.trim().split("\\s+like\\s+");
+            boolean notRegex = component.contains("not");
+            String splitRegex = notRegex ? "\\s+not\\s+like\\s+" : "\\s+like\\s+";
+            String[] split = component.trim().split(splitRegex);
             String fieldName = ClassFieldUtils.getFieldNameFromQueryName(split[0]);
             String value = split[1];
-            return Optional.of(regex(fieldName, value, "i"));
+            Bson bson = notRegex ? not(regex(fieldName, value, "i")) : regex(fieldName, value, "i");
+            return Optional.of(bson);
         } else if (component.contains("not") && component.contains(EXISTS)) {
             String fieldName = component.replace("not", "").replace(EXISTS, "").trim();
             return Optional.of(exists(fieldName, false));
@@ -176,16 +181,16 @@ public class MongoHelper {
     static Bson isActiveAfterStart(String start) {
 
         Bson launchExists = launchedBson(true);
-        Bson gt = gt("startDate", start);
-        return and(launchExists, gt);
+        Bson gte = gte("startDate", start);
+        return and(launchExists, gte);
 
     }
 
     static Bson isActiveBeforeEnd(String end) {
 
         Bson launchExists = launchedBson(true);
-        Bson lt = lt("startDate", end);
-        return and(launchExists, lt);
+        Bson lte = lte("startDate", end);
+        return and(launchExists, lte);
 
     }
 

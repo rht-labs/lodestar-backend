@@ -30,6 +30,7 @@ import com.mongodb.client.model.ReturnDocument;
 import com.redhat.labs.lodestar.model.Artifact;
 import com.redhat.labs.lodestar.model.Commit;
 import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.model.EngagementUserSummary;
 import com.redhat.labs.lodestar.model.Status;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
@@ -251,7 +252,8 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
         Optional<PagedEngagementResults> optional = findFirstFromIterable(
                 mongoCollection().aggregate(pipeline, PagedEngagementResults.class));
 
-        PagedEngagementResults results = optional.orElse(PagedEngagementResults.builder().results(Arrays.asList()).build());
+        PagedEngagementResults results = optional
+                .orElse(PagedEngagementResults.builder().results(Arrays.asList()).build());
         results.setCurrentPage(filterOptions.getPage().orElse(1));
         results.setPerPage(filterOptions.getPerPage().orElse(20));
 
@@ -260,7 +262,8 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
     }
 
     /**
-     * Returns {@link PagedEngagementResults} of results for the given {@link ListFilterOptions}.
+     * Returns {@link PagedEngagementResults} of results for the given
+     * {@link ListFilterOptions}.
      * 
      * @param filterOptions
      * @return
@@ -347,8 +350,8 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
 
     public PagedStringResults findArtifactTypes(SimpleFilterOptions options) {
 
-        ListFilterOptions lfo = options.from(ARTIFACTS_TYPE);       
-        
+        ListFilterOptions lfo = options.from(ARTIFACTS_TYPE);
+
         lfo.setUnwindFieldName(Optional.of(ARTIFACTS));
         lfo.setUnwindProjectFieldNames(Optional.of(ARTIFACTS_TYPE));
         lfo.setGroupByFieldName(Optional.of(TYPE));
@@ -375,6 +378,21 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
         }
 
         return results;
+
+    }
+
+    public EngagementUserSummary findEngagementUserSummary(ListFilterOptions filterOptions) {
+
+        filterOptions.setUnwindFieldName(Optional.of("engagementUsers"));
+        filterOptions.setUnwindProjectFieldNames(Optional.of("engagementUsers.email"));
+        filterOptions.setGroupByFieldName(Optional.of("email"));
+        filterOptions.setSortFields("email");
+
+        List<Bson> pipeline = MongoAggregationHelper.generatePagedAggregationPipelineForUserSummary(filterOptions);
+        Optional<EngagementUserSummary> optional = findFirstFromIterable(
+                mongoCollection().aggregate(pipeline, EngagementUserSummary.class));
+
+        return optional.isPresent() ? optional.get() : EngagementUserSummary.builder().build();
 
     }
 
