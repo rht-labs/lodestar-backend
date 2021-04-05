@@ -507,9 +507,9 @@ class EngagementServiceTest {
     @ValueSource(strings = { "  " })
     void testGetAllNoCategorySpecified(String categories) {
 
-        service.getAll(new ListFilterOptions());
+        service.getEngagementsPaged(new ListFilterOptions());
 
-        Mockito.verify(repository).findAll(new ListFilterOptions());
+        Mockito.verify(repository).findPagedEngagements(new ListFilterOptions());
         Mockito.verify(repository, Mockito.times(0)).findCategories(new SimpleFilterOptions());
 
     }
@@ -519,9 +519,9 @@ class EngagementServiceTest {
 
         ListFilterOptions options = new ListFilterOptions();
         options.setSuggestFieldName(Optional.of("hello"));
-        service.getAll(options);
+        service.getEngagementsPaged(options);
 
-        Mockito.verify(repository).findAll(options);
+        Mockito.verify(repository).findPagedEngagements(options);
 
     }
 

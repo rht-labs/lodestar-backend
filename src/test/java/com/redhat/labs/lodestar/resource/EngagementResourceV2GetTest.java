@@ -66,15 +66,16 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
             .oauth2(token)
             .contentType(ContentType.JSON)
             .params(populateAllListFilterQueryParams())
+            .header("Accept-version", "v2")
         .when()
-            .get("api/v2/engagements")
+            .get("engagements")
         .then()
             .statusCode(200)
             .header("x-per-page", "20")
             .header("x-current-page", "1")
             .header("x-first-page", "1")
             .header("x-last-page", "1")
-            .header("link", "<http://localhost:8081/api/v2/engagements>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
+            .header("link", "<http://localhost:8081/engagements>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
 
         ArgumentCaptor<ListFilterOptions> ac = ArgumentCaptor.forClass(ListFilterOptions.class);
         Mockito.verify(eRepository).findPagedEngagements(ac.capture());
@@ -102,15 +103,16 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
             .auth()
             .oauth2(token)
             .contentType(ContentType.JSON)
+            .header("Accept-version", "v2")
         .when()
-            .get("api/v2/engagements")
+            .get("engagements")
         .then()
             .statusCode(200)
             .header("x-per-page", "20")
             .header("x-current-page", "1")
             .header("x-first-page", "1")
             .header("x-last-page", "1")
-            .header("link", "<http://localhost:8081/api/v2/engagements>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
+            .header("link", "<http://localhost:8081/engagements>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
 
         ArgumentCaptor<ListFilterOptions> ac = ArgumentCaptor.forClass(ListFilterOptions.class);
         Mockito.verify(eRepository).findPagedEngagements(ac.capture());
@@ -139,15 +141,16 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
             .oauth2(token)
             .contentType(ContentType.JSON)
             .params(populateSimpleFilterOptions())
+            .header("Accept-version", "v2")
         .when()
-            .get("api/v2/engagements/customers")
+            .get("engagements/customers/suggest")
         .then()
             .statusCode(200)
             .header("x-per-page", "20")
             .header("x-current-page", "1")
             .header("x-first-page", "1")
             .header("x-last-page", "1")
-            .header("link", "<http://localhost:8081/api/v2/engagements/customers>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
+            .header("link", "<http://localhost:8081/engagements/customers/suggest>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
 
         ArgumentCaptor<SimpleFilterOptions> ac = ArgumentCaptor.forClass(SimpleFilterOptions.class);
         Mockito.verify(eRepository).findCustomerSuggestions(ac.capture());
@@ -173,15 +176,16 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
             .auth()
             .oauth2(token)
             .contentType(ContentType.JSON)
+            .header("Accept-version", "v2")
         .when()
-            .get("api/v2/engagements/customers")
+            .get("engagements/customers/suggest")
         .then()
             .statusCode(200)
             .header("x-per-page", "20")
             .header("x-current-page", "1")
             .header("x-first-page", "1")
             .header("x-last-page", "1")
-            .header("link", "<http://localhost:8081/api/v2/engagements/customers>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
+            .header("link", "<http://localhost:8081/engagements/customers/suggest>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
 
         ArgumentCaptor<SimpleFilterOptions> ac = ArgumentCaptor.forClass(SimpleFilterOptions.class);
         Mockito.verify(eRepository).findCustomerSuggestions(ac.capture());
@@ -208,15 +212,16 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
             .oauth2(token)
             .contentType(ContentType.JSON)
             .params(populateSimpleFilterOptions())
+            .header("Accept-version", "v2")
         .when()
-            .get("api/v2/engagements/artifact/types")
+            .get("engagements/artifact/types")
         .then()
             .statusCode(200)
             .header("x-per-page", "20")
             .header("x-current-page", "1")
             .header("x-first-page", "1")
             .header("x-last-page", "1")
-            .header("link", "<http://localhost:8081/api/v2/engagements/artifact/types>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
+            .header("link", "<http://localhost:8081/engagements/artifact/types>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
 
         ArgumentCaptor<SimpleFilterOptions> ac = ArgumentCaptor.forClass(SimpleFilterOptions.class);
         Mockito.verify(eRepository).findArtifactTypes(ac.capture());
@@ -242,15 +247,16 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
             .auth()
             .oauth2(token)
             .contentType(ContentType.JSON)
+            .header("Accept-version", "v2")
         .when()
-            .get("api/v2/engagements/artifact/types")
+            .get("engagements/artifact/types")
         .then()
             .statusCode(200)
             .header("x-per-page", "20")
             .header("x-current-page", "1")
             .header("x-first-page", "1")
             .header("x-last-page", "1")
-            .header("link", "<http://localhost:8081/api/v2/engagements/artifact/types>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
+            .header("link", "<http://localhost:8081/engagements/artifact/types>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
 
         ArgumentCaptor<SimpleFilterOptions> ac = ArgumentCaptor.forClass(SimpleFilterOptions.class);
         Mockito.verify(eRepository).findArtifactTypes(ac.capture());
@@ -277,15 +283,16 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
             .oauth2(token)
             .contentType(ContentType.JSON)
             .params(populateSimpleFilterOptions())
+            .header("Accept-version", "v2")
         .when()
-            .get("api/v2/engagements/categories")
+            .get("engagements/categories")
         .then()
             .statusCode(200)
             .header("x-per-page", "20")
             .header("x-current-page", "1")
             .header("x-first-page", "1")
             .header("x-last-page", "1")
-            .header("link", "<http://localhost:8081/api/v2/engagements/categories>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
+            .header("link", "<http://localhost:8081/engagements/categories>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
 
         ArgumentCaptor<SimpleFilterOptions> ac = ArgumentCaptor.forClass(SimpleFilterOptions.class);
         Mockito.verify(eRepository).findCategories(ac.capture());
@@ -311,15 +318,16 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
             .auth()
             .oauth2(token)
             .contentType(ContentType.JSON)
+            .header("Accept-version", "v2")
         .when()
-            .get("api/v2/engagements/categories")
+            .get("engagements/categories")
         .then()
             .statusCode(200)
             .header("x-per-page", "20")
             .header("x-current-page", "1")
             .header("x-first-page", "1")
             .header("x-last-page", "1")
-            .header("link", "<http://localhost:8081/api/v2/engagements/categories>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
+            .header("link", "<http://localhost:8081/engagements/categories>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
 
         ArgumentCaptor<SimpleFilterOptions> ac = ArgumentCaptor.forClass(SimpleFilterOptions.class);
         Mockito.verify(eRepository).findCategories(ac.capture());
@@ -345,15 +353,16 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
             .auth()
             .oauth2(token)
             .contentType(ContentType.JSON)
+            .header("Accept-version", "v2")
         .when()
-            .get("api/v2/engagements/state/active")
+            .get("engagements/state/active")
         .then()
             .statusCode(200)
             .header("x-per-page", "20")
             .header("x-current-page", "1")
             .header("x-first-page", "1")
             .header("x-last-page", "1")
-            .header("link", "<http://localhost:8081/api/v2/engagements/state/active>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
+            .header("link", "<http://localhost:8081/engagements/state/active>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
 
         ArgumentCaptor<ListFilterOptions> ac = ArgumentCaptor.forClass(ListFilterOptions.class);
         Mockito.verify(eRepository).findPagedEngagements(ac.capture());
@@ -384,15 +393,16 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
             .oauth2(token)
             .contentType(ContentType.JSON)
             .param("today", date)
+            .header("Accept-version", "v2")
         .when()
-            .get("api/v2/engagements/state/active")
+            .get("engagements/state/active")
         .then()
             .statusCode(200)
             .header("x-per-page", "20")
             .header("x-current-page", "1")
             .header("x-first-page", "1")
             .header("x-last-page", "1")
-            .header("link", "<http://localhost:8081/api/v2/engagements/state/active>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
+            .header("link", "<http://localhost:8081/engagements/state/active>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
 
         ArgumentCaptor<ListFilterOptions> ac = ArgumentCaptor.forClass(ListFilterOptions.class);
         Mockito.verify(eRepository).findPagedEngagements(ac.capture());

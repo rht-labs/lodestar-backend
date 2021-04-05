@@ -479,7 +479,7 @@ class EngagementRepositoryTest {
         Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
         repository.persist(e1);
 
-        PagedEngagementResults pagedResults = repository.findAll(new ListFilterOptions());
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(new ListFilterOptions());
         List<Engagement> results = pagedResults.getResults();
         assertEquals(1, results.size());
 
@@ -494,7 +494,7 @@ class EngagementRepositoryTest {
         ListFilterOptions fo = new ListFilterOptions();
         fo.setInclude("uuid");
 
-        PagedEngagementResults pagedResults = repository.findAll(fo);
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
         List<Engagement> results = pagedResults.getResults();
         assertEquals(1, results.size());
 
@@ -514,7 +514,7 @@ class EngagementRepositoryTest {
         ListFilterOptions fo = new ListFilterOptions();
         fo.setExclude("uuid");
 
-        PagedEngagementResults pagedResults = repository.findAll(fo);
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
         List<Engagement> results = pagedResults.getResults();
         assertEquals(1, results.size());
 
@@ -535,12 +535,12 @@ class EngagementRepositoryTest {
         ListFilterOptions fo = new ListFilterOptions();
         fo.setSearch("customer_name=c1");
 
-        PagedEngagementResults pagedResults = repository.findAll(fo);
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
         List<Engagement> results = pagedResults.getResults();
         assertEquals(1, results.size());
 
         fo.setSearch("customer_name=C1");
-        pagedResults = repository.findAll(fo);
+        pagedResults = repository.findPagedEngagements(fo);
         results = pagedResults.getResults();
         assertEquals(0, results.size());
 
@@ -556,12 +556,12 @@ class EngagementRepositoryTest {
         ListFilterOptions fo = new ListFilterOptions();
         fo.setSearch("customer_name like C");
 
-        PagedEngagementResults pagedResults = repository.findAll(fo);
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
         List<Engagement> results = pagedResults.getResults();
         assertEquals(2, results.size());
 
         fo.setSearch("customer_name=e");
-        pagedResults = repository.findAll(fo);
+        pagedResults = repository.findPagedEngagements(fo);
         results = pagedResults.getResults();
         assertEquals(0, results.size());
 
@@ -577,7 +577,7 @@ class EngagementRepositoryTest {
         ListFilterOptions fo = new ListFilterOptions();
         fo.setSearch("exists launch");
 
-        PagedEngagementResults pagedResults = repository.findAll(fo);
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
         List<Engagement> results = pagedResults.getResults();
         assertEquals(1, results.size());
 
@@ -592,7 +592,7 @@ class EngagementRepositoryTest {
         ListFilterOptions fo = new ListFilterOptions();
         fo.setSearch("not exists launch");
 
-        PagedEngagementResults pagedResults = repository.findAll(fo);
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
         List<Engagement> results = pagedResults.getResults();
         assertEquals(1, results.size());
 
@@ -611,7 +611,7 @@ class EngagementRepositoryTest {
         ListFilterOptions fo = new ListFilterOptions();
         fo.setSortOrder(SortOrder.ASC);
 
-        PagedEngagementResults pagedResults = repository.findAll(fo);
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
         List<Engagement> results = pagedResults.getResults();
         assertEquals(3, results.size());
 
@@ -623,14 +623,14 @@ class EngagementRepositoryTest {
         assertEquals("c5", results.get(2).getProjectName());
 
         fo.setSearch("customer_name=e");
-        pagedResults = repository.findAll(fo);
+        pagedResults = repository.findPagedEngagements(fo);
         results = pagedResults.getResults();
         assertEquals(0, results.size());
 
         fo = new ListFilterOptions();
         fo.setSortOrder(SortOrder.DESC);
 
-        pagedResults = repository.findAll(fo);
+        pagedResults = repository.findPagedEngagements(fo);
         results = pagedResults.getResults();
         assertEquals(3, results.size());
 
@@ -642,7 +642,7 @@ class EngagementRepositoryTest {
         assertEquals("c3", results.get(2).getProjectName());
 
         fo.setSearch("customer_name=e");
-        pagedResults = repository.findAll(fo);
+        pagedResults = repository.findPagedEngagements(fo);
         results = pagedResults.getResults();
         assertEquals(0, results.size());
 
@@ -660,7 +660,7 @@ class EngagementRepositoryTest {
         fo.setSortOrder(SortOrder.ASC);
         fo.setSortFields("uuid");
 
-        PagedEngagementResults pagedResults = repository.findAll(fo);
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
         List<Engagement> results = pagedResults.getResults();
         assertEquals(3, results.size());
 
@@ -669,7 +669,7 @@ class EngagementRepositoryTest {
         assertEquals("4321", results.get(2).getUuid());
 
         fo.setSearch("customer_name=e");
-        pagedResults = repository.findAll(fo);
+        pagedResults = repository.findPagedEngagements(fo);
         results = pagedResults.getResults();
         assertEquals(0, results.size());
 
@@ -677,7 +677,7 @@ class EngagementRepositoryTest {
         fo.setSortOrder(SortOrder.DESC);
         fo.setSortFields("uuid");
 
-        pagedResults = repository.findAll(fo);
+        pagedResults = repository.findPagedEngagements(fo);
         results = pagedResults.getResults();
         assertEquals(3, results.size());
 
@@ -686,7 +686,7 @@ class EngagementRepositoryTest {
         assertEquals("1111", results.get(2).getUuid());
 
         fo.setSearch("customer_name=e");
-        pagedResults = repository.findAll(fo);
+        pagedResults = repository.findPagedEngagements(fo);
         results = pagedResults.getResults();
         assertEquals(0, results.size());
 
@@ -708,7 +708,7 @@ class EngagementRepositoryTest {
         fo.setPage(1);
         fo.setPerPage(1);
 
-        PagedEngagementResults pagedResults = repository.findAll(fo);
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
         List<Engagement> results = pagedResults.getResults();
         assertEquals(1, results.size());
         assertEquals("c1", results.get(0).getCustomerName());
@@ -718,7 +718,7 @@ class EngagementRepositoryTest {
         fo.setPage(2);
         fo.setPerPage(1);
 
-        pagedResults = repository.findAll(fo);
+        pagedResults = repository.findPagedEngagements(fo);
         results = pagedResults.getResults();
         assertEquals(1, results.size());
         assertEquals("c2", results.get(0).getCustomerName());
@@ -728,7 +728,7 @@ class EngagementRepositoryTest {
         fo.setPage(3);
         fo.setPerPage(1);
 
-        pagedResults = repository.findAll(fo);
+        pagedResults = repository.findPagedEngagements(fo);
         results = pagedResults.getResults();
         assertEquals(1, results.size());
         assertEquals("c2", results.get(0).getCustomerName());
@@ -739,7 +739,7 @@ class EngagementRepositoryTest {
         fo.setPage(1);
         fo.setPerPage(2);
 
-        pagedResults = repository.findAll(fo);
+        pagedResults = repository.findPagedEngagements(fo);
         results = pagedResults.getResults();
         assertEquals(2, results.size());
 

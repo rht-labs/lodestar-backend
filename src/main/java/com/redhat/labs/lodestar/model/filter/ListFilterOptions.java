@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.QueryParam;
 
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
@@ -25,7 +26,11 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = true)
 public class ListFilterOptions extends FilterOptions {
 
-    @Parameter(name = "search", required = false, description = "search string used to query engagements.  allows =, like, not exists, exists")
+    @Parameter(name = "Accept-version", required = false, description = "Valid Values are 'v1' or 'v2'. v2 pages results by default.  v1 sets per page to 500.")
+    @HeaderParam(value = "Accept-version")
+    String apiVersion;
+
+    @Parameter(name = "search", required = false, description = "search string used to query engagements.  allows =, not like, like, not exists, exists")
     @QueryParam("search")
     private String search;
 
@@ -44,6 +49,12 @@ public class ListFilterOptions extends FilterOptions {
     @Parameter(name = "perPage", required = false, description = "number of results per page to return")
     @QueryParam("perPage")
     private Integer perPage;
+
+    @Deprecated
+    @Parameter(name = "categories", required = false, description = "filter based on category names.  Use search instead.")
+    @QueryParam("categories")
+    private String categories;
+    
 
     @Builder.Default
     private Optional<String> suggestFieldName = Optional.empty();

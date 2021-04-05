@@ -238,30 +238,6 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
      */
 
     /**
-     * Returns all {@link Engagement}s.
-     * 
-     * If FilterOptions is provided, the associated projection will be used.
-     * Otherwise, all fields will be returned.
-     * 
-     * @param filterOptions
-     * @return
-     */
-    public PagedEngagementResults findAll(ListFilterOptions filterOptions) {
-
-        List<Bson> pipeline = MongoAggregationHelper.generatePagedAggregationPipeline(filterOptions);
-        Optional<PagedEngagementResults> optional = findFirstFromIterable(
-                mongoCollection().aggregate(pipeline, PagedEngagementResults.class));
-
-        PagedEngagementResults results = optional
-                .orElse(PagedEngagementResults.builder().results(Arrays.asList()).build());
-        results.setCurrentPage(filterOptions.getPage().orElse(1));
-        results.setPerPage(filterOptions.getPerPage().orElse(20));
-
-        return results;
-
-    }
-
-    /**
      * Returns {@link PagedEngagementResults} of results for the given
      * {@link ListFilterOptions}.
      * 

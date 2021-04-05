@@ -26,6 +26,7 @@ import com.redhat.labs.lodestar.model.Commit;
 import com.redhat.labs.lodestar.model.CreationDetails;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.EngagementUser;
+import com.redhat.labs.lodestar.model.EngagementUserSummary;
 import com.redhat.labs.lodestar.model.Hook;
 import com.redhat.labs.lodestar.model.HostingEnvironment;
 import com.redhat.labs.lodestar.model.Launch;
@@ -565,23 +566,25 @@ public class EngagementService {
     }
 
     /**
-     * Returns a {@link List} of all {@link Engagement} in the data store.
-     * 
-     * @return
-     */
-    public PagedEngagementResults getAll(ListFilterOptions filterOptions) {
-        return repository.findAll(filterOptions);
-    }
-
-    /**
-     * Returns a {@link PagedEngagementResults} of {@link Engagement} that matches the
-     * {@link ListFilterOptions}.
+     * Returns a {@link PagedEngagementResults} of {@link Engagement} that matches
+     * the {@link ListFilterOptions}.
      * 
      * @param listFilterOptions
      * @return
      */
     public PagedEngagementResults getEngagementsPaged(ListFilterOptions listFilterOptions) {
         return repository.findPagedEngagements(listFilterOptions);
+    }
+
+    /**
+     * Returns a {@link EngagementUserSummary} given the supplied
+     * {@link ListFilterOptions}.
+     * 
+     * @param listFilterOptions
+     * @return
+     */
+    public EngagementUserSummary getUserSummary(ListFilterOptions listFilterOptions) {
+        return repository.findEngagementUserSummary(listFilterOptions);
     }
 
     /**
