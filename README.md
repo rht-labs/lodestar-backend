@@ -106,12 +106,15 @@ The following parameters are supported:
 
 ### Status
 
-Application component status information
-External notifications of status changes to allow db to be updated
+The `status` resource exposes endpoints providing two main functionalities:
+
+1. Application component status data
+2. Webhook APIs to allow for updates to the database triggered from external changes.
 
 ### Version
 
-application component versions
+The `version` resource exposes endpoints to retrieve application component versions.
+
 
 ----
 
