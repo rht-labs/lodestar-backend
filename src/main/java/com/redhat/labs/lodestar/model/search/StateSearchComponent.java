@@ -1,11 +1,13 @@
 package com.redhat.labs.lodestar.model.search;
 
+import static com.mongodb.client.model.Filters.or;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.exists;
 import static com.mongodb.client.model.Filters.gt;
 import static com.mongodb.client.model.Filters.gte;
 import static com.mongodb.client.model.Filters.lt;
 import static com.mongodb.client.model.Filters.lte;
+import static com.mongodb.client.model.Filters.eq;
 
 import java.util.Optional;
 
@@ -85,9 +87,17 @@ public class StateSearchComponent extends RangeSearchComponent {
     }
 
     private Bson createUpcomingBson() {
+
+        // start date null or does not exist
+        Bson startDateDoesNotExist = exists(START_DATE, false);
+        Bson startDateIsNull = eq(START_DATE, null);
+
+        // start date between range start/end
         Bson startDateGteEnd = gte(START_DATE, super.getStart());
         Bson startDateLteEnd = lte(START_DATE, super.getEnd());
-        return and(startDateGteEnd, startDateLteEnd);
+        Bson betweenRangeStartOrEnd = and(startDateGteEnd, startDateLteEnd);
+
+        return or(startDateDoesNotExist, startDateIsNull, betweenRangeStartOrEnd);
 
     }
 

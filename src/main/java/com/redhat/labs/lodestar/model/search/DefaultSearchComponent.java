@@ -119,9 +119,11 @@ public class DefaultSearchComponent implements BsonSearchComponent {
         } else if (isNotLikeOperator()) {
             return Optional.of(not(regex(attributeName, attributeValue, "i")));
         } else if (isExistsOperator()) {
-            return Optional.of(exists(attributeName, true));
+            Bson existsOrNotNull = or(exists(attributeName, true), not(eq(attributeName, null)));
+            return Optional.of(existsOrNotNull);
         } else if (isNotExistsOperator()) {
-            return Optional.of(exists(attributeName, false));
+            Bson doesNotExistOrIsNull = or(exists(attributeName, false), eq(attributeName, null));
+            return Optional.of(doesNotExistOrIsNull);
         } else {
             return Optional.empty();
         }

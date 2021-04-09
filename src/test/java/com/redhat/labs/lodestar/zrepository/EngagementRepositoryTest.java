@@ -743,13 +743,16 @@ class EngagementRepositoryTest {
         assertEquals(2, results.size());
 
     }
-
+    
     @Test
     void testGetEngagementsByStateUpcoming() {
 
         String state = "upcoming";
         String rangeStartDate = "2020-01-01";
         String rangeEndDate = "2020-06-01";
+
+        // start is null
+        Engagement e0 = MockUtils.mockMinimumEngagement("c0", "p0", "0000");
 
         // start before range start
         Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
@@ -771,7 +774,7 @@ class EngagementRepositoryTest {
         Engagement e5 = MockUtils.mockMinimumEngagement("c5", "p5", "5555");
         setEngagementState(e5, EngagementState.UPCOMING, rangeEndDate, DateAdjustment.AFTER);
 
-        repository.persist(e1, e2, e3, e4, e5);
+        repository.persist(e0, e1, e2, e3, e4, e5);
 
         String searchString = new StringBuilder("state=").append(state).append("&start=").append(rangeStartDate)
                 .append("&end=").append(rangeEndDate).toString();
@@ -780,7 +783,7 @@ class EngagementRepositoryTest {
         PagedEngagementResults pagedResults = repository.findPagedEngagements(options);
         List<Engagement> results = pagedResults.getResults();
         assertNotNull(results);
-        assertEquals(3, results.size());
+        assertEquals(4, results.size());
 
         List<String> invalidUuids = Arrays.asList("1111", "5555");
         Optional<String> fail = results.stream().map(Engagement::getUuid).filter(u -> invalidUuids.contains(u))
