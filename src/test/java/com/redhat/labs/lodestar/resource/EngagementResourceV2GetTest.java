@@ -354,6 +354,8 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
             .oauth2(token)
             .contentType(ContentType.JSON)
             .header("Accept-version", "v2")
+            .queryParam("start", "2000-01-01")
+            .queryParam("end","2100-01-01")
         .when()
             .get("engagements/state/active")
         .then()
@@ -369,47 +371,7 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
 
         ListFilterOptions captured = ac.getValue();
         assertNull(captured.getInclude());
-        assertEquals("state=active", captured.getSearch().get());
-        assertEquals(Optional.empty(), captured.getSortOrder());
-        assertEquals(Optional.empty(), captured.getSortFields());
-        assertEquals(PAGE_VALUE, captured.getPage().get());
-        assertEquals(PER_PAGE_VALUE, captured.getPerPage().get());
-
-    }
-
-    @Test
-    void testGetEngagementsByStateWithToday() throws Exception {
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
-
-        PagedEngagementResults results = PagedEngagementResults.builder().results(Lists.newArrayList()).build();
-        Mockito.when(eRepository.findPagedEngagements(Mockito.any(ListFilterOptions.class))).thenReturn(results);
-
-        String date = LocalDate.now().toString();
-
-        given()
-            .auth()
-            .oauth2(token)
-            .contentType(ContentType.JSON)
-            .param("today", date)
-            .header("Accept-version", "v2")
-        .when()
-            .get("engagements/state/active")
-        .then()
-            .statusCode(200)
-            .header("x-per-page", "20")
-            .header("x-current-page", "1")
-            .header("x-first-page", "1")
-            .header("x-last-page", "1")
-            .header("link", "<http://localhost:8081/engagements/state/active>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
-
-        ArgumentCaptor<ListFilterOptions> ac = ArgumentCaptor.forClass(ListFilterOptions.class);
-        Mockito.verify(eRepository).findPagedEngagements(ac.capture());
-
-        ListFilterOptions captured = ac.getValue();
-        assertNull(captured.getInclude());
-        assertEquals("state=active&today="+date, captured.getSearch().get());
+        assertEquals("state=active&start=2000-01-01&end=2100-01-01", captured.getSearch().get());
         assertEquals(Optional.empty(), captured.getSortOrder());
         assertEquals(Optional.empty(), captured.getSortFields());
         assertEquals(PAGE_VALUE, captured.getPage().get());
