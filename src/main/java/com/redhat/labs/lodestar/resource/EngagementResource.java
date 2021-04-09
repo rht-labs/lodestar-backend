@@ -5,6 +5,7 @@ import java.util.Optional;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.validation.Valid;
+import javax.validation.constraints.NotBlank;
 import javax.ws.rs.BeanParam;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
@@ -30,6 +31,7 @@ import org.eclipse.microprofile.metrics.annotation.Counted;
 import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SecuritySchemeType;
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
@@ -202,7 +204,9 @@ public class EngagementResource {
     @Counted(name = "engagement-get-all-by-state-counted")
     @Timed(name = "engagement-get-all--by-state-timer", unit = MetricUnits.MILLISECONDS)
     public Response getByState(@Context UriInfo uriInfo, @PathParam("state") String state,
-            @QueryParam("today") String today, @BeanParam ListFilterOptions filterOptions) {
+            @Parameter(name = "start", required = true, description = "start date of range") @NotBlank @QueryParam("start") String start,
+            @Parameter(name = "end", required = true, description = "end date of range") @NotBlank @QueryParam("end") String end,
+            @BeanParam ListFilterOptions filterOptions) {
 
         // set defaults for paging if not already set
         setDefaultPagingFilterOptions(filterOptions);
@@ -210,9 +214,11 @@ public class EngagementResource {
         // set state parameter
         filterOptions.addEqualsSearchCriteria("state", state);
 
-        if (null != today) {
-            filterOptions.addEqualsSearchCriteria("today", today);
-        }
+        // set start parameter
+        filterOptions.addEqualsSearchCriteria("start", start);
+
+        // set end parameter
+        filterOptions.addEqualsSearchCriteria("end", end);
 
         PagedEngagementResults page = engagementService.getEngagementsPaged(filterOptions);
         ResponseBuilder builder = Response.ok(page.getResults()).links(page.getLinks(uriInfo.getAbsolutePathBuilder()));
