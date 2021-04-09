@@ -1,9 +1,15 @@
 package com.redhat.labs.lodestar.util;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import javax.ws.rs.WebApplicationException;
 
 public class ClassFieldUtils {
 
@@ -49,6 +55,76 @@ public class ClassFieldUtils {
         }
 
         return snakeToCamelCase(name);
+
+    }
+
+    /**
+     * Determines the type of the given field name and then creates an instance of
+     * that type for the provided value.
+     * 
+     * @param fieldName
+     * @param value
+     * @return
+     */
+    public static Object getObjectFromString(Class<?> parentClazz, String fieldName, String value) {
+
+        Class<?> clazz = getTypeFromFieldName(parentClazz, fieldName);
+        if (null == clazz) {
+            throw new WebApplicationException("could not get class for engagement.", 500);
+        }
+        try {
+            Constructor<?> constructor = clazz.getConstructor(String.class);
+            return constructor.newInstance(value);
+        } catch (Exception e) {
+            throw new WebApplicationException(
+                    "cannot create instance of " + clazz.getName() + ", error = " + e.getMessage(), 400);
+        }
+    }
+
+    /**
+     * Returns the type associated to the given fieldName.
+     * 
+     * @param clazz
+     * @param fieldName
+     * @return
+     */
+    static Class<?> getTypeFromFieldName(Class<?> clazz, String fieldName) {
+
+        if (null == fieldName) {
+            return null;
+        }
+
+        String current = fieldName;
+        String nested = null;
+
+        if (current.contains(".")) {
+            current = fieldName.substring(0, fieldName.indexOf("."));
+            nested = fieldName.substring(fieldName.indexOf(".") + 1);
+        }
+
+        try {
+
+            Field f = clazz.getDeclaredField(current);
+            Class<?> fieldClass = f.getType();
+
+            if (nested == null) {
+                return fieldClass;
+            }
+
+            Class<?> nextClass = f.getType();
+            Type type = f.getGenericType();
+            if (type instanceof ParameterizedType) {
+                ParameterizedType pt = (ParameterizedType) type;
+                if (pt.getActualTypeArguments().length == 1) {
+                    Type t = pt.getActualTypeArguments()[0];
+                    nextClass = Class.forName(t.getTypeName());
+                }
+            }
+            return getTypeFromFieldName(nextClass, nested);
+
+        } catch (Exception e) {
+            throw new WebApplicationException(String.format("invalid field %s on %s", fieldName, clazz.getName()), 400);
+        }
 
     }
 

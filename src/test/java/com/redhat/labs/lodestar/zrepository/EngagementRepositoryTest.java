@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -28,7 +27,6 @@ import com.redhat.labs.lodestar.model.EngagementUserSummary;
 import com.redhat.labs.lodestar.model.HostingEnvironment;
 import com.redhat.labs.lodestar.model.Launch;
 import com.redhat.labs.lodestar.model.Status;
-import com.redhat.labs.lodestar.model.filter.EngagementState;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.model.filter.SimpleFilterOptions;
@@ -36,6 +34,7 @@ import com.redhat.labs.lodestar.model.filter.SortOrder;
 import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
 import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
+import com.redhat.labs.lodestar.model.search.EngagementState;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
 import com.redhat.labs.lodestar.utils.EmbeddedMongoTest;
 import com.redhat.labs.lodestar.utils.MockUtils;
@@ -575,7 +574,7 @@ class EngagementRepositoryTest {
         repository.persist(e1);
 
         ListFilterOptions fo = new ListFilterOptions();
-        fo.setSearch("exists launch");
+        fo.setSearch("launch exists");
 
         PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
         List<Engagement> results = pagedResults.getResults();
@@ -746,198 +745,277 @@ class EngagementRepositoryTest {
     }
 
     @Test
-    void testGetEngagementsByState() {
+    void testGetEngagementsByStateUpcoming() {
 
-        // upcoming
+        String state = "upcoming";
+        String rangeStartDate = "2020-01-01";
+        String rangeEndDate = "2020-06-01";
+
+        // start before range start
         Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
-        setEngagementState(e1, EngagementState.UPCOMING, Optional.empty());
-        // active
+        setEngagementState(e1, EngagementState.UPCOMING, rangeStartDate, DateAdjustment.BEFORE);
+
+        // start on range start
         Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
-        setEngagementState(e2, EngagementState.ACTIVE, Optional.empty());
-        // past
+        setEngagementState(e2, EngagementState.UPCOMING, rangeStartDate, DateAdjustment.ON);
+
+        // start between range start and range end
         Engagement e3 = MockUtils.mockMinimumEngagement("c3", "p3", "3333");
-        setEngagementState(e3, EngagementState.PAST, Optional.empty());
-        // past/terminating
+        setEngagementState(e3, EngagementState.UPCOMING, rangeStartDate, DateAdjustment.AFTER);
+
+        // start on range end
         Engagement e4 = MockUtils.mockMinimumEngagement("c4", "p4", "4444");
-        setEngagementState(e4, EngagementState.TERMINATING, Optional.empty());
-        repository.persist(e1, e2, e3, e4);
+        setEngagementState(e4, EngagementState.UPCOMING, rangeEndDate, DateAdjustment.ON);
 
-        // find upcoming
-        ListFilterOptions options = new ListFilterOptions();
-        options.addEqualsSearchCriteria("state", "upcoming");
-        PagedEngagementResults pagedResults = repository.findPagedEngagements(options);
-        List<Engagement> results = pagedResults.getResults();
-        assertNotNull(results);
-        assertEquals(1, results.size());
-        assertEquals("1111", results.get(0).getUuid());
-
-        // find active
-        options = new ListFilterOptions();
-        options.addEqualsSearchCriteria("state", "active");
-        pagedResults = repository.findPagedEngagements(options);
-        results = pagedResults.getResults();
-        assertNotNull(results);
-        assertEquals(1, results.size());
-        assertEquals("2222", results.get(0).getUuid());
-
-        // find terminating
-        options = new ListFilterOptions();
-        options.addEqualsSearchCriteria("state", "terminating");
-        pagedResults = repository.findPagedEngagements(options);
-        results = pagedResults.getResults();
-        assertNotNull(results);
-        assertEquals(1, results.size());
-        assertEquals("4444", results.get(0).getUuid());
-
-        // find active
-        options = new ListFilterOptions();
-        options.addEqualsSearchCriteria("state", "past");
-        pagedResults = repository.findPagedEngagements(options);
-        results = pagedResults.getResults();
-        assertNotNull(results);
-        assertEquals(2, results.size());
-
-    }
-
-    @Test
-    void testGetEngagementsByStateWithToday() {
-
-        // upcoming
-        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
-        setEngagementState(e1, EngagementState.UPCOMING, Optional.empty());
-        // active
-        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
-        setEngagementState(e2, EngagementState.ACTIVE, Optional.empty());
-        // past
-        Engagement e3 = MockUtils.mockMinimumEngagement("c3", "p3", "3333");
-        setEngagementState(e3, EngagementState.PAST, Optional.empty());
-        // past/terminating
-        Engagement e4 = MockUtils.mockMinimumEngagement("c4", "p4", "4444");
-        setEngagementState(e4, EngagementState.TERMINATING, Optional.empty());
-        repository.persist(e1, e2, e3, e4);
-
-        // find upcoming
-        ListFilterOptions options = new ListFilterOptions();
-        options.addEqualsSearchCriteria("state", "upcoming");
-        options.addEqualsSearchCriteria("today", "2020-05-05");
-        PagedEngagementResults pagedResults = repository.findPagedEngagements(options);
-        List<Engagement> results = pagedResults.getResults();
-        assertNotNull(results);
-        assertEquals(1, results.size());
-        assertEquals("1111", results.get(0).getUuid());
-
-        // find active
-        options = new ListFilterOptions();
-        options.addEqualsSearchCriteria("state", "active");
-        pagedResults = repository.findPagedEngagements(options);
-        results = pagedResults.getResults();
-        assertNotNull(results);
-        assertEquals(1, results.size());
-        assertEquals("2222", results.get(0).getUuid());
-
-        // find terminating
-        options = new ListFilterOptions();
-        options.addEqualsSearchCriteria("state", "terminating");
-        pagedResults = repository.findPagedEngagements(options);
-        results = pagedResults.getResults();
-        assertNotNull(results);
-        assertEquals(1, results.size());
-        assertEquals("4444", results.get(0).getUuid());
-
-        // find active
-        options = new ListFilterOptions();
-        options.addEqualsSearchCriteria("state", "past");
-        pagedResults = repository.findPagedEngagements(options);
-        results = pagedResults.getResults();
-        assertNotNull(results);
-        assertEquals(2, results.size());
-
-    }
-
-    void setEngagementState(Engagement engagement, EngagementState state, Optional<String> today) {
-
-        String localDate = today.orElse(LocalDate.now(ZoneId.of("Z")).toString());
-
-        // set launch if not upcoming
-        if (!EngagementState.UPCOMING.equals(state)) {
-            engagement.setLaunch(Launch.builder().build());
-        }
-
-        // active - launched, enddate >= localdate
-        if (EngagementState.ACTIVE.equals(state)) {
-            engagement.setEndDate(localDate);
-        } else if (EngagementState.PAST.equals(state)) {
-
-            // localDate > endDate
-            LocalDate adjusted = LocalDate.parse(localDate);
-            String endDate = adjusted.minusDays(1).toString();
-            engagement.setEndDate(endDate);
-
-        } else if (EngagementState.TERMINATING.equals(state)) {
-
-            // localDate > endDate < archiveDate
-            LocalDate adjusted = LocalDate.parse(localDate);
-
-            String endDate = adjusted.minusDays(1).toString();
-            engagement.setEndDate(endDate);
-
-            adjusted = LocalDate.parse(localDate);
-            String archiveDate = adjusted.plusDays(1).toString();
-            engagement.setArchiveDate(archiveDate);
-
-        }
-
-    }
-
-    @Test
-    void testGetEndagementsWithDateRange() {
-
-        String start = LocalDate.now(ZoneId.of("Z")).minusDays(15).toString();
-        String end = LocalDate.now(ZoneId.of("Z")).plusDays(15).toString();
-
-        // date < after
-        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
-        e1.setLaunch(Launch.builder().build());
-        e1.setStartDate(LocalDate.parse(start).minusDays(1).toString());
-
-        // date > before
-        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
-        e2.setLaunch(Launch.builder().build());
-        e2.setStartDate(LocalDate.parse(end).plusDays(1).toString());
-
-        // date = after
-        Engagement e3 = MockUtils.mockMinimumEngagement("c3", "p3", "3333");
-        e3.setLaunch(Launch.builder().build());
-        e3.setStartDate(start);
-
-        // date = before
-        Engagement e4 = MockUtils.mockMinimumEngagement("c4", "p4", "4444");
-        e4.setLaunch(Launch.builder().build());
-        e4.setStartDate(end);
-
-        // before < date < after
+        // start after range end
         Engagement e5 = MockUtils.mockMinimumEngagement("c5", "p5", "5555");
-        e5.setLaunch(Launch.builder().build());
-        e5.setStartDate(LocalDate.now(ZoneId.of("Z")).toString());
+        setEngagementState(e5, EngagementState.UPCOMING, rangeEndDate, DateAdjustment.AFTER);
 
         repository.persist(e1, e2, e3, e4, e5);
 
-        // find upcoming
+        String searchString = new StringBuilder("state=").append(state).append("&start=").append(rangeStartDate)
+                .append("&end=").append(rangeEndDate).toString();
         ListFilterOptions options = new ListFilterOptions();
-        options.addEqualsSearchCriteria("start", start);
-        options.addEqualsSearchCriteria("end", end);
+        options.setSearch(searchString);
         PagedEngagementResults pagedResults = repository.findPagedEngagements(options);
         List<Engagement> results = pagedResults.getResults();
         assertNotNull(results);
         assertEquals(3, results.size());
 
-        List<String> uuidsWithinRange = Arrays.asList("3333", "4444", "5555");
+        List<String> invalidUuids = Arrays.asList("1111", "5555");
+        Optional<String> fail = results.stream().map(Engagement::getUuid).filter(u -> invalidUuids.contains(u))
+                .findAny();
+        if (fail.isPresent()) {
+            fail("should not have found UUID in results. " + fail.get());
+        }
 
-        results.stream().map(Engagement::getUuid).forEach(uuid -> {
-            if(!uuidsWithinRange.contains(uuid)) {
-                fail("uuid " + uuid + " not in valid uuid list " + uuidsWithinRange);
+    }
+
+    @Test
+    void testGetEngagementByStateActive() {
+
+        String state = "active";
+        String rangeStartDate = "2020-01-01";
+        String rangeEndDate = "2020-06-01";
+
+        // engagement end date before range end date
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
+        setEngagementState(e1, EngagementState.ACTIVE, rangeEndDate, DateAdjustment.BEFORE);
+
+        // engagement end date on range end date
+        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
+        setEngagementState(e2, EngagementState.ACTIVE, rangeEndDate, DateAdjustment.ON);
+
+        // engagement end date after range end date
+        Engagement e3 = MockUtils.mockMinimumEngagement("c3", "p3", "3333");
+        setEngagementState(e3, EngagementState.ACTIVE, rangeEndDate, DateAdjustment.AFTER);
+
+        repository.persist(e1, e2, e3);
+
+        String searchString = new StringBuilder("state=").append(state).append("&start=").append(rangeStartDate)
+                .append("&end=").append(rangeEndDate).toString();
+        ListFilterOptions options = new ListFilterOptions();
+        options.setSearch(searchString);
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(options);
+        List<Engagement> results = pagedResults.getResults();
+        assertNotNull(results);
+        assertEquals(2, results.size());
+
+        List<String> invalidUuids = Arrays.asList("1111");
+        Optional<String> fail = results.stream().map(Engagement::getUuid).filter(u -> invalidUuids.contains(u))
+                .findAny();
+        if (fail.isPresent()) {
+            fail("should not have found UUID in results. " + fail.get());
+        }
+
+    }
+
+    @Test
+    void testGetEngagementByStatePast() {
+
+        String state = "past";
+        String rangeStartDate = "2020-01-01";
+        String rangeEndDate = "2020-06-01";
+
+        // engagement end date before range end date
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
+        setEngagementState(e1, EngagementState.PAST, rangeEndDate, DateAdjustment.BEFORE);
+
+        // engagement end date on range end date
+        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
+        setEngagementState(e2, EngagementState.PAST, rangeEndDate, DateAdjustment.ON);
+
+        // engagement end date after range end date
+        Engagement e3 = MockUtils.mockMinimumEngagement("c3", "p3", "3333");
+        setEngagementState(e3, EngagementState.PAST, rangeEndDate, DateAdjustment.AFTER);
+
+        repository.persist(e1, e2, e3);
+
+        String searchString = new StringBuilder("state=").append(state).append("&start=").append(rangeStartDate)
+                .append("&end=").append(rangeEndDate).toString();
+        ListFilterOptions options = new ListFilterOptions();
+        options.setSearch(searchString);
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(options);
+        List<Engagement> results = pagedResults.getResults();
+        assertNotNull(results);
+        assertEquals(1, results.size());
+
+        List<String> invalidUuids = Arrays.asList("2222", "3333");
+        Optional<String> fail = results.stream().map(Engagement::getUuid).filter(u -> invalidUuids.contains(u))
+                .findAny();
+        if (fail.isPresent()) {
+            fail("should not have found UUID in results. " + fail.get());
+        }
+
+    }
+
+    @Test
+    void testGetEngagementByStateTerminating() {
+
+        String state = "terminating";
+        String rangeStartDate = "2020-01-01";
+        String rangeEndDate = "2020-06-01";
+
+        // engagement end date before range end date
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
+        setEngagementState(e1, EngagementState.TERMINATING, rangeEndDate, DateAdjustment.BEFORE);
+
+        // engagement end date on range end date
+        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
+        setEngagementState(e2, EngagementState.TERMINATING, rangeEndDate, DateAdjustment.ON);
+
+        // engagement end date after range end date
+        Engagement e3 = MockUtils.mockMinimumEngagement("c3", "p3", "3333");
+        setEngagementState(e3, EngagementState.TERMINATING, rangeEndDate, DateAdjustment.AFTER);
+
+        // engagement end date after range end date
+        Engagement e4 = MockUtils.mockMinimumEngagement("c4", "p4", "4444");
+        String archiveDate = adjustDate(rangeEndDate, DateAdjustment.AFTER);
+        setEngagementState(e3, EngagementState.TERMINATING, archiveDate, DateAdjustment.ON);
+
+        // engagement end date after range end date
+        Engagement e5 = MockUtils.mockMinimumEngagement("c5", "p5", "5555");
+        setEngagementState(e3, EngagementState.TERMINATING, archiveDate, DateAdjustment.AFTER);
+
+        repository.persist(e1, e2, e3, e4, e5);
+
+        String searchString = new StringBuilder("state=").append(state).append("&start=").append(rangeStartDate)
+                .append("&end=").append(rangeEndDate).toString();
+        ListFilterOptions options = new ListFilterOptions();
+        options.setSearch(searchString);
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(options);
+        List<Engagement> results = pagedResults.getResults();
+        assertNotNull(results);
+        assertEquals(1, results.size());
+
+        List<String> invalidUuids = Arrays.asList("2222", "3333");
+        Optional<String> fail = results.stream().map(Engagement::getUuid).filter(u -> invalidUuids.contains(u))
+                .findAny();
+        if (fail.isPresent()) {
+            fail("should not have found UUID in results. " + fail.get());
+        }
+
+    }
+
+//    @Test
+//    void testGetEngagementsByState() {
+//
+//        // upcoming
+//        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
+//        makeEngagementUpcoming(e1, null, null, null, null);
+//        setEngagementState(e1, EngagementState.UPCOMING, Optional.empty());
+//        // active
+//        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
+//        setEngagementState(e2, EngagementState.ACTIVE, Optional.empty());
+//        // past
+//        Engagement e3 = MockUtils.mockMinimumEngagement("c3", "p3", "3333");
+//        setEngagementState(e3, EngagementState.PAST, Optional.empty());
+//        // past/terminating
+//        Engagement e4 = MockUtils.mockMinimumEngagement("c4", "p4", "4444");
+//        setEngagementState(e4, EngagementState.TERMINATING, Optional.empty());
+//        repository.persist(e1, e2, e3, e4);
+//
+//        // find upcoming
+//        ListFilterOptions options = new ListFilterOptions();
+//        options.addEqualsSearchCriteria("state", "upcoming");
+//        PagedEngagementResults pagedResults = repository.findPagedEngagements(options);
+//        List<Engagement> results = pagedResults.getResults();
+//        assertNotNull(results);
+//        assertEquals(1, results.size());
+//        assertEquals("1111", results.get(0).getUuid());
+//
+//        // find active
+//        options = new ListFilterOptions();
+//        options.addEqualsSearchCriteria("state", "active");
+//        pagedResults = repository.findPagedEngagements(options);
+//        results = pagedResults.getResults();
+//        assertNotNull(results);
+//        assertEquals(1, results.size());
+//        assertEquals("2222", results.get(0).getUuid());
+//
+//        // find terminating
+//        options = new ListFilterOptions();
+//        options.addEqualsSearchCriteria("state", "terminating");
+//        pagedResults = repository.findPagedEngagements(options);
+//        results = pagedResults.getResults();
+//        assertNotNull(results);
+//        assertEquals(1, results.size());
+//        assertEquals("4444", results.get(0).getUuid());
+//
+//        // find active
+//        options = new ListFilterOptions();
+//        options.addEqualsSearchCriteria("state", "past");
+//        pagedResults = repository.findPagedEngagements(options);
+//        results = pagedResults.getResults();
+//        assertNotNull(results);
+//        assertEquals(2, results.size());
+//
+//    }
+
+    enum DateAdjustment {
+        BEFORE, ON, AFTER;
+    }
+
+    String adjustDate(String date, DateAdjustment comp) {
+
+        String newDate = null;
+        LocalDate ld = LocalDate.parse(date);
+        switch (comp) {
+        case BEFORE:
+
+            newDate = ld.minusDays(5).toString();
+            break;
+
+        case AFTER:
+            newDate = ld.plusDays(5).toString();
+            break;
+        default:
+            newDate = ld.toString();
+            break;
+        }
+
+        return newDate;
+
+    }
+
+    void setEngagementState(Engagement engagement, EngagementState state, String referenceDate,
+            DateAdjustment adjustment) {
+
+        String adjusted = adjustDate(referenceDate, adjustment);
+
+        if (!EngagementState.UPCOMING.equals(state)) {
+
+            engagement.setEndDate(adjusted);
+            engagement.setLaunch(Launch.builder().build());
+
+            if (EngagementState.TERMINATING.equals(state)) {
+                String engagementArchiveDate = adjustDate(referenceDate, DateAdjustment.AFTER);
+                engagement.setArchiveDate(engagementArchiveDate);
             }
-        });
+
+        } else {
+            engagement.setStartDate(adjusted);
+        }
 
     }
 

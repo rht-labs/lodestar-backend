@@ -24,6 +24,8 @@ import java.util.stream.Stream;
 
 import javax.ws.rs.WebApplicationException;
 
+import org.bson.BsonDocument;
+import org.bson.BsonString;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -32,8 +34,10 @@ import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.BsonField;
 import com.mongodb.client.model.Facet;
 import com.mongodb.client.model.Field;
+import com.mongodb.client.model.Sorts;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.model.filter.SortOrder;
+import com.redhat.labs.lodestar.model.search.BsonSearch;
 
 public class MongoAggregationHelper {
 
@@ -172,7 +176,7 @@ public class MongoAggregationHelper {
         }
 
         // unwind based on field name
-        pipeline.add(unwind(MongoHelper.getVariableName(unwindFieldName.get())));
+        pipeline.add(unwind(getVariableName(unwindFieldName.get())));
 
         // get unwind field search string
         Optional<String> search = filterOptions.getSearchStringByField(unwindFieldName.get());
@@ -191,7 +195,7 @@ public class MongoAggregationHelper {
         // create include fields from fields
         String[] fields = projectFields.get().split(",");
         Bson[] excludeId = new Bson[] { excludeId() };
-        Bson[] bsonFields = Stream.of(fields).map(MongoHelper::getUnwindProjectField).toArray(Bson[]::new);
+        Bson[] bsonFields = Stream.of(fields).map(MongoAggregationHelper::getUnwindProjectField).toArray(Bson[]::new);
         Bson[] combined = Stream.of(excludeId, bsonFields).flatMap(Stream::of).toArray(Bson[]::new);
 
         // project fields after unwind
@@ -201,9 +205,10 @@ public class MongoAggregationHelper {
 
     static void matchStage(List<Bson> pipeline, ListFilterOptions filterOptions) {
 
-        Optional<String> search = filterOptions.getSearch();
-        if (search.isPresent()) {
-            Optional<Bson> bson = MongoHelper.buildSearchBson(search);
+        Optional<String> searchString = filterOptions.getSearch();
+        if (searchString.isPresent()) {
+            BsonSearch search = BsonSearch.builder().searchString(searchString.get()).build();
+            Optional<Bson> bson = search.createBsonForSearch();
             if (bson.isPresent()) {
                 pipeline.add(match(bson.get()));
             }
@@ -218,10 +223,10 @@ public class MongoAggregationHelper {
         if (groupByFieldName.isPresent()) {
 
             String fieldName = groupByFieldName.get();
-            String fieldNameVar = MongoHelper.getVariableName(fieldName);
+            String fieldNameVar = getVariableName(fieldName);
 
-            String toLowerFieldName = MongoHelper.getLowercaseFieldName(fieldName, false);
-            String toLowerFieldNameVar = MongoHelper.getVariableName(toLowerFieldName);
+            String toLowerFieldName = getLowercaseFieldName(fieldName);
+            String toLowerFieldNameVar = getVariableName(toLowerFieldName);
 
             Document toLowerDocument = new Document(TO_LOWER_QUERY, fieldNameVar);
             pipeline.add(addFields(new Field<>(toLowerFieldName, toLowerDocument)));
@@ -242,7 +247,7 @@ public class MongoAggregationHelper {
     static void sortStage(List<Bson> pipeline, ListFilterOptions filterOptions) {
 
         List<String> sortFields = filterOptions.getSortFieldsAsList();
-        Bson sort = sort(MongoHelper.determineSort(filterOptions.getSortOrder().orElse(SortOrder.ASC),
+        Bson sort = sort(determineSort(filterOptions.getSortOrder().orElse(SortOrder.ASC),
                 sortFields.toArray(new String[sortFields.size()])));
         pipeline.add(sort);
 
@@ -275,13 +280,76 @@ public class MongoAggregationHelper {
         } else if (exclude.isPresent()) {
             pipeline.add(project(fields(excludeId(), exclude(List.copyOf(exclude.get())))));
         } else if (groupByField.isPresent()) {
-            String fieldName = MongoHelper.getNestedFieldName(groupByField.get());
+            String fieldName = getNestedFieldName(groupByField.get());
             pipeline.add(project(fields(excludeId(),
                     new Document().append(fieldName, "$" + groupByField.get()).append(COUNT, "$count"))));
         } else {
             pipeline.add(project(fields(excludeId())));
         }
 
+    }
+
+    /**
+     * 
+     * Returns a sort {@link Bson} for the given {@link SortOrder} and sort fields.
+     * 
+     * @param sortOrder
+     * @param fieldNames
+     * @return
+     */
+    static Bson determineSort(SortOrder sortOrder, String... fieldNames) {
+        return SortOrder.ASC.equals(sortOrder) ? Sorts.ascending(fieldNames) : Sorts.descending(fieldNames);
+    }
+
+    /**
+     * Creates a {@link BsonDocument} for the nested field name and sources the
+     * value from the field name.
+     * 
+     * @param fieldName
+     * @return
+     */
+    static Bson getUnwindProjectField(String fieldName) {
+
+        String nestedFieldName = getNestedFieldName(fieldName);
+        String fromVariableName = getVariableName(fieldName);
+        return new BsonDocument(nestedFieldName, new BsonString(fromVariableName));
+
+    }
+
+    /**
+     * Appends '-lower' to the given field name.
+     * 
+     * @param fieldName
+     * @return
+     */
+    static String getLowercaseFieldName(String fieldName) {
+        return new StringBuilder(fieldName).append("-lower").toString();
+    }
+
+    /**
+     * Returns the field name after the last '.'.
+     * 
+     * @param fieldName
+     * @return
+     */
+    static String getNestedFieldName(String fieldName) {
+
+        if (fieldName.contains(".")) {
+            return fieldName.substring(fieldName.lastIndexOf(".") + 1);
+        }
+
+        return fieldName;
+
+    }
+
+    /**
+     * Appends a '$' to the given field name.
+     * 
+     * @param fieldName
+     * @return
+     */
+    static String getVariableName(String fieldName) {
+        return new StringBuilder("$").append(fieldName).toString();
     }
 
 }

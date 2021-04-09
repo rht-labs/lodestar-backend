@@ -277,7 +277,7 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
         // set options for group by and sort
         lfo.setInclude(CUSTOMER_NAME);
         lfo.setGroupByFieldName(Optional.of(CUSTOMER_NAME));
-        lfo.setSortFields(MongoHelper.getLowercaseFieldName("customer_name", false));
+        lfo.setSortFields(MongoAggregationHelper.getLowercaseFieldName("customer_name"));
 
         List<Bson> pipeline = MongoAggregationHelper.generatePagedAggregationPipeline(lfo);
 
