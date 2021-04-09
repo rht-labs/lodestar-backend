@@ -55,8 +55,9 @@ class StateSearchComponentTest {
 
     private static Stream<Arguments> provideStateValues() {
         return Stream.of(Arguments.of(EngagementState.UPCOMING, START, END,
-                "And Filter{filters=[Operator Filter{fieldName='launch', operator='$exists', value=BsonBoolean{value=false}}, And Filter{filters=[Operator Filter{fieldName='startDate', operator='$gte', value="
-                        + START + "}, Operator Filter{fieldName='startDate', operator='$lte', value=" + END + "}]}]}"),
+                "And Filter{filters=[Operator Filter{fieldName='launch', operator='$exists', value=BsonBoolean{value=false}}, Or Filter{filters=[Operator Filter{fieldName='startDate', operator='$exists', value=BsonBoolean{value=false}}, Filter{fieldName='startDate', value=null}, And Filter{filters=[Operator Filter{fieldName='startDate', operator='$gte', value="
+                        + START + "}, Operator Filter{fieldName='startDate', operator='$lte', value=" + END
+                        + "}]}]}]}"),
                 Arguments.of(EngagementState.ACTIVE, START, END,
                         "And Filter{filters=[Operator Filter{fieldName='launch', operator='$exists', value=BsonBoolean{value=true}}, Operator Filter{fieldName='endDate', operator='$gte', value="
                                 + END + "}]}"),
