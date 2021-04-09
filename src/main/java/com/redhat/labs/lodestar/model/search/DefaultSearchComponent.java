@@ -4,6 +4,7 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.exists;
 import static com.mongodb.client.model.Filters.not;
 import static com.mongodb.client.model.Filters.or;
+import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.regex;
 
 import java.util.Arrays;
@@ -119,11 +120,11 @@ public class DefaultSearchComponent implements BsonSearchComponent {
         } else if (isNotLikeOperator()) {
             return Optional.of(not(regex(attributeName, attributeValue, "i")));
         } else if (isExistsOperator()) {
-            Bson existsOrNotNull = or(exists(attributeName, true), not(eq(attributeName, null)));
-            return Optional.of(existsOrNotNull);
+            Bson existsAndNotNull = and(exists(attributeName, true), not(eq(attributeName, null)));
+            return Optional.of(existsAndNotNull);
         } else if (isNotExistsOperator()) {
-            Bson doesNotExistOrIsNull = or(exists(attributeName, false), eq(attributeName, null));
-            return Optional.of(doesNotExistOrIsNull);
+            Bson doesNotExistAndIsNull = and(exists(attributeName, false), eq(attributeName, null));
+            return Optional.of(doesNotExistAndIsNull);
         } else {
             return Optional.empty();
         }
