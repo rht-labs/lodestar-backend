@@ -41,7 +41,6 @@ import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.EngagementUserSummary;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
-import com.redhat.labs.lodestar.model.filter.SimpleFilterOptions;
 import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
 import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
@@ -77,18 +76,19 @@ public class EngagementResource {
      */
 
     @GET
-    @SuppressWarnings("deprecation")
     @SecurityRequirement(name = "jwt", scopes = {})
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "A list or empty list of engagement resources returned") })
     @Operation(summary = "Returns all engagement resources from the database.  Can be empty list if none found.")
     @Counted(name = "engagement-get-all-counted")
     @Timed(name = "engagement-get-all-timer", unit = MetricUnits.MILLISECONDS)
-    public Response getAll(@Context UriInfo uriInfo, @BeanParam ListFilterOptions filterOptions) {
+    public Response getAll(@Context UriInfo uriInfo,
+            @Parameter(name = "categories", deprecated = true, required = false, description = "filter based on category names.  Use search instead.") @QueryParam("categories") Optional<String> categories,
+            @BeanParam ListFilterOptions filterOptions) {
 
         // add categories filter if deprecated param used
-        if (null != filterOptions.getCategories()) {
-            filterOptions.addLikeSearchCriteria("categories.name", filterOptions.getCategories());
+        if (categories.isPresent()) {
+            filterOptions.addLikeSearchCriteria("categories.name", categories.get());
         }
 
         // create one page with many results for v1
@@ -109,7 +109,13 @@ public class EngagementResource {
     @Operation(summary = "Returns customers list")
     @Counted(name = "engagement-suggest-url-counted")
     @Timed(name = "engagement-suggest-url-timer", unit = MetricUnits.MILLISECONDS)
-    public Response findCustomers(@Context UriInfo uriInfo, @BeanParam SimpleFilterOptions filterOptions) {
+    public Response findCustomers(@Context UriInfo uriInfo,
+            @Parameter(name = "suggest", deprecated = true, required = false, description = "uses suggestion as case insensitive search string") @QueryParam("suggest") Optional<String> suggest,
+            @BeanParam ListFilterOptions filterOptions) {
+
+        if (suggest.isPresent()) {
+            filterOptions.addLikeSearchCriteria("customer_name", suggest.get());
+        }
 
         PagedStringResults page = engagementService.getSuggestions(filterOptions);
         ResponseBuilder builder = Response.ok(page.getResults()).links(page.getLinks(uriInfo.getAbsolutePathBuilder()));
@@ -126,7 +132,13 @@ public class EngagementResource {
     @Operation(summary = "Returns customers list")
     @Counted(name = "engagement-get-all-categories-counted")
     @Timed(name = "engagement-get-all-categories-timer", unit = MetricUnits.MILLISECONDS)
-    public Response getAllCategories(@Context UriInfo uriInfo, @BeanParam SimpleFilterOptions filterOptions) {
+    public Response getAllCategories(@Context UriInfo uriInfo,
+            @Parameter(name = "suggest", deprecated = true, required = false, description = "uses suggestion as case insensitive search string") @QueryParam("suggest") Optional<String> suggest,
+            @BeanParam ListFilterOptions filterOptions) {
+
+        if (suggest.isPresent()) {
+            filterOptions.addLikeSearchCriteria("categories.name", suggest.get());
+        }
 
         PagedCategoryResults page = engagementService.getCategories(filterOptions);
         ResponseBuilder builder = Response.ok(page.getResults()).links(page.getLinks(uriInfo.getAbsolutePathBuilder()));
@@ -143,7 +155,13 @@ public class EngagementResource {
     @Operation(summary = "Returns artifact type list")
     @Counted(name = "engagement-get-all-artifacts-counted")
     @Timed(name = "engagement-get-all-artifacts-timer", unit = MetricUnits.MILLISECONDS)
-    public Response getArtifactTypes(@Context UriInfo uriInfo, @BeanParam SimpleFilterOptions filterOptions) {
+    public Response getArtifactTypes(@Context UriInfo uriInfo,
+            @Parameter(name = "suggest", deprecated = true, required = false, description = "uses suggestion as case insensitive search string") @QueryParam("suggest") Optional<String> suggest,
+            @BeanParam ListFilterOptions filterOptions) {
+
+        if (suggest.isPresent()) {
+            filterOptions.addLikeSearchCriteria("artifacts.type", suggest.get());
+        }
 
         PagedStringResults page = engagementService.getArtifactTypes(filterOptions);
         ResponseBuilder builder = Response.ok(page.getResults()).links(page.getLinks(uriInfo.getAbsolutePathBuilder()));

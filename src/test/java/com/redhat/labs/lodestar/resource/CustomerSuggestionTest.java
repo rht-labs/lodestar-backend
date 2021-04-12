@@ -14,7 +14,7 @@ import org.mockito.Mockito;
 
 import com.google.common.collect.Lists;
 import com.redhat.labs.lodestar.model.Engagement;
-import com.redhat.labs.lodestar.model.filter.SimpleFilterOptions;
+import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
 import com.redhat.labs.lodestar.service.EngagementService;
 import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
@@ -43,7 +43,7 @@ class CustomerSuggestionTest extends IntegrationTestHelper {
 		engagement.setCustomerName(ANSWER);
 		
 		PagedStringResults results = PagedStringResults.builder().results(Lists.newArrayList(engagement.getCustomerName())).build();
-		Mockito.when(eRepository.findCustomerSuggestions(Mockito.any(SimpleFilterOptions.class))).thenReturn(results);
+		Mockito.when(eRepository.findCustomerSuggestions(Mockito.any(ListFilterOptions.class))).thenReturn(results);
 
 	}
 	

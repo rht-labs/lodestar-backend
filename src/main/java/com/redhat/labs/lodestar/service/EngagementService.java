@@ -34,7 +34,6 @@ import com.redhat.labs.lodestar.model.Status;
 import com.redhat.labs.lodestar.model.event.EventType;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
-import com.redhat.labs.lodestar.model.filter.SimpleFilterOptions;
 import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
 import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
@@ -596,7 +595,7 @@ public class EngagementService {
      * @return a {@link List} of all customer names in the data store that match the
      *         input
      */
-    public PagedStringResults getSuggestions(SimpleFilterOptions filterOptions) {
+    public PagedStringResults getSuggestions(ListFilterOptions filterOptions) {
         return repository.findCustomerSuggestions(filterOptions);
     }
 
@@ -663,7 +662,7 @@ public class EngagementService {
      * @param options
      * @return
      */
-    public PagedCategoryResults getCategories(SimpleFilterOptions options) {
+    public PagedCategoryResults getCategories(ListFilterOptions options) {
         return repository.findCategories(options);
     }
 
@@ -674,7 +673,7 @@ public class EngagementService {
      * @param match
      * @return
      */
-    public PagedStringResults getArtifactTypes(SimpleFilterOptions filterOptions) {
+    public PagedStringResults getArtifactTypes(ListFilterOptions filterOptions) {
         return repository.findArtifactTypes(filterOptions);
     }
 

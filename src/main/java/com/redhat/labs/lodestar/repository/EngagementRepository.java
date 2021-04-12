@@ -34,7 +34,6 @@ import com.redhat.labs.lodestar.model.EngagementUserSummary;
 import com.redhat.labs.lodestar.model.Status;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
-import com.redhat.labs.lodestar.model.filter.SimpleFilterOptions;
 import com.redhat.labs.lodestar.model.pagination.PagedArtifactResults;
 import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
 import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
@@ -270,16 +269,14 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
      * @param input
      * @return
      */
-    public PagedStringResults findCustomerSuggestions(SimpleFilterOptions options) {
-
-        ListFilterOptions lfo = options.from(CUSTOMER_NAME);
+    public PagedStringResults findCustomerSuggestions(ListFilterOptions filterOptions) {
 
         // set options for group by and sort
-        lfo.setInclude(CUSTOMER_NAME);
-        lfo.setGroupByFieldName(Optional.of(CUSTOMER_NAME));
-        lfo.setSortFields(MongoAggregationHelper.getLowercaseFieldName("customer_name"));
+        filterOptions.setInclude(CUSTOMER_NAME);
+        filterOptions.setGroupByFieldName(Optional.of(CUSTOMER_NAME));
+        filterOptions.setSortFields(MongoAggregationHelper.getLowercaseFieldName("customer_name"));
 
-        List<Bson> pipeline = MongoAggregationHelper.generatePagedAggregationPipeline(lfo);
+        List<Bson> pipeline = MongoAggregationHelper.generatePagedAggregationPipeline(filterOptions);
 
         Optional<PagedEngagementResults> optional = findFirstFromIterable(
                 mongoCollection().aggregate(pipeline, PagedEngagementResults.class));
@@ -292,48 +289,41 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
 
         PagedStringResults results = PagedStringResults.builder().totalCount(engagementResults.getTotalCount())
                 .results(customerNames).build();
-        if (null != options.getPage()) {
-            results.setCurrentPage(options.getPage());
-        }
-        if (null != options.getPerPage()) {
-            results.setPerPage(options.getPerPage());
-        }
+
+        results.setCurrentPage(filterOptions.getPage().orElse(1));
+        results.setPerPage(filterOptions.getPerPage().orElse(20));
 
         return results;
 
     }
 
-    public PagedCategoryResults findCategories(SimpleFilterOptions options) {
+    public PagedCategoryResults findCategories(ListFilterOptions filterOptions) {
 
-        ListFilterOptions lfo = options.from(CATEGORIES_NAME);
+        filterOptions.setUnwindFieldName(Optional.of(CATEGORIES));
+        filterOptions.setGroupByFieldName(Optional.of(CATEGORIES_NAME));
+        filterOptions.setSortFields(COUNT);
 
-        lfo.setUnwindFieldName(Optional.of(CATEGORIES));
-        lfo.setGroupByFieldName(Optional.of(CATEGORIES_NAME));
-        lfo.setSortFields(COUNT);
-
-        List<Bson> pipeline = MongoAggregationHelper.generatePagedAggregationPipeline(lfo);
+        List<Bson> pipeline = MongoAggregationHelper.generatePagedAggregationPipeline(filterOptions);
 
         Optional<PagedCategoryResults> optional = findFirstFromIterable(
                 mongoCollection().aggregate(pipeline, PagedCategoryResults.class));
         PagedCategoryResults page = optional.orElse(PagedCategoryResults.builder().results(Arrays.asList()).build());
 
-        page.setCurrentPage(options.getPage() != null ? options.getPage() : 1);
-        page.setPerPage(options.getPerPage() != null ? options.getPerPage() : 20);
+        page.setCurrentPage(filterOptions.getPage().orElse(1));
+        page.setPerPage(filterOptions.getPerPage().orElse(20));
 
         return page;
 
     }
 
-    public PagedStringResults findArtifactTypes(SimpleFilterOptions options) {
+    public PagedStringResults findArtifactTypes(ListFilterOptions filterOptions) {
 
-        ListFilterOptions lfo = options.from(ARTIFACTS_TYPE);
+        filterOptions.setUnwindFieldName(Optional.of(ARTIFACTS));
+        filterOptions.setUnwindProjectFieldNames(Optional.of(ARTIFACTS_TYPE));
+        filterOptions.setGroupByFieldName(Optional.of(TYPE));
+        filterOptions.setSortFields(TYPE);
 
-        lfo.setUnwindFieldName(Optional.of(ARTIFACTS));
-        lfo.setUnwindProjectFieldNames(Optional.of(ARTIFACTS_TYPE));
-        lfo.setGroupByFieldName(Optional.of(TYPE));
-        lfo.setSortFields(TYPE);
-
-        List<Bson> pipeline = MongoAggregationHelper.generatePagedAggregationPipeline(lfo);
+        List<Bson> pipeline = MongoAggregationHelper.generatePagedAggregationPipeline(filterOptions);
 
         Optional<PagedArtifactResults> optional = findFirstFromIterable(
                 mongoCollection().aggregate(pipeline, PagedArtifactResults.class));
@@ -346,12 +336,9 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
 
         PagedStringResults results = PagedStringResults.builder().totalCount(engagementResults.getTotalCount())
                 .results(customerNames).build();
-        if (null != options.getPage()) {
-            results.setCurrentPage(options.getPage());
-        }
-        if (null != options.getPerPage()) {
-            results.setPerPage(options.getPerPage());
-        }
+
+        results.setCurrentPage(filterOptions.getPage().orElse(1));
+        results.setPerPage(filterOptions.getPerPage().orElse(20));
 
         return results;
 

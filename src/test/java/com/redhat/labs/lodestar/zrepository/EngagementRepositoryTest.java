@@ -29,7 +29,6 @@ import com.redhat.labs.lodestar.model.Launch;
 import com.redhat.labs.lodestar.model.Status;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
-import com.redhat.labs.lodestar.model.filter.SimpleFilterOptions;
 import com.redhat.labs.lodestar.model.filter.SortOrder;
 import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
 import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
@@ -304,26 +303,26 @@ class EngagementRepositoryTest {
 
         repository.persist(Lists.newArrayList(e1, e2));
 
-        SimpleFilterOptions fo = new SimpleFilterOptions();
-        fo.setSuggest("C");
+        ListFilterOptions fo = new ListFilterOptions();
+        fo.setSearch("customer_name like C");
         PagedStringResults pagedResults = repository.findCustomerSuggestions(fo);
         List<String> results = pagedResults.getResults();
         assertEquals(1, results.size());
 
-        fo = new SimpleFilterOptions();
-        fo.setSuggest("c");
+        fo = new ListFilterOptions();
+        fo.setSearch("customer_name like c");
         pagedResults = repository.findCustomerSuggestions(fo);
         results = pagedResults.getResults();
         assertEquals(1, results.size());
 
-        fo = new SimpleFilterOptions();
-        fo.setSuggest("e");
+        fo = new ListFilterOptions();
+        fo.setSearch("customer_name like e");
         pagedResults = repository.findCustomerSuggestions(fo);
         results = pagedResults.getResults();
         assertEquals(1, results.size());
 
-        fo = new SimpleFilterOptions();
-        fo.setSuggest("1");
+        fo = new ListFilterOptions();
+        fo.setSearch("customer_name like 1");
         pagedResults = repository.findCustomerSuggestions(fo);
         results = pagedResults.getResults();
         assertEquals(2, results.size());
@@ -348,20 +347,20 @@ class EngagementRepositoryTest {
 
         repository.persist(Lists.newArrayList(e1, e2));
 
-        SimpleFilterOptions options = new SimpleFilterOptions();
-        options.setSuggest("c");
+        ListFilterOptions options = new ListFilterOptions();
+        options.setSearch("categories.name like c");
         PagedCategoryResults pagedResults = repository.findCategories(options);
         List<Category> results = pagedResults.getResults();
         assertEquals(2, results.size());
 
-        options = new SimpleFilterOptions();
-        options.setSuggest("c2");
+        options = new ListFilterOptions();
+        options.setSearch("categories.name like c2");
         pagedResults = repository.findCategories(options);
         results = pagedResults.getResults();
         assertEquals(1, results.size());
 
-        options = new SimpleFilterOptions();
-        options.setSuggest("E");
+        options = new ListFilterOptions();
+        options.setSearch("categories.name like E");
         pagedResults = repository.findCategories(options);
         results = pagedResults.getResults();
         assertEquals(2, results.size());
@@ -384,7 +383,7 @@ class EngagementRepositoryTest {
 
         repository.persist(Lists.newArrayList(e1, e2));
 
-        PagedCategoryResults pagedResults = repository.findCategories(new SimpleFilterOptions());
+        PagedCategoryResults pagedResults = repository.findCategories(new ListFilterOptions());
         List<Category> results = pagedResults.getResults();
         assertEquals(4, results.size());
 
@@ -421,23 +420,23 @@ class EngagementRepositoryTest {
 
         repository.persist(Lists.newArrayList(e1, e2));
 
-        SimpleFilterOptions options = new SimpleFilterOptions();
-        options.setSuggest("de");
+        ListFilterOptions options = new ListFilterOptions();
+        options.setSearch("artifacts.type like de");
 
         PagedStringResults pagedResults = repository.findArtifactTypes(options);
         List<String> results = pagedResults.getResults();
         assertEquals(2, results.size());
         assertTrue(results.contains("demo"));
 
-        options = new SimpleFilterOptions();
-        options.setSuggest("V");
+        options = new ListFilterOptions();
+        options.setSearch("artifacts.type like V");
         pagedResults = repository.findArtifactTypes(options);
         results = pagedResults.getResults();
         assertEquals(1, results.size());
         assertTrue(results.contains("video"));
 
-        options = new SimpleFilterOptions();
-        options.setSuggest("St");
+        options = new ListFilterOptions();
+        options.setSearch("artifacts.type like St");
         pagedResults = repository.findArtifactTypes(options);
         results = pagedResults.getResults();
         assertEquals(1, results.size());
@@ -460,7 +459,7 @@ class EngagementRepositoryTest {
 
         repository.persist(Lists.newArrayList(e1, e2));
 
-        PagedStringResults pagedResults = repository.findArtifactTypes(new SimpleFilterOptions());
+        PagedStringResults pagedResults = repository.findArtifactTypes(new ListFilterOptions());
         List<String> results = pagedResults.getResults();
         assertEquals(3, results.size());
         assertTrue(results.contains("demo"));

@@ -25,7 +25,6 @@ import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.EngagementUserSummary;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
-import com.redhat.labs.lodestar.model.filter.SimpleFilterOptions;
 import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
 import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
@@ -211,7 +210,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
         
         PagedCategoryResults pagedResults = PagedCategoryResults.builder().results(Lists.newArrayList(MockUtils.mockCategory("cat1"))).build();
-        Mockito.when(eRepository.findCategories(Mockito.any(SimpleFilterOptions.class))).thenReturn(pagedResults);
+        Mockito.when(eRepository.findCategories(Mockito.any(ListFilterOptions.class))).thenReturn(pagedResults);
         
         // get suggestions
         Response r =given()
@@ -235,7 +234,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
         
         PagedCategoryResults pagedResults = PagedCategoryResults.builder().results(Lists.newArrayList(MockUtils.mockCategory("sugar"))).build();
-        Mockito.when(eRepository.findCategories(Mockito.any(SimpleFilterOptions.class))).thenReturn(pagedResults);
+        Mockito.when(eRepository.findCategories(Mockito.any(ListFilterOptions.class))).thenReturn(pagedResults);
         
         // get suggestions
         Response r =given()
@@ -260,7 +259,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
         PagedStringResults pagedResults = PagedStringResults.builder().results(Lists.newArrayList("a1","a2")).build();
-        Mockito.when(eRepository.findArtifactTypes(Mockito.any(SimpleFilterOptions.class))).thenReturn(pagedResults);
+        Mockito.when(eRepository.findArtifactTypes(Mockito.any(ListFilterOptions.class))).thenReturn(pagedResults);
 
         given()
             .auth()
@@ -282,7 +281,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
         PagedStringResults pagedResults = PagedStringResults.builder().results(Lists.newArrayList("a1")).build();
-        Mockito.when(eRepository.findArtifactTypes(Mockito.any(SimpleFilterOptions.class))).thenReturn(pagedResults);
+        Mockito.when(eRepository.findArtifactTypes(Mockito.any(ListFilterOptions.class))).thenReturn(pagedResults);
 
         given()
             .auth()

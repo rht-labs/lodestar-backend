@@ -3,6 +3,7 @@ package com.redhat.labs.lodestar.resource;
 import static io.restassured.RestAssured.given;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +16,6 @@ import org.mockito.Mockito;
 
 import com.google.common.collect.Lists;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
-import com.redhat.labs.lodestar.model.filter.SimpleFilterOptions;
 import com.redhat.labs.lodestar.model.filter.SortOrder;
 import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
 import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
@@ -133,7 +133,7 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
         PagedStringResults results = PagedStringResults.builder().results(Lists.newArrayList()).build();
-        Mockito.when(eRepository.findCustomerSuggestions(Mockito.any(SimpleFilterOptions.class))).thenReturn(results);
+        Mockito.when(eRepository.findCustomerSuggestions(Mockito.any(ListFilterOptions.class))).thenReturn(results);
 
         given()
             .auth()
@@ -151,14 +151,14 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
             .header("x-last-page", "1")
             .header("link", "<http://localhost:8081/engagements/customers/suggest>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
 
-        ArgumentCaptor<SimpleFilterOptions> ac = ArgumentCaptor.forClass(SimpleFilterOptions.class);
+        ArgumentCaptor<ListFilterOptions> ac = ArgumentCaptor.forClass(ListFilterOptions.class);
         Mockito.verify(eRepository).findCustomerSuggestions(ac.capture());
 
-        SimpleFilterOptions captured = ac.getValue();
-        assertEquals(SUGGEST_VALUE, captured.getSuggest());
-        assertEquals(PAGE_VALUE, captured.getPage());
-        assertEquals(PER_PAGE_VALUE, captured.getPerPage());
-        assertEquals(SortOrder.ASC, captured.getSortOrder());
+        ListFilterOptions captured = ac.getValue();
+        assertTrue(captured.getSearch().get().contains(SUGGEST_VALUE));
+        assertEquals(PAGE_VALUE, captured.getPage().get());
+        assertEquals(PER_PAGE_VALUE, captured.getPerPage().get());
+        assertEquals(SortOrder.ASC, captured.getSortOrder().get());
 
     }
     
@@ -169,7 +169,7 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
         PagedStringResults results = PagedStringResults.builder().results(Lists.newArrayList()).build();
-        Mockito.when(eRepository.findCustomerSuggestions(Mockito.any(SimpleFilterOptions.class))).thenReturn(results);
+        Mockito.when(eRepository.findCustomerSuggestions(Mockito.any(ListFilterOptions.class))).thenReturn(results);
 
         given()
             .auth()
@@ -186,14 +186,14 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
             .header("x-last-page", "1")
             .header("link", "<http://localhost:8081/engagements/customers/suggest>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
 
-        ArgumentCaptor<SimpleFilterOptions> ac = ArgumentCaptor.forClass(SimpleFilterOptions.class);
+        ArgumentCaptor<ListFilterOptions> ac = ArgumentCaptor.forClass(ListFilterOptions.class);
         Mockito.verify(eRepository).findCustomerSuggestions(ac.capture());
 
-        SimpleFilterOptions captured = ac.getValue();
-        assertNull(captured.getSuggest());
-        assertNull(captured.getPage());
-        assertNull(captured.getPerPage());
-        assertNull(captured.getSortOrder());
+        ListFilterOptions captured = ac.getValue();
+        assertTrue(captured.getSearch().isEmpty());
+        assertTrue(captured.getPage().isEmpty());
+        assertTrue(captured.getPerPage().isEmpty());
+        assertTrue(captured.getSortOrder().isEmpty());
 
     }
 
@@ -204,7 +204,7 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
         PagedStringResults results = PagedStringResults.builder().results(Lists.newArrayList()).build();
-        Mockito.when(eRepository.findArtifactTypes(Mockito.any(SimpleFilterOptions.class))).thenReturn(results);
+        Mockito.when(eRepository.findArtifactTypes(Mockito.any(ListFilterOptions.class))).thenReturn(results);
 
         given()
             .auth()
@@ -222,14 +222,14 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
             .header("x-last-page", "1")
             .header("link", "<http://localhost:8081/engagements/artifact/types>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
 
-        ArgumentCaptor<SimpleFilterOptions> ac = ArgumentCaptor.forClass(SimpleFilterOptions.class);
+        ArgumentCaptor<ListFilterOptions> ac = ArgumentCaptor.forClass(ListFilterOptions.class);
         Mockito.verify(eRepository).findArtifactTypes(ac.capture());
 
-        SimpleFilterOptions captured = ac.getValue();
-        assertEquals(SUGGEST_VALUE, captured.getSuggest());
-        assertEquals(PAGE_VALUE, captured.getPage());
-        assertEquals(PER_PAGE_VALUE, captured.getPerPage());
-        assertEquals(SortOrder.ASC, captured.getSortOrder());
+        ListFilterOptions captured = ac.getValue();
+        assertTrue(captured.getSearch().get().contains(SUGGEST_VALUE));
+        assertEquals(PAGE_VALUE, captured.getPage().get());
+        assertEquals(PER_PAGE_VALUE, captured.getPerPage().get());
+        assertEquals(SortOrder.ASC, captured.getSortOrder().get());
 
     }
     
@@ -240,7 +240,7 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
         PagedStringResults results = PagedStringResults.builder().results(Lists.newArrayList()).build();
-        Mockito.when(eRepository.findArtifactTypes(Mockito.any(SimpleFilterOptions.class))).thenReturn(results);
+        Mockito.when(eRepository.findArtifactTypes(Mockito.any(ListFilterOptions.class))).thenReturn(results);
 
         given()
             .auth()
@@ -257,14 +257,14 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
             .header("x-last-page", "1")
             .header("link", "<http://localhost:8081/engagements/artifact/types>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
 
-        ArgumentCaptor<SimpleFilterOptions> ac = ArgumentCaptor.forClass(SimpleFilterOptions.class);
+        ArgumentCaptor<ListFilterOptions> ac = ArgumentCaptor.forClass(ListFilterOptions.class);
         Mockito.verify(eRepository).findArtifactTypes(ac.capture());
 
-        SimpleFilterOptions captured = ac.getValue();
-        assertNull(captured.getSuggest());
-        assertNull(captured.getPage());
-        assertNull(captured.getPerPage());
-        assertNull(captured.getSortOrder());
+        ListFilterOptions captured = ac.getValue();
+        assertTrue(captured.getSearch().isEmpty());
+        assertTrue(captured.getPage().isEmpty());
+        assertTrue(captured.getPerPage().isEmpty());
+        assertTrue(captured.getSortOrder().isEmpty());
 
     }
 
@@ -275,7 +275,7 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
         PagedCategoryResults results = PagedCategoryResults.builder().results(Lists.newArrayList()).build();
-        Mockito.when(eRepository.findCategories(Mockito.any(SimpleFilterOptions.class))).thenReturn(results);
+        Mockito.when(eRepository.findCategories(Mockito.any(ListFilterOptions.class))).thenReturn(results);
 
         given()
             .auth()
@@ -293,14 +293,14 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
             .header("x-last-page", "1")
             .header("link", "<http://localhost:8081/engagements/categories>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
 
-        ArgumentCaptor<SimpleFilterOptions> ac = ArgumentCaptor.forClass(SimpleFilterOptions.class);
+        ArgumentCaptor<ListFilterOptions> ac = ArgumentCaptor.forClass(ListFilterOptions.class);
         Mockito.verify(eRepository).findCategories(ac.capture());
 
-        SimpleFilterOptions captured = ac.getValue();
-        assertEquals(SUGGEST_VALUE, captured.getSuggest());
-        assertEquals(PAGE_VALUE, captured.getPage());
-        assertEquals(PER_PAGE_VALUE, captured.getPerPage());
-        assertEquals(SortOrder.ASC, captured.getSortOrder());
+        ListFilterOptions captured = ac.getValue();
+        assertTrue(captured.getSearch().get().contains(SUGGEST_VALUE));
+        assertEquals(PAGE_VALUE, captured.getPage().get());
+        assertEquals(PER_PAGE_VALUE, captured.getPerPage().get());
+        assertEquals(SortOrder.ASC, captured.getSortOrder().get());
 
     }
     
@@ -311,7 +311,7 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
         PagedCategoryResults results = PagedCategoryResults.builder().results(Lists.newArrayList()).build();
-        Mockito.when(eRepository.findCategories(Mockito.any(SimpleFilterOptions.class))).thenReturn(results);
+        Mockito.when(eRepository.findCategories(Mockito.any(ListFilterOptions.class))).thenReturn(results);
 
         given()
             .auth()
@@ -328,14 +328,14 @@ class EngagementResourceV2GetTest extends IntegrationTestHelper {
             .header("x-last-page", "1")
             .header("link", "<http://localhost:8081/engagements/categories>; rel=\"first\"; per_page=\"20\"; page=\"1\"");
 
-        ArgumentCaptor<SimpleFilterOptions> ac = ArgumentCaptor.forClass(SimpleFilterOptions.class);
+        ArgumentCaptor<ListFilterOptions> ac = ArgumentCaptor.forClass(ListFilterOptions.class);
         Mockito.verify(eRepository).findCategories(ac.capture());
 
-        SimpleFilterOptions captured = ac.getValue();
-        assertNull(captured.getSuggest());
-        assertNull(captured.getPage());
-        assertNull(captured.getPerPage());
-        assertNull(captured.getSortOrder());
+        ListFilterOptions captured = ac.getValue();
+        assertTrue(captured.getSearch().isEmpty());
+        assertTrue(captured.getPage().isEmpty());
+        assertTrue(captured.getPerPage().isEmpty());
+        assertTrue(captured.getSortOrder().isEmpty());
 
     }
 

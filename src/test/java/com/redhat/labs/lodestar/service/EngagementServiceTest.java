@@ -38,7 +38,6 @@ import com.redhat.labs.lodestar.model.Launch;
 import com.redhat.labs.lodestar.model.event.EventType;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
-import com.redhat.labs.lodestar.model.filter.SimpleFilterOptions;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
 import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
@@ -510,7 +509,7 @@ class EngagementServiceTest {
         service.getEngagementsPaged(new ListFilterOptions());
 
         Mockito.verify(repository).findPagedEngagements(new ListFilterOptions());
-        Mockito.verify(repository, Mockito.times(0)).findCategories(new SimpleFilterOptions());
+        Mockito.verify(repository, Mockito.times(0)).findCategories(new ListFilterOptions());
 
     }
 
@@ -530,8 +529,8 @@ class EngagementServiceTest {
     @Test
     void testGetSuggestionsNoneFound() {
 
-        SimpleFilterOptions options = new SimpleFilterOptions();
-        options.setSuggest("c");
+        ListFilterOptions options = new ListFilterOptions();
+        options.setSearch("customer_name like c");
         PagedStringResults results = PagedStringResults.builder().results(Lists.newArrayList()).build();
         Mockito.when(repository.findCustomerSuggestions(options)).thenReturn(results);
 
@@ -547,9 +546,9 @@ class EngagementServiceTest {
 
         Engagement e1 = MockUtils.mockMinimumEngagement("customer1", "project1", "1234");
         Engagement e2 = MockUtils.mockMinimumEngagement("customer2", "project1", "5454");
-        SimpleFilterOptions options = new SimpleFilterOptions();
+        ListFilterOptions options = new ListFilterOptions();
         PagedStringResults results = PagedStringResults.builder().results(Lists.newArrayList(e1.getCustomerName(), e2.getCustomerName())).build();
-        options.setSuggest("c");
+        options.setSearch("customer_name like c");
         Mockito.when(repository.findCustomerSuggestions(options)).thenReturn(results);
 
         PagedStringResults pagedResults = service.getSuggestions(options);
@@ -657,24 +656,10 @@ class EngagementServiceTest {
 
     // getCategories
 
-    @ParameterizedTest
-    @NullAndEmptySource
-    @ValueSource(strings = { " " })
-    void testGetCategories(String match) {
-
-        SimpleFilterOptions options = new SimpleFilterOptions();
-        options.setSuggest(match);
-        service.getCategories(options);
-
-        Mockito.verify(repository).findCategories(options);
-
-    }
-
     @Test
     void testGetCategories() {
 
-        SimpleFilterOptions options = new SimpleFilterOptions();
-        options.setSuggest("match");
+        ListFilterOptions options = new ListFilterOptions();
         service.getCategories(options);
 
         Mockito.verify(repository).findCategories(options);
@@ -683,24 +668,10 @@ class EngagementServiceTest {
 
     // getArtifactTypes
 
-    @ParameterizedTest
-    @NullAndEmptySource
-    @ValueSource(strings = { " " })
-    void testGetArtifactTypes(String match) {
-
-        SimpleFilterOptions options = new SimpleFilterOptions();
-        options.setSuggest(match);
-        service.getArtifactTypes(options);
-
-        Mockito.verify(repository).findArtifactTypes(options);
-
-    }
-
     @Test
     void testGetArtifactTypes() {
 
-        SimpleFilterOptions options = new SimpleFilterOptions();
-        options.setSuggest("something");
+        ListFilterOptions options = new ListFilterOptions();
         service.getArtifactTypes(options);
 
         Mockito.verify(repository).findArtifactTypes(options);
