@@ -100,6 +100,12 @@ public class DefaultSearchComponent implements BsonSearchComponent {
 
     }
 
+    /**
+     * Returns a {@link Bson} generated from the configured attribute and operator.
+     * 
+     * @param attributeValue
+     * @return
+     */
     private Optional<Bson> getBsonByOperator(String attributeValue) {
 
         if (attribute.isEmpty()) {

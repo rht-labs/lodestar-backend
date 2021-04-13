@@ -79,19 +79,47 @@ public class ListFilterOptions extends FilterOptions {
         return Optional.ofNullable(perPage);
     }
 
+    /**
+     * Returns a {@link List} containing the fields specified in sort fields
+     * attribute. If not provided, `customer_name,project_name` is used.
+     * 
+     * @return
+     */
     public List<String> getSortFieldsAsList() {
         String fields = getSortFields().orElse("customer_name,project_name");
         return Stream.of(fields.split(",")).map(ClassFieldUtils::snakeToCamelCase).collect(Collectors.toList());
     }
 
+    /**
+     * Adds the provided field and value to the current search string as a Like
+     * operator.
+     * 
+     * @param fieldName
+     * @param value
+     */
     public void addLikeSearchCriteria(String fieldName, String value) {
         addToSearchString(fieldName, value, false);
     }
 
+    /**
+     * Adds the provided field and value to the current search string as an Equals
+     * operator.
+     * 
+     * @param fieldName
+     * @param value
+     */
     public void addEqualsSearchCriteria(String fieldName, String value) {
         addToSearchString(fieldName, value, true);
     }
 
+    /**
+     * Adds the field name and value to the search string. If exactMatch is true,
+     * the operator is set to equals. Otherwise, the operator is Like.
+     * 
+     * @param fieldName
+     * @param value
+     * @param exactMatch
+     */
     private void addToSearchString(String fieldName, String value, boolean exactMatch) {
 
         StringBuilder builder = getSearch().isPresent() ? new StringBuilder(search) : new StringBuilder();
@@ -104,6 +132,13 @@ public class ListFilterOptions extends FilterOptions {
 
     }
 
+    /**
+     * Parses the current search string for the search component of given field
+     * name.
+     * 
+     * @param fieldName
+     * @return
+     */
     public Optional<String> getSearchStringByField(String fieldName) {
 
         if (getSearch().isEmpty()) {

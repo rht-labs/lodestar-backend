@@ -14,6 +14,8 @@ import javax.ws.rs.WebApplicationException;
 
 import org.bson.conversions.Bson;
 
+import com.redhat.labs.lodestar.model.Engagement;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
@@ -27,6 +29,10 @@ public class StateSearchComponent extends RangeSearchComponent {
 
     private EngagementState state;
 
+    /**
+     * Returns an {@link Optional} containing a {@link Bson} where for
+     * {@link Engagement}s using the range start and end dates as well as the state.
+     */
     @Override
     public Optional<Bson> getBson() {
 
@@ -35,6 +41,9 @@ public class StateSearchComponent extends RangeSearchComponent {
 
     }
 
+    /**
+     * Throws a {@link WebApplicationException} if state, start or end is not set.
+     */
     @Override
     void validate() {
 
@@ -44,6 +53,11 @@ public class StateSearchComponent extends RangeSearchComponent {
         super.validate();
     }
 
+    /**
+     * Returns a {@link Bson} for the configured state.
+     * 
+     * @return
+     */
     private Bson createSearchBson() {
 
         Bson launched = null;
@@ -69,20 +83,40 @@ public class StateSearchComponent extends RangeSearchComponent {
 
     }
 
+    /**
+     * Creates a {@link Bson} for active engagements.
+     * 
+     * @return
+     */
     private Bson createActiveBson() {
         return gte(ENGAGEMENT_END_DATE, super.getStart());
     }
 
+    /**
+     * Creates a {@link Bson} for past engagements.
+     * 
+     * @return
+     */
     private Bson createPastBson() {
         return lt(ENGAGEMENT_END_DATE, super.getStart());
     }
 
+    /**
+     * Creates a {@link Bson} for terminating engagements.
+     * 
+     * @return
+     */
     private Bson createTerminatingBson() {
         Bson endDateLtEnd = lt(ENGAGEMENT_END_DATE, super.getStart());
         Bson archiveDateGtEnd = gt(ENGAGEMENT_ARCHIVE_DATE, super.getStart());
         return and(endDateLtEnd, archiveDateGtEnd);
     }
 
+    /**
+     * Creates a {@link Bson} for upcoming engagements.
+     * 
+     * @return
+     */
     private Bson createUpcomingBson() {
         return or(exists(LAUNCH, false), eq(LAUNCH, null));
     }

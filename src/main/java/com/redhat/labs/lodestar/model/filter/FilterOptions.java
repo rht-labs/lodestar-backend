@@ -31,6 +31,11 @@ public class FilterOptions {
     @QueryParam("exclude")
     private String exclude;
 
+    /**
+     * Returns a {@link Set} of {@link String} from the configured include list.
+     * 
+     * @return
+     */
     public Optional<Set<String>> getIncludeList() {
 
         Optional<Set<String>> includeOptional = createSet(include);
@@ -48,10 +53,23 @@ public class FilterOptions {
 
     }
 
+    /**
+     * Creates an {@link Optional} containing a {@link Set} of {@link String} for
+     * the values to exclude.
+     * 
+     * @return
+     */
     public Optional<Set<String>> getExcludeList() {
         return createSet(exclude);
     }
 
+    /**
+     * Returns an {@link Optional} of a {@link Set} of {@link String} after parsing
+     * the given value.
+     * 
+     * @param value
+     * @return
+     */
     private Optional<Set<String>> createSet(String value) {
 
         if (null == value) {
@@ -62,6 +80,12 @@ public class FilterOptions {
 
     }
 
+    /**
+     * Parses the given value to get the attributes in a {@link Set}.
+     * 
+     * @param value
+     * @return
+     */
     private Set<String> parseAttributes(String value) {
 
         if (null == value || value.isEmpty()) {

@@ -50,6 +50,11 @@ public class PagedResults {
     @Builder.Default
     private Map<String, Object> headers = new HashMap<>();
 
+    /**
+     * Returns a {@link Map} containing the headers.
+     * 
+     * @return
+     */
     public Map<String, Object> getHeaders() {
 
         if (null == headers || headers.isEmpty()) {
@@ -60,6 +65,12 @@ public class PagedResults {
 
     }
 
+    /**
+     * Creates an array lf {@link Link} for the configured link headers.
+     * 
+     * @param uriBuilder
+     * @return
+     */
     public Link[] getLinks(UriBuilder uriBuilder) {
 
         if (null == linkHeaders || linkHeaders.isEmpty()) {
@@ -82,9 +93,12 @@ public class PagedResults {
 
     }
 
+    /**
+     * Sets the Headers for the relations CURRENT, FIRST, LAST, and NEXT.
+     */
     private void setHeadersForRelations() {
 
-        if(null == headers) {
+        if (null == headers) {
             headers = new HashMap<>();
         }
 
@@ -108,6 +122,13 @@ public class PagedResults {
 
     }
 
+    /**
+     * Adds the header for the given relation to the associated {@link Map}s.
+     * 
+     * @param rel
+     * @param pageHeader
+     * @param pageValue
+     */
     private void setHeadersForRelation(String rel, String pageHeader, Integer pageValue) {
 
         headers.put(pageHeader, pageValue);

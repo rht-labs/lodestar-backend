@@ -30,7 +30,6 @@ public class RangeSearchComponent implements BsonSearchComponent {
     static final String ENGAGEMENT_START_DATE = "endDate";
     static final String ENGAGEMENT_END_DATE = "endDate";
     static final String ENGAGEMENT_ARCHIVE_DATE = "archiveDate";
-    
 
     private String start;
     private String end;
@@ -56,6 +55,9 @@ public class RangeSearchComponent implements BsonSearchComponent {
         return Optional.of(and(launched, or(lDate, eDate)));
     }
 
+    /**
+     * Throws a {@link WebApplicationException} if start or end is not set.
+     */
     void validate() {
 
         if (null == start || null == end) {
