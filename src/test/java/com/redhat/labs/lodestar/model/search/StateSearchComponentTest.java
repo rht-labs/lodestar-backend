@@ -17,13 +17,15 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 class StateSearchComponentTest {
 
-    static final String EXCEPTION_MESSAGE = "'state' search parameter requires 'state', 'start', and 'end' search parameter to be provided.";
+    static final String EXCEPTION_MESSAGE_WITH_STATE = "'state' search parameter requires 'state', 'start', and 'end' search parameter to be provided.";
+    static final String EXCEPTION_MESSAGE_WITHOUT_STATE = "if either 'start', or 'end' search parameters specified, both need to be provided.";
+
     static final String START = LocalDate.now().toString();
     static final String END = LocalDate.now().plusDays(5).toString();
 
     @ParameterizedTest
     @MethodSource("provideInvalidValues")
-    void testInvalidConfiguration(EngagementState state, String start, String end) {
+    void testInvalidConfiguration(EngagementState state, String start, String end, String exceptionMessage) {
 
         StateSearchComponent ssc = StateSearchComponent.builder().state(state).start(start).end(end).build();
 
@@ -32,7 +34,7 @@ class StateSearchComponentTest {
         });
 
         assertEquals(400, exception.getResponse().getStatus());
-        assertEquals(EXCEPTION_MESSAGE, exception.getMessage());
+        assertEquals(exceptionMessage, exception.getMessage());
 
     }
 
@@ -49,24 +51,23 @@ class StateSearchComponentTest {
     }
 
     private static Stream<Arguments> provideInvalidValues() {
-        return Stream.of(Arguments.of(null, START, END), Arguments.of(EngagementState.ACTIVE, null, END),
-                Arguments.of(EngagementState.ACTIVE, START, null));
+        return Stream.of(Arguments.of(null, START, END, EXCEPTION_MESSAGE_WITH_STATE),
+                Arguments.of(EngagementState.ACTIVE, null, END, EXCEPTION_MESSAGE_WITHOUT_STATE),
+                Arguments.of(EngagementState.ACTIVE, START, null, EXCEPTION_MESSAGE_WITHOUT_STATE));
     }
 
     private static Stream<Arguments> provideStateValues() {
         return Stream.of(Arguments.of(EngagementState.UPCOMING, START, END,
-                "And Filter{filters=[Operator Filter{fieldName='launch', operator='$exists', value=BsonBoolean{value=false}}, Or Filter{filters=[Operator Filter{fieldName='startDate', operator='$exists', value=BsonBoolean{value=false}}, Filter{fieldName='startDate', value=null}, And Filter{filters=[Operator Filter{fieldName='startDate', operator='$gte', value="
-                        + START + "}, Operator Filter{fieldName='startDate', operator='$lte', value=" + END
-                        + "}]}]}]}"),
+                "Or Filter{filters=[Operator Filter{fieldName='launch', operator='$exists', value=BsonBoolean{value=false}}, Filter{fieldName='launch', value=null}]}"),
                 Arguments.of(EngagementState.ACTIVE, START, END,
                         "And Filter{filters=[Operator Filter{fieldName='launch', operator='$exists', value=BsonBoolean{value=true}}, Operator Filter{fieldName='endDate', operator='$gte', value="
-                                + END + "}]}"),
+                                + START + "}]}"),
                 Arguments.of(EngagementState.PAST, START, END,
                         "And Filter{filters=[Operator Filter{fieldName='launch', operator='$exists', value=BsonBoolean{value=true}}, Operator Filter{fieldName='endDate', operator='$lt', value="
-                                + END + "}]}"),
+                                + START + "}]}"),
                 Arguments.of(EngagementState.TERMINATING, START, END,
                         "And Filter{filters=[Operator Filter{fieldName='launch', operator='$exists', value=BsonBoolean{value=true}}, And Filter{filters=[Operator Filter{fieldName='endDate', operator='$lt', value="
-                                + END + "}, Operator Filter{fieldName='archiveDate', operator='$gt', value=" + END
+                                + START + "}, Operator Filter{fieldName='archiveDate', operator='$gt', value=" + START
                                 + "}]}]}"));
     }
 

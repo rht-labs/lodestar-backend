@@ -1,13 +1,12 @@
 package com.redhat.labs.lodestar.model.search;
 
-import static com.mongodb.client.model.Filters.or;
 import static com.mongodb.client.model.Filters.and;
+import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.exists;
 import static com.mongodb.client.model.Filters.gt;
 import static com.mongodb.client.model.Filters.gte;
 import static com.mongodb.client.model.Filters.lt;
-import static com.mongodb.client.model.Filters.lte;
-import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.or;
 
 import java.util.Optional;
 
@@ -25,9 +24,6 @@ import lombok.experimental.SuperBuilder;
 public class StateSearchComponent extends RangeSearchComponent {
 
     private static final String INVALID_SEARCH_PARAMS = "'state' search parameter requires 'state', 'start', and 'end' search parameter to be provided.";
-    private static final String START_DATE = "startDate";
-    private static final String END_DATE = "endDate";
-    private static final String ARCHIVE_DATE = "archiveDate";
 
     private EngagementState state;
 
@@ -39,11 +35,13 @@ public class StateSearchComponent extends RangeSearchComponent {
 
     }
 
-    private void validate() {
+    @Override
+    void validate() {
 
-        if (null == state || (null == super.getStart() || null == super.getEnd())) {
+        if (null == state) {
             throw new WebApplicationException(INVALID_SEARCH_PARAMS, 400);
         }
+        super.validate();
     }
 
     private Bson createSearchBson() {
@@ -53,7 +51,7 @@ public class StateSearchComponent extends RangeSearchComponent {
 
         if (!EngagementState.UPCOMING.equals(state)) {
 
-            launched = exists("launch", true);
+            launched = exists(LAUNCH, true);
 
             if (EngagementState.ACTIVE.equals(state)) {
                 bson = createActiveBson();
@@ -63,42 +61,30 @@ public class StateSearchComponent extends RangeSearchComponent {
                 bson = createTerminatingBson();
             }
 
-        } else {
-            launched = exists("launch", false);
-            bson = createUpcomingBson();
-        }
+            return and(launched, bson);
 
-        return and(launched, bson);
+        } else {
+            return createUpcomingBson();
+        }
 
     }
 
     private Bson createActiveBson() {
-        return gte(END_DATE, super.getEnd());
+        return gte(ENGAGEMENT_END_DATE, super.getStart());
     }
 
     private Bson createPastBson() {
-        return lt(END_DATE, super.getEnd());
+        return lt(ENGAGEMENT_END_DATE, super.getStart());
     }
 
     private Bson createTerminatingBson() {
-        Bson endDateLtEnd = lt(END_DATE, super.getEnd());
-        Bson archiveDateGtEnd = gt(ARCHIVE_DATE, super.getEnd());
+        Bson endDateLtEnd = lt(ENGAGEMENT_END_DATE, super.getStart());
+        Bson archiveDateGtEnd = gt(ENGAGEMENT_ARCHIVE_DATE, super.getStart());
         return and(endDateLtEnd, archiveDateGtEnd);
     }
 
     private Bson createUpcomingBson() {
-
-        // start date null or does not exist
-        Bson startDateDoesNotExist = exists(START_DATE, false);
-        Bson startDateIsNull = eq(START_DATE, null);
-
-        // start date between range start/end
-        Bson startDateGteEnd = gte(START_DATE, super.getStart());
-        Bson startDateLteEnd = lte(START_DATE, super.getEnd());
-        Bson betweenRangeStartOrEnd = and(startDateGteEnd, startDateLteEnd);
-
-        return or(startDateDoesNotExist, startDateIsNull, betweenRangeStartOrEnd);
-
+        return or(exists(LAUNCH, false), eq(LAUNCH, null));
     }
 
 }

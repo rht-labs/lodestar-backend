@@ -50,12 +50,6 @@ public class ListFilterOptions extends FilterOptions {
     @QueryParam("perPage")
     private Integer perPage;
 
-    @Deprecated
-    @Parameter(name = "categories", required = false, description = "filter based on category names.  Use search instead.")
-    @QueryParam("categories")
-    private String categories;
-    
-
     @Builder.Default
     private Optional<String> suggestFieldName = Optional.empty();
     @Builder.Default

@@ -41,7 +41,9 @@ public class BsonSearch {
         }
 
         // create state search
-        Optional<Bson> stateSearchBson = createStateSearchComponent(searchComponentMap.get());
+        Optional<Bson> stateSearchBson = isRangeSearchComponent(searchComponentMap.get())
+                ? createRangeSearchComponent(searchComponentMap.get())
+                : Optional.empty();
 
         // create bson for all other attributes
         Optional<Bson> searchBson = convertToBson(searchComponentMap.get());
@@ -59,13 +61,36 @@ public class BsonSearch {
     }
 
     /**
-     * Creates a {@link Bson} for search using state and a date range.
+     * Return true if the map contains the START, END, or STATE keys. Otherwise,
+     * false.
      * 
      * @param searchComponentMap
      * @return
      */
-    private Optional<Bson> createStateSearchComponent(
+    private boolean isRangeSearchComponent(Map<Object, Map<Object, List<DefaultSearchComponent>>> searchComponentMap) {
+
+        return searchComponentMap.containsKey(START) || searchComponentMap.containsKey(END)
+                || searchComponentMap.containsKey(STATE);
+
+    }
+
+    /**
+     * Creates a {@link Bson} for a range search using a date range and state if
+     * provided.
+     * 
+     * @param searchComponentMap
+     * @return
+     */
+    private Optional<Bson> createRangeSearchComponent(
             Map<Object, Map<Object, List<DefaultSearchComponent>>> searchComponentMap) {
+
+        // get range start value
+        String start = findFirstSearchComponentValue(searchComponentMap, START, EQUALS).orElse(null);
+        searchComponentMap.remove(START);
+
+        // get range end value
+        String end = findFirstSearchComponentValue(searchComponentMap, END, EQUALS).orElse(null);
+        searchComponentMap.remove(END);
 
         // create state search if required
         if (searchComponentMap.containsKey(STATE)) {
@@ -74,21 +99,15 @@ public class BsonSearch {
                     .lookup(findFirstSearchComponentValue(searchComponentMap, STATE, EQUALS).orElse(null));
             searchComponentMap.remove(STATE);
 
-            // get start value
-            String start = findFirstSearchComponentValue(searchComponentMap, START, EQUALS).orElse(null);
-            searchComponentMap.remove(START);
-
-            // get end value
-            String end = findFirstSearchComponentValue(searchComponentMap, END, EQUALS).orElse(null);
-            searchComponentMap.remove(END);
-
             // build state searchc component
             StateSearchComponent ssc = StateSearchComponent.builder().state(state).start(start).end(end).build();
             return ssc.getBson();
 
         }
 
-        return Optional.empty();
+        // create range search if state not provided
+        RangeSearchComponent rsc = RangeSearchComponent.builder().start(start).end(end).build();
+        return rsc.getBson();
 
     }
 
@@ -141,8 +160,8 @@ public class BsonSearch {
     }
 
     /**
-     * Returns an {@link Optional} containing the value of {@link DefaultSearchComponent}.
-     * Otherwise, returns an empty {@link Optional}.
+     * Returns an {@link Optional} containing the value of
+     * {@link DefaultSearchComponent}. Otherwise, returns an empty {@link Optional}.
      * 
      * @param searchComponent
      * @return
@@ -155,8 +174,8 @@ public class BsonSearch {
 
     /**
      * Returns an {@link Optional} containing the value associated to the
-     * {@link DefaultSearchComponent} for the given attribute name and operator names.
-     * Otherwise, returns an empty {@link Optional}.
+     * {@link DefaultSearchComponent} for the given attribute name and operator
+     * names. Otherwise, returns an empty {@link Optional}.
      * 
      * @param searchComponentMap
      * @param attributeName
@@ -164,7 +183,8 @@ public class BsonSearch {
      * @return
      */
     private Optional<String> findFirstSearchComponentValue(
-            Map<Object, Map<Object, List<DefaultSearchComponent>>> searchComponentMap, String attributeName, String operator) {
+            Map<Object, Map<Object, List<DefaultSearchComponent>>> searchComponentMap, String attributeName,
+            String operator) {
 
         Optional<DefaultSearchComponent> searchComponent = findFirtSearchComponent(searchComponentMap, attributeName,
                 operator);
@@ -173,9 +193,9 @@ public class BsonSearch {
     }
 
     /**
-     * Returns an {@link Optional} containing the first {@link DefaultSearchComponent} in
-     * the {@link Map} for the given attribute name and operator name. Otherwise,
-     * returns an empty {@link Optional}.
+     * Returns an {@link Optional} containing the first
+     * {@link DefaultSearchComponent} in the {@link Map} for the given attribute
+     * name and operator name. Otherwise, returns an empty {@link Optional}.
      * 
      * @param searchComponentMap
      * @param attribute
@@ -183,16 +203,17 @@ public class BsonSearch {
      * @return
      */
     private Optional<DefaultSearchComponent> findFirtSearchComponent(
-            Map<Object, Map<Object, List<DefaultSearchComponent>>> searchComponentMap, String attribute, String operator) {
+            Map<Object, Map<Object, List<DefaultSearchComponent>>> searchComponentMap, String attribute,
+            String operator) {
 
         return findSearchComponentList(searchComponentMap, attribute, operator).stream().findFirst();
 
     }
 
     /**
-     * Returns a {@link List} of {@link DefaultSearchComponent} in the {@link Map} for the
-     * given attribute name and operator name. Otherwise, an empty {@link List} is
-     * returned.
+     * Returns a {@link List} of {@link DefaultSearchComponent} in the {@link Map}
+     * for the given attribute name and operator name. Otherwise, an empty
+     * {@link List} is returned.
      * 
      * @param searchComponentMap
      * @param attribute
@@ -200,7 +221,8 @@ public class BsonSearch {
      * @return
      */
     private List<DefaultSearchComponent> findSearchComponentList(
-            Map<Object, Map<Object, List<DefaultSearchComponent>>> searchComponentMap, String attribute, String operator) {
+            Map<Object, Map<Object, List<DefaultSearchComponent>>> searchComponentMap, String attribute,
+            String operator) {
 
         // get map for given attribute
         Map<Object, List<DefaultSearchComponent>> operatorMap = searchComponentMap.get(attribute);

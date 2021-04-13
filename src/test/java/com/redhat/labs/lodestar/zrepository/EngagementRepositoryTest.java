@@ -4,9 +4,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -33,7 +33,6 @@ import com.redhat.labs.lodestar.model.filter.SortOrder;
 import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
 import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
-import com.redhat.labs.lodestar.model.search.EngagementState;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
 import com.redhat.labs.lodestar.utils.EmbeddedMongoTest;
 import com.redhat.labs.lodestar.utils.MockUtils;
@@ -44,6 +43,16 @@ import io.quarkus.test.junit.QuarkusTest;
 @QuarkusTest
 @Tag("integration")
 class EngagementRepositoryTest {
+
+    static final List<String> ACTIVE_UUIDS = Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8");
+    static final List<String> UPCOMING_UUIDS = Arrays.asList("9", "10");
+    static final List<String> PAST_UUIDS = Arrays.asList("11", "12");
+    static final List<String> TERMINATING_UUIDS = Arrays.asList("12");
+    static final List<String> RANGE_NO_STATE_UUIDS = Arrays.asList("3", "4", "5", "6", "7", "8");
+
+    static final LocalDate NOW = LocalDate.now();
+    String RANGE_START = NOW.minusMonths(1).toString();
+    String RANGE_END = NOW.plusMonths(1).toString();
 
     @Inject
     EngagementRepository repository;
@@ -695,8 +704,6 @@ class EngagementRepositoryTest {
     @Test
     void testFindAllWithPaging() {
 
-        // TODO: check paging header generation
-
         Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c3", "1234");
         Engagement e2 = MockUtils.mockMinimumEngagement("c2", "c5", "4321");
         Engagement e3 = MockUtils.mockMinimumEngagement("c2", "c4", "1111");
@@ -742,285 +749,7 @@ class EngagementRepositoryTest {
         assertEquals(2, results.size());
 
     }
-    
-    @Test
-    void testGetEngagementsByStateUpcoming() {
-
-        String state = "upcoming";
-        String rangeStartDate = "2020-01-01";
-        String rangeEndDate = "2020-06-01";
-
-        // start is null
-        Engagement e0 = MockUtils.mockMinimumEngagement("c0", "p0", "0000");
-
-        // start before range start
-        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
-        setEngagementState(e1, EngagementState.UPCOMING, rangeStartDate, DateAdjustment.BEFORE);
-
-        // start on range start
-        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
-        setEngagementState(e2, EngagementState.UPCOMING, rangeStartDate, DateAdjustment.ON);
-
-        // start between range start and range end
-        Engagement e3 = MockUtils.mockMinimumEngagement("c3", "p3", "3333");
-        setEngagementState(e3, EngagementState.UPCOMING, rangeStartDate, DateAdjustment.AFTER);
-
-        // start on range end
-        Engagement e4 = MockUtils.mockMinimumEngagement("c4", "p4", "4444");
-        setEngagementState(e4, EngagementState.UPCOMING, rangeEndDate, DateAdjustment.ON);
-
-        // start after range end
-        Engagement e5 = MockUtils.mockMinimumEngagement("c5", "p5", "5555");
-        setEngagementState(e5, EngagementState.UPCOMING, rangeEndDate, DateAdjustment.AFTER);
-
-        repository.persist(e0, e1, e2, e3, e4, e5);
-
-        String searchString = new StringBuilder("state=").append(state).append("&start=").append(rangeStartDate)
-                .append("&end=").append(rangeEndDate).toString();
-        ListFilterOptions options = new ListFilterOptions();
-        options.setSearch(searchString);
-        PagedEngagementResults pagedResults = repository.findPagedEngagements(options);
-        List<Engagement> results = pagedResults.getResults();
-        assertNotNull(results);
-        assertEquals(4, results.size());
-
-        List<String> invalidUuids = Arrays.asList("1111", "5555");
-        Optional<String> fail = results.stream().map(Engagement::getUuid).filter(u -> invalidUuids.contains(u))
-                .findAny();
-        if (fail.isPresent()) {
-            fail("should not have found UUID in results. " + fail.get());
-        }
-
-    }
-
-    @Test
-    void testGetEngagementByStateActive() {
-
-        String state = "active";
-        String rangeStartDate = "2020-01-01";
-        String rangeEndDate = "2020-06-01";
-
-        // engagement end date before range end date
-        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
-        setEngagementState(e1, EngagementState.ACTIVE, rangeEndDate, DateAdjustment.BEFORE);
-
-        // engagement end date on range end date
-        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
-        setEngagementState(e2, EngagementState.ACTIVE, rangeEndDate, DateAdjustment.ON);
-
-        // engagement end date after range end date
-        Engagement e3 = MockUtils.mockMinimumEngagement("c3", "p3", "3333");
-        setEngagementState(e3, EngagementState.ACTIVE, rangeEndDate, DateAdjustment.AFTER);
-
-        repository.persist(e1, e2, e3);
-
-        String searchString = new StringBuilder("state=").append(state).append("&start=").append(rangeStartDate)
-                .append("&end=").append(rangeEndDate).toString();
-        ListFilterOptions options = new ListFilterOptions();
-        options.setSearch(searchString);
-        PagedEngagementResults pagedResults = repository.findPagedEngagements(options);
-        List<Engagement> results = pagedResults.getResults();
-        assertNotNull(results);
-        assertEquals(2, results.size());
-
-        List<String> invalidUuids = Arrays.asList("1111");
-        Optional<String> fail = results.stream().map(Engagement::getUuid).filter(u -> invalidUuids.contains(u))
-                .findAny();
-        if (fail.isPresent()) {
-            fail("should not have found UUID in results. " + fail.get());
-        }
-
-    }
-
-    @Test
-    void testGetEngagementByStatePast() {
-
-        String state = "past";
-        String rangeStartDate = "2020-01-01";
-        String rangeEndDate = "2020-06-01";
-
-        // engagement end date before range end date
-        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
-        setEngagementState(e1, EngagementState.PAST, rangeEndDate, DateAdjustment.BEFORE);
-
-        // engagement end date on range end date
-        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
-        setEngagementState(e2, EngagementState.PAST, rangeEndDate, DateAdjustment.ON);
-
-        // engagement end date after range end date
-        Engagement e3 = MockUtils.mockMinimumEngagement("c3", "p3", "3333");
-        setEngagementState(e3, EngagementState.PAST, rangeEndDate, DateAdjustment.AFTER);
-
-        repository.persist(e1, e2, e3);
-
-        String searchString = new StringBuilder("state=").append(state).append("&start=").append(rangeStartDate)
-                .append("&end=").append(rangeEndDate).toString();
-        ListFilterOptions options = new ListFilterOptions();
-        options.setSearch(searchString);
-        PagedEngagementResults pagedResults = repository.findPagedEngagements(options);
-        List<Engagement> results = pagedResults.getResults();
-        assertNotNull(results);
-        assertEquals(1, results.size());
-
-        List<String> invalidUuids = Arrays.asList("2222", "3333");
-        Optional<String> fail = results.stream().map(Engagement::getUuid).filter(u -> invalidUuids.contains(u))
-                .findAny();
-        if (fail.isPresent()) {
-            fail("should not have found UUID in results. " + fail.get());
-        }
-
-    }
-
-    @Test
-    void testGetEngagementByStateTerminating() {
-
-        String state = "terminating";
-        String rangeStartDate = "2020-01-01";
-        String rangeEndDate = "2020-06-01";
-
-        // engagement end date before range end date
-        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
-        setEngagementState(e1, EngagementState.TERMINATING, rangeEndDate, DateAdjustment.BEFORE);
-
-        // engagement end date on range end date
-        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
-        setEngagementState(e2, EngagementState.TERMINATING, rangeEndDate, DateAdjustment.ON);
-
-        // engagement end date after range end date
-        Engagement e3 = MockUtils.mockMinimumEngagement("c3", "p3", "3333");
-        setEngagementState(e3, EngagementState.TERMINATING, rangeEndDate, DateAdjustment.AFTER);
-
-        // engagement end date after range end date
-        Engagement e4 = MockUtils.mockMinimumEngagement("c4", "p4", "4444");
-        String archiveDate = adjustDate(rangeEndDate, DateAdjustment.AFTER);
-        setEngagementState(e3, EngagementState.TERMINATING, archiveDate, DateAdjustment.ON);
-
-        // engagement end date after range end date
-        Engagement e5 = MockUtils.mockMinimumEngagement("c5", "p5", "5555");
-        setEngagementState(e3, EngagementState.TERMINATING, archiveDate, DateAdjustment.AFTER);
-
-        repository.persist(e1, e2, e3, e4, e5);
-
-        String searchString = new StringBuilder("state=").append(state).append("&start=").append(rangeStartDate)
-                .append("&end=").append(rangeEndDate).toString();
-        ListFilterOptions options = new ListFilterOptions();
-        options.setSearch(searchString);
-        PagedEngagementResults pagedResults = repository.findPagedEngagements(options);
-        List<Engagement> results = pagedResults.getResults();
-        assertNotNull(results);
-        assertEquals(1, results.size());
-
-        List<String> invalidUuids = Arrays.asList("2222", "3333");
-        Optional<String> fail = results.stream().map(Engagement::getUuid).filter(u -> invalidUuids.contains(u))
-                .findAny();
-        if (fail.isPresent()) {
-            fail("should not have found UUID in results. " + fail.get());
-        }
-
-    }
-
-//    @Test
-//    void testGetEngagementsByState() {
-//
-//        // upcoming
-//        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
-//        makeEngagementUpcoming(e1, null, null, null, null);
-//        setEngagementState(e1, EngagementState.UPCOMING, Optional.empty());
-//        // active
-//        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
-//        setEngagementState(e2, EngagementState.ACTIVE, Optional.empty());
-//        // past
-//        Engagement e3 = MockUtils.mockMinimumEngagement("c3", "p3", "3333");
-//        setEngagementState(e3, EngagementState.PAST, Optional.empty());
-//        // past/terminating
-//        Engagement e4 = MockUtils.mockMinimumEngagement("c4", "p4", "4444");
-//        setEngagementState(e4, EngagementState.TERMINATING, Optional.empty());
-//        repository.persist(e1, e2, e3, e4);
-//
-//        // find upcoming
-//        ListFilterOptions options = new ListFilterOptions();
-//        options.addEqualsSearchCriteria("state", "upcoming");
-//        PagedEngagementResults pagedResults = repository.findPagedEngagements(options);
-//        List<Engagement> results = pagedResults.getResults();
-//        assertNotNull(results);
-//        assertEquals(1, results.size());
-//        assertEquals("1111", results.get(0).getUuid());
-//
-//        // find active
-//        options = new ListFilterOptions();
-//        options.addEqualsSearchCriteria("state", "active");
-//        pagedResults = repository.findPagedEngagements(options);
-//        results = pagedResults.getResults();
-//        assertNotNull(results);
-//        assertEquals(1, results.size());
-//        assertEquals("2222", results.get(0).getUuid());
-//
-//        // find terminating
-//        options = new ListFilterOptions();
-//        options.addEqualsSearchCriteria("state", "terminating");
-//        pagedResults = repository.findPagedEngagements(options);
-//        results = pagedResults.getResults();
-//        assertNotNull(results);
-//        assertEquals(1, results.size());
-//        assertEquals("4444", results.get(0).getUuid());
-//
-//        // find active
-//        options = new ListFilterOptions();
-//        options.addEqualsSearchCriteria("state", "past");
-//        pagedResults = repository.findPagedEngagements(options);
-//        results = pagedResults.getResults();
-//        assertNotNull(results);
-//        assertEquals(2, results.size());
-//
-//    }
-
-    enum DateAdjustment {
-        BEFORE, ON, AFTER;
-    }
-
-    String adjustDate(String date, DateAdjustment comp) {
-
-        String newDate = null;
-        LocalDate ld = LocalDate.parse(date);
-        switch (comp) {
-        case BEFORE:
-
-            newDate = ld.minusDays(5).toString();
-            break;
-
-        case AFTER:
-            newDate = ld.plusDays(5).toString();
-            break;
-        default:
-            newDate = ld.toString();
-            break;
-        }
-
-        return newDate;
-
-    }
-
-    void setEngagementState(Engagement engagement, EngagementState state, String referenceDate,
-            DateAdjustment adjustment) {
-
-        String adjusted = adjustDate(referenceDate, adjustment);
-
-        if (!EngagementState.UPCOMING.equals(state)) {
-
-            engagement.setEndDate(adjusted);
-            engagement.setLaunch(Launch.builder().build());
-
-            if (EngagementState.TERMINATING.equals(state)) {
-                String engagementArchiveDate = adjustDate(referenceDate, DateAdjustment.AFTER);
-                engagement.setArchiveDate(engagementArchiveDate);
-            }
-
-        } else {
-            engagement.setStartDate(adjusted);
-        }
-
-    }
-
+ 
     @Test
     void testGetUserSummaryNoFilter() {
 
@@ -1087,6 +816,317 @@ class EngagementRepositoryTest {
         assertEquals(3, summary.getAllUsersCount());
         assertEquals(2, summary.getRhUsersCount());
         assertEquals(1, summary.getOtherUsersCount());
+
+    }
+
+    @Test
+    void testFindByRangeWithNoState() {
+
+        createAndInsertRangeEngagementData();
+
+        String search = "start=" + RANGE_START + "&end=" + RANGE_END;
+        ListFilterOptions options = ListFilterOptions.builder().search(search).build();
+
+        PagedEngagementResults results = repository.findPagedEngagements(options);
+        assertNotNull(results);
+        assertNotNull(results.getResults());
+
+        assertEquals(6, results.getResults().size());
+        Optional<String> unknownUuid = results.getResults().stream().map(Engagement::getUuid)
+                .filter(u -> !RANGE_NO_STATE_UUIDS.contains(u)).findFirst();
+        assertTrue(unknownUuid.isEmpty());
+
+    }
+
+    @Test
+    void testFindByStateActiveWithRange() {
+
+        createAndInsertRangeEngagementData();
+
+        String search = "state=active&start=" + RANGE_START + "&end=" + RANGE_END;
+        ListFilterOptions options = ListFilterOptions.builder().search(search).build();
+
+        PagedEngagementResults results = repository.findPagedEngagements(options);
+        assertNotNull(results);
+        assertNotNull(results.getResults());
+
+        assertEquals(8, results.getResults().size());
+        Optional<String> unknownUuid = results.getResults().stream().map(Engagement::getUuid)
+                .filter(u -> !ACTIVE_UUIDS.contains(u)).findFirst();
+        assertTrue(unknownUuid.isEmpty());
+
+    }
+
+    @Test
+    void testFindByStateUpcomingWithRange() {
+
+        createAndInsertRangeEngagementData();
+
+        String search = "state=upcoming&start=" + RANGE_START + "&end=" + RANGE_END;
+        ListFilterOptions options = ListFilterOptions.builder().search(search).build();
+
+        PagedEngagementResults results = repository.findPagedEngagements(options);
+        assertNotNull(results);
+        assertNotNull(results.getResults());
+
+        assertEquals(2, results.getResults().size());
+        Optional<String> unknownUuid = results.getResults().stream().map(Engagement::getUuid)
+                .filter(u -> !UPCOMING_UUIDS.contains(u)).findFirst();
+        assertTrue(unknownUuid.isEmpty());
+
+    }
+
+    @Test
+    void testFindByStatePastWithRange() {
+
+        createAndInsertRangeEngagementData();
+
+        String search = "state=past&start=" + RANGE_START + "&end=" + RANGE_END;
+        ListFilterOptions options = ListFilterOptions.builder().search(search).build();
+
+        PagedEngagementResults results = repository.findPagedEngagements(options);
+        assertNotNull(results);
+        assertNotNull(results.getResults());
+
+        assertEquals(2, results.getResults().size());
+
+        Optional<String> unknownUuid = results.getResults().stream().map(Engagement::getUuid)
+                .filter(u -> !PAST_UUIDS.contains(u)).findFirst();
+        assertTrue(unknownUuid.isEmpty());
+
+    }
+
+    @Test
+    void testFindByStateTerminatingWithRange() {
+
+        createAndInsertRangeEngagementData();
+
+        String search = "state=terminating&start=" + RANGE_START + "&end=" + RANGE_END;
+        ListFilterOptions options = ListFilterOptions.builder().search(search).build();
+
+        PagedEngagementResults results = repository.findPagedEngagements(options);
+        assertNotNull(results);
+        assertNotNull(results.getResults());
+
+        assertEquals(1, results.getResults().size());
+        Optional<String> unknownUuid = results.getResults().stream().map(Engagement::getUuid)
+                .filter(u -> !TERMINATING_UUIDS.contains(u)).findFirst();
+        assertTrue(unknownUuid.isEmpty());
+
+    }
+
+    // create test data engagements
+    private void createAndInsertRangeEngagementData() {
+
+        List<Engagement> engagements = new ArrayList<>();
+        engagements.addAll(mockActiveEngagements());
+        engagements.addAll(mockUpcomingEngagements());
+        engagements.addAll(mockPastEngagements());
+        engagements.addAll(mockTerminatingEngagements());
+
+        repository.persist(engagements);
+
+        assertEquals(12, repository.count());
+
+    }
+
+    private List<Engagement> mockActiveEngagements() {
+
+        // e1 - start date before r start date and end date after r end date and
+        // launched and archive date plus 30 days from end date
+
+        Engagement e1 = MockUtils.mockMinimumEngagement("customer1", "project1", "1");
+        // before range start date
+        String startDate = LocalDate.parse(RANGE_START).minusDays(1).toString();
+        e1.setStartDate(startDate);
+        // after range end date
+        String endDate = LocalDate.parse(RANGE_END).plusDays(1).toString();
+        e1.setEndDate(endDate);
+        // archive date 30 days after end date
+        String archiveDate = LocalDate.parse(endDate).plusDays(30).toString();
+        e1.setArchiveDate(archiveDate);
+        e1.setLaunch(MockUtils.mockLaunch(startDate, "someone", "someone@example.com"));
+
+        // e4 - start date after r end date and end date after start date and launched
+        // and archive date plus 30 days from end date
+
+        Engagement e2 = MockUtils.mockMinimumEngagement("customer2", "project2", "2");
+        // after range end date
+        startDate = LocalDate.parse(RANGE_END).plusDays(5).toString();
+        e2.setStartDate(startDate);
+        // after range end date
+        endDate = LocalDate.parse(RANGE_END).plusMonths(1).toString();
+        e2.setEndDate(endDate);
+        // archive date 30 days after end date
+        archiveDate = LocalDate.parse(endDate).plusDays(30).toString();
+        e2.setArchiveDate(archiveDate);
+        e2.setLaunch(MockUtils.mockLaunch(startDate, "someone", "someone@example.com"));
+
+        // e5 - start date on r end date and end date after r end date and launched and
+        // archive date plus 30 days from end date
+
+        Engagement e3 = MockUtils.mockMinimumEngagement("customer3", "project3", "3");
+        // on range end date
+        startDate = LocalDate.parse(RANGE_END).toString();
+        e3.setStartDate(startDate);
+        // after range end date
+        endDate = LocalDate.parse(RANGE_END).plusMonths(1).toString();
+        e3.setEndDate(endDate);
+        // archive date 30 days after end date
+        archiveDate = LocalDate.parse(endDate).plusDays(30).toString();
+        e3.setArchiveDate(archiveDate);
+        e3.setLaunch(MockUtils.mockLaunch(startDate, "someone", "someone@example.com"));
+
+        // e7 - start date after r start date and end date after r end date and launched
+        // and archive date plus 30 days from end date
+
+        Engagement e4 = MockUtils.mockMinimumEngagement("customer4", "project4", "4");
+        // before range end date
+        startDate = LocalDate.parse(RANGE_END).minusDays(5).toString();
+        e4.setStartDate(startDate);
+        // after range end date
+        endDate = LocalDate.parse(RANGE_END).plusMonths(1).toString();
+        e4.setEndDate(endDate);
+        // archive date 30 days after end date
+        archiveDate = LocalDate.parse(endDate).plusDays(30).toString();
+        e4.setArchiveDate(archiveDate);
+        e4.setLaunch(MockUtils.mockLaunch(startDate, "someone", "someone@example.com"));
+
+        // e9 - start date before r start date and end date between r start and r end
+        // dates and launched
+
+        Engagement e5 = MockUtils.mockMinimumEngagement("customer5", "project5", "5");
+        // before range start
+        startDate = LocalDate.parse(RANGE_START).minusDays(5).toString();
+        e5.setStartDate(startDate);
+        // after range end date
+        endDate = LocalDate.parse(RANGE_START).plusMonths(1).toString();
+        e5.setEndDate(endDate);
+        // archive date 30 days after end date
+        archiveDate = LocalDate.parse(endDate).plusDays(30).toString();
+        e5.setArchiveDate(archiveDate);
+        e5.setLaunch(MockUtils.mockLaunch(startDate, "someone", "someone@example.com"));
+
+        // e10- start date on r start date and end date before r end date and launched
+
+        Engagement e6 = MockUtils.mockMinimumEngagement("customer6", "project6", "6");
+        // on range start
+        startDate = LocalDate.parse(RANGE_START).toString();
+        e6.setStartDate(startDate);
+        // after range end date
+        endDate = LocalDate.parse(RANGE_START).plusMonths(1).toString();
+        e6.setEndDate(endDate);
+        // archive date 30 days after end date
+        archiveDate = LocalDate.parse(endDate).plusDays(20).toString();
+        e6.setArchiveDate(archiveDate);
+        e6.setLaunch(MockUtils.mockLaunch(startDate, "someone", "someone@example.com"));
+
+        // e11- start date after r start date and end date before r end date and
+        // launched
+
+        Engagement e7 = MockUtils.mockMinimumEngagement("customer7", "project7", "7");
+        // on range start
+        startDate = LocalDate.parse(RANGE_START).plusDays(1).toString();
+        e7.setStartDate(startDate);
+        // after range end date
+        endDate = LocalDate.parse(RANGE_START).plusMonths(1).toString();
+        e7.setEndDate(endDate);
+        // archive date 30 days after end date
+        archiveDate = LocalDate.parse(endDate).plusDays(20).toString();
+        e7.setArchiveDate(archiveDate);
+        e7.setLaunch(MockUtils.mockLaunch(startDate, "someone", "someone@example.com"));
+
+        // e12- start date after r start date and end date on r end date and launched
+
+        Engagement e8 = MockUtils.mockMinimumEngagement("customer8", "project8", "8");
+        // on range start
+        startDate = LocalDate.parse(RANGE_START).plusDays(1).toString();
+        e8.setStartDate(startDate);
+        // on range end date
+        endDate = LocalDate.parse(RANGE_END).toString();
+        e8.setEndDate(endDate);
+        // archive date 30 days after end date
+        archiveDate = LocalDate.parse(endDate).plusDays(20).toString();
+        e8.setArchiveDate(archiveDate);
+        e8.setLaunch(MockUtils.mockLaunch(startDate, "someone", "someone@example.com"));
+
+        return Arrays.asList(e1, e2, e3, e4, e5, e6, e7, e8);
+
+    }
+
+    private List<Engagement> mockUpcomingEngagements() {
+
+        // e2 - start date after r start date and end date after r end date and launched
+        // and archive date plus 30 days from end date
+
+        Engagement e9 = MockUtils.mockMinimumEngagement("customer9", "project9", "9");
+        // before range end
+        String startDate = LocalDate.parse(RANGE_END).minusDays(5).toString();
+        e9.setStartDate(startDate);
+        // after range end date
+        String endDate = LocalDate.parse(RANGE_END).plusDays(20).toString();
+        e9.setEndDate(endDate);
+        // archive date 30 days after end date
+        String archiveDate = LocalDate.parse(endDate).plusDays(20).toString();
+        e9.setArchiveDate(archiveDate);
+
+        // e3 - start date after r end date and end date after start date and not
+        // launched and archive date plus 30 days from end date
+
+        Engagement e10 = MockUtils.mockMinimumEngagement("customer10", "project10", "10");
+        // after range end
+        startDate = LocalDate.parse(RANGE_END).plusDays(5).toString();
+        e10.setStartDate(startDate);
+        // after range end date
+        endDate = LocalDate.parse(RANGE_END).plusDays(30).toString();
+        e10.setEndDate(endDate);
+        // archive date 30 days after end date
+        archiveDate = LocalDate.parse(endDate).plusDays(20).toString();
+        e10.setArchiveDate(archiveDate);
+
+        return Arrays.asList(e9, e10);
+
+    }
+
+    private List<Engagement> mockPastEngagements() {
+
+        // e8 - start date before r start date and end date before r start date and
+        // launched and archive date before r start date
+
+        Engagement e11 = MockUtils.mockMinimumEngagement("customer11", "project11", "11");
+        // before range start date
+        String startDate = LocalDate.parse(RANGE_START).minusMonths(4).toString();
+        e11.setStartDate(startDate);
+        // before range start date
+        String endDate = LocalDate.parse(RANGE_START).minusMonths(3).toString();
+        e11.setEndDate(endDate);
+        // archive date 30 days after end date
+        String archiveDate = LocalDate.parse(endDate).plusDays(30).toString();
+        e11.setArchiveDate(archiveDate);
+        e11.setLaunch(MockUtils.mockLaunch(startDate, "someone", "someone@example.com"));
+
+        return Arrays.asList(e11);
+
+    }
+
+    private List<Engagement> mockTerminatingEngagements() {
+
+        // e6 - start date before r start date and end date before r start date and
+        // launched and archive date after r start date
+
+        Engagement e12 = MockUtils.mockMinimumEngagement("customer12", "project12", "12");
+        // before range start date
+        String startDate = LocalDate.parse(RANGE_START).minusMonths(4).toString();
+        e12.setStartDate(startDate);
+        // before range start date
+        String endDate = LocalDate.parse(RANGE_START).minusDays(10).toString();
+        e12.setEndDate(endDate);
+        // archive date 30 days after end date
+        String archiveDate = LocalDate.parse(endDate).plusDays(30).toString();
+        e12.setArchiveDate(archiveDate);
+        e12.setLaunch(MockUtils.mockLaunch(startDate, "someone", "someone@example.com"));
+
+        return Arrays.asList(e12);
 
     }
 
