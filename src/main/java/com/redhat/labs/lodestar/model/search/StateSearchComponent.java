@@ -63,23 +63,21 @@ public class StateSearchComponent extends RangeSearchComponent {
         Bson launched = null;
         Bson bson = null;
 
-        if (!EngagementState.UPCOMING.equals(state)) {
-
-            launched = exists(LAUNCH, true);
-
-            if (EngagementState.ACTIVE.equals(state)) {
-                bson = createActiveBson();
-            } else if (EngagementState.PAST.equals(state)) {
-                bson = createPastBson();
-            } else {
-                bson = createTerminatingBson();
-            }
-
-            return and(launched, bson);
-
-        } else {
+        if (EngagementState.UPCOMING.equals(state)) {
             return createUpcomingBson();
         }
+
+        launched = exists(LAUNCH, true);
+
+        if (EngagementState.ACTIVE.equals(state)) {
+            bson = createActiveBson();
+        } else if (EngagementState.PAST.equals(state)) {
+            bson = createPastBson();
+        } else {
+            bson = createTerminatingBson();
+        }
+
+        return and(launched, bson);
 
     }
 
