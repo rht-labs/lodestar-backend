@@ -40,3 +40,5 @@ release.properties
 .applier/roles
 .adhoc
 deployment/mongo-volume
+
+jacoco.exec

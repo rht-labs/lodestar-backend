@@ -4,19 +4,30 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashMap;
 import java.util.Optional;
+
+import javax.ws.rs.WebApplicationException;
 
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import com.google.common.collect.Lists;
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.model.EngagementUserSummary;
+import com.redhat.labs.lodestar.model.filter.FilterOptions;
+import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
+import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
+import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
+import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
 import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 import com.redhat.labs.lodestar.utils.MockUtils;
 import com.redhat.labs.lodestar.utils.TokenUtils;
@@ -37,7 +48,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
 
         Engagement engagement = MockUtils.mockMinimumEngagement("c1", "e1", "1234");
         engagement.setProjectId(1234);
-        Mockito.when(eRepository.findByUuid("1234", Optional.empty())).thenReturn(Optional.of(engagement));
+        Mockito.when(eRepository.findByUuid("1234", new FilterOptions())).thenReturn(Optional.of(engagement));
 
         // GET
         given()
@@ -59,7 +70,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
-        Mockito.when(eRepository.findByUuid("1234", Optional.empty())).thenReturn(Optional.empty());
+        Mockito.when(eRepository.findByUuid("1234", new FilterOptions())).thenReturn(Optional.empty());
 
         // GET
         given()
@@ -78,7 +89,8 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
-        Mockito.when(eRepository.findAll(Optional.empty())).thenReturn(Lists.newArrayList());
+        PagedEngagementResults results = PagedEngagementResults.builder().results(Lists.newArrayList()).build();
+        Mockito.when(eRepository.findPagedEngagements(Mockito.any(ListFilterOptions.class))).thenReturn(results);
 
         // GET engagement
         Response response = 
@@ -93,7 +105,16 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         Engagement[] engagements = response.getBody().as(Engagement[].class);
         assertEquals(0, engagements.length);
 
-        Mockito.verify(eRepository).findAll(Optional.empty());
+        ArgumentCaptor<ListFilterOptions> ac = ArgumentCaptor.forClass(ListFilterOptions.class);
+        Mockito.verify(eRepository).findPagedEngagements(ac.capture());
+
+        ListFilterOptions captured = ac.getValue();
+        assertNull(captured.getInclude());
+        assertTrue(captured.getSearch().isEmpty());
+        assertTrue(captured.getSortOrder().isEmpty());
+        assertTrue(captured.getSortFields().isEmpty());
+        assertEquals(1, captured.getPage().get());
+        assertEquals(500, captured.getPerPage().get());
 
     }
 
@@ -106,7 +127,8 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         Engagement e1 = MockUtils.mockMinimumEngagement("c1", "e2", "1234");
         Engagement e2 = MockUtils.mockMinimumEngagement("c1", "e3", "4321");
         
-        Mockito.when(eRepository.findAll(Optional.empty())).thenReturn(Lists.newArrayList(e1,e2));
+        PagedEngagementResults results = PagedEngagementResults.builder().results(Lists.newArrayList(e1,e2)).build();
+        Mockito.when(eRepository.findPagedEngagements(Mockito.any(ListFilterOptions.class))).thenReturn(results);
 
         // GET engagement
         Response response = 
@@ -121,7 +143,16 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         Engagement[] engagements = quarkusJsonb.fromJson(response.getBody().asString(), Engagement[].class);
         assertEquals(2, engagements.length);
 
-        Mockito.verify(eRepository).findAll(Optional.empty());
+        ArgumentCaptor<ListFilterOptions> ac = ArgumentCaptor.forClass(ListFilterOptions.class);
+        Mockito.verify(eRepository).findPagedEngagements(ac.capture());
+
+        ListFilterOptions captured = ac.getValue();
+        assertNull(captured.getInclude());
+        assertTrue(captured.getSearch().isEmpty());
+        assertTrue(captured.getSortOrder().isEmpty());
+        assertTrue(captured.getSortFields().isEmpty());
+        assertEquals(1, captured.getPage().get());
+        assertEquals(500, captured.getPerPage().get());
 
     }
 
@@ -130,7 +161,9 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
-        
+
+        Mockito.when(eRepository.findPagedEngagements(Mockito.any(ListFilterOptions.class))).thenThrow(new WebApplicationException(400));
+
         // get all
         Response r =given()
             .auth()
@@ -150,7 +183,10 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
-        
+
+        PagedEngagementResults results = PagedEngagementResults.builder().results(Lists.newArrayList()).build();
+        Mockito.when(eRepository.findPagedEngagements(Mockito.any(ListFilterOptions.class))).thenReturn(results);
+
         // get all
         Response r =given()
             .auth()
@@ -173,7 +209,8 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
         
-        Mockito.when(eRepository.findAllCategoryWithCounts()).thenReturn(Lists.newArrayList(MockUtils.mockCategory("cat1")));
+        PagedCategoryResults pagedResults = PagedCategoryResults.builder().results(Lists.newArrayList(MockUtils.mockCategory("cat1"))).build();
+        Mockito.when(eRepository.findCategories(Mockito.any(ListFilterOptions.class))).thenReturn(pagedResults);
         
         // get suggestions
         Response r =given()
@@ -196,7 +233,8 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
         
-        Mockito.when(eRepository.findCategorySuggestions("sug")).thenReturn(Lists.newArrayList(MockUtils.mockCategory("sugar")));
+        PagedCategoryResults pagedResults = PagedCategoryResults.builder().results(Lists.newArrayList(MockUtils.mockCategory("sugar"))).build();
+        Mockito.when(eRepository.findCategories(Mockito.any(ListFilterOptions.class))).thenReturn(pagedResults);
         
         // get suggestions
         Response r =given()
@@ -220,7 +258,8 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
-        Mockito.when(eRepository.findAllArtifactTypes()).thenReturn(Lists.newArrayList("a1","a2"));
+        PagedStringResults pagedResults = PagedStringResults.builder().results(Lists.newArrayList("a1","a2")).build();
+        Mockito.when(eRepository.findArtifactTypes(Mockito.any(ListFilterOptions.class))).thenReturn(pagedResults);
 
         given()
             .auth()
@@ -241,7 +280,8 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
-        Mockito.when(eRepository.findArtifactTypeSuggestions("a")).thenReturn(Lists.newArrayList("a1"));
+        PagedStringResults pagedResults = PagedStringResults.builder().results(Lists.newArrayList("a1")).build();
+        Mockito.when(eRepository.findArtifactTypes(Mockito.any(ListFilterOptions.class))).thenReturn(pagedResults);
 
         given()
             .auth()
@@ -264,7 +304,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
 
         Engagement engagement = MockUtils.mockMinimumEngagement("c1", "e1", "1234");
         engagement.setProjectId(1234);
-        Mockito.when(eRepository.findByCustomerNameAndProjectName("c1", "e1", Optional.empty())).thenReturn(Optional.of(engagement));
+        Mockito.when(eRepository.findByCustomerNameAndProjectName("c1", "e1", new FilterOptions())).thenReturn(Optional.of(engagement));
 
         // GET
         given()
@@ -277,6 +317,33 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
                 .body("project_id", equalTo(1234));
+
+    }
+
+    @Test
+    void testGetEngagementUserSummary() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Engagement engagement = MockUtils.mockMinimumEngagement("c1", "e1", "1234");
+        engagement.setProjectId(1234);
+        Mockito.when(eRepository.findByCustomerNameAndProjectName("c1", "e1", new FilterOptions())).thenReturn(Optional.of(engagement));
+
+        EngagementUserSummary summary = EngagementUserSummary.builder().allUsersCount(3).rhUsersCount(1).otherUsersCount(2).build();
+        Mockito.when(eRepository.findEngagementUserSummary(Mockito.any(ListFilterOptions.class))).thenReturn(summary);
+
+        // GET
+        given()
+            .when()
+                .auth()
+                .oauth2(token)
+                .get("/engagements/users/summary")
+            .then()
+                .statusCode(200)
+                .body("all_users_count", equalTo(3))
+                .body("rh_users_count", equalTo(1))
+                .body("other_users_count", equalTo(2));
 
     }
 

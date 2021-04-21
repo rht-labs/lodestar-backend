@@ -1,27 +1,41 @@
-package com.redhat.labs.lodestar.model;
+package com.redhat.labs.lodestar.model.filter;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import javax.ws.rs.QueryParam;
 
-@Builder
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+
+import com.redhat.labs.lodestar.util.ClassFieldUtils;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
+
+@Data
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class FilterOptions {
 
-    @Setter
+    @Parameter(name = "include", required = false, description = "comma separated list of field names to include in response")
+    @QueryParam("include")
     private String include;
-    @Setter
+
+    @Parameter(name = "exclude", required = false, description = "comma separated list of field names to exclude in response")
+    @QueryParam("exclude")
     private String exclude;
 
+    /**
+     * Returns a {@link Set} of {@link String} from the configured include list.
+     * 
+     * @return
+     */
     public Optional<Set<String>> getIncludeList() {
 
         Optional<Set<String>> includeOptional = createSet(include);
@@ -39,10 +53,23 @@ public class FilterOptions {
 
     }
 
+    /**
+     * Creates an {@link Optional} containing a {@link Set} of {@link String} for
+     * the values to exclude.
+     * 
+     * @return
+     */
     public Optional<Set<String>> getExcludeList() {
         return createSet(exclude);
     }
 
+    /**
+     * Returns an {@link Optional} of a {@link Set} of {@link String} after parsing
+     * the given value.
+     * 
+     * @param value
+     * @return
+     */
     private Optional<Set<String>> createSet(String value) {
 
         if (null == value) {
@@ -53,32 +80,19 @@ public class FilterOptions {
 
     }
 
+    /**
+     * Parses the given value to get the attributes in a {@link Set}.
+     * 
+     * @param value
+     * @return
+     */
     private Set<String> parseAttributes(String value) {
 
         if (null == value || value.isEmpty()) {
             return new HashSet<>();
         }
 
-        return Stream.of(value.split(",")).map(this::snakeToCamelCase).collect(Collectors.toSet());
-
-    }
-
-    private String snakeToCamelCase(String value) {
-
-        // split lowercase value based on underscore
-        List<String> tokens = Stream.of(value.toLowerCase().split("_")).collect(Collectors.toList());
-
-        // start string with first lower case token
-        StringBuilder builder = new StringBuilder(tokens.remove(0));
-
-        // capitalize first letter of each remaining token
-        tokens.stream().forEach(token -> {
-            String tmp = (1 == token.length()) ? token.toUpperCase()
-                    : token.substring(0, 1).toUpperCase() + token.substring(1);
-            builder.append(tmp);
-        });
-
-        return builder.toString();
+        return Stream.of(value.split(",")).map(ClassFieldUtils::getFieldNameFromQueryName).collect(Collectors.toSet());
 
     }
 

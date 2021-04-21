@@ -14,6 +14,7 @@ import com.redhat.labs.lodestar.model.EngagementUser;
 import com.redhat.labs.lodestar.model.GitlabProject;
 import com.redhat.labs.lodestar.model.Hook;
 import com.redhat.labs.lodestar.model.HostingEnvironment;
+import com.redhat.labs.lodestar.model.Launch;
 import com.redhat.labs.lodestar.model.Status;
 
 public class MockUtils {
@@ -96,4 +97,8 @@ public class MockUtils {
         return mapper.readValue(json, Engagement.class);
     }
 
+    public static Launch mockLaunch(String dateTime, String launchedBy, String launchedByEmail) {
+        return Launch.builder().launchedDateTime(dateTime).launchedBy(launchedBy).launchedByEmail(launchedByEmail)
+                .build();
+    }
 }

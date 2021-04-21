@@ -4,124 +4,119 @@
 
 The API for Lodestar.
 
-## JSON REST APIs
+----
 
-The JSON REST APIs consist of three resources types:
+# JSON REST API
 
-* config
-* engagements
-* status
-* version
+## OpenAPI Documentation of APIs
 
-The application, once running, also exposes a Swagger UI that will provide more details about each of the APIs described below.  It can be found using the `/swagger-ui` path for the application.
+The JSON APIs are documented using using OpenAPI.  The OpenAPI UI can be used to view the exposed endpoints and interact directly with them.
 
-### Config Resource
-
-The config resource exposes an API that will return the configured config file from git using the [Git API](https://github.com/rht-labs/lodestar-git-api).
+Once the application is launched, the OpenAPI UI can be found at the following path:
 
 ```
-GET /config
+http(s)://your-hostname[:port]/q/swagger-ui
 ```
 
-It's recommended to add the version header with the a version above v1. v1 returns yaml wrapped json. Fun! v2 and forward return pure json with all git information stripped out.
+## Available Resources
 
-### Engagement Resource
+### Config
 
-The engagements resource exposes an API that allows clients to create, retrieve, and delete engagement resources.  
+The `config` resource exposes endpoints that allow clients to retrieve application configuration data.
 
-The unique key for an engagement is its `uuid` attribute.  
+### Engagements
 
-The following endpoints are available for engagement resources:
+The `engagements` resource exposes various CRUD endpoints that allow clients to create, retrieve, update, and delete engagements.
 
-```
-POST ​/engagements
-```
-Creates an engagement in the database and triggers event to push to GitLab.
-```
-PUT ​/engagements​/{uuid}
-```
-Updates the engagement with the given UUID in the database and triggers event to push to GitLab.
-```
-DEPRECATED: PUT ​/engagements​/customers​/{customerName}​/projects​/{projectName}
-```
-Updates the engagement with the given UUID in the database and triggers event to push to GitLab.
-```
-PUT​/engagements​/launch
-```
-Sets the engagement launch data in the database and triggers event to push to GitLab.
-```
-PUT ​/engagements​/refresh
-```
-Starts the process to insert any engagements in GitLab, but not in the database, into the database.  If the query parameter `purgeFirst` is set to true, the database will be cleared before inserting.
-```
-PUT ​/engagements​/uuids​/set
-```
-Starts the process to set any UUIDs for engagement or engagement users if missing.  All new engagements and users will have a UUID assigned at time of creation.  This process was for engagements and users created before functionality existed.
-```
-GET /engagements
-```
-Returns all engagements currently found in the database.
-```
-GET ​/engagements​/{uuid}
-```
-Returns the engagement for the given UUID.  A 404 will be returned if not found.
-```
-GET ​/engagements​/customers​/{customerName}​/projects​/{projectName}
-```
-Returns the engagement for the given UUID.  A 404 will be returned if not found.
-```
-GET ​/engagements​/artifact​/types
-```
-Returns all artifact types found in the database or ones that match the optional query param `suggest`.
-```
-GET ​/engagements​/categories
-```
-Returns all categories in the database or ones that match the optional query param `suggest`.
-```
-GET ​/engagements​/customers​/suggest
-```
-Returns a list of all customer names that match the required query param `suggest`.
-```
-HEAD ​/engagements​/{uuid}
-```
-Returns metadata for the engagement that matches provided UUID.
-```
-DEPRECATED: HEAD ​/engagements​/customers​/{customerName}​/projects​/{projectName}
-```
-Returns metadata for the engagement that matches provided UUID.
-```
-HEAD ​/engagements​/subdomain​/{subdomain}
-```
-Returns a 409 status if subdomain is already used.  Otherwise, a 200 is returned.
-```
-DELETE ​/engagements​/{id}
-```
-Deletes the engagement with the given UUID in the database and triggers event to push to GitLab.
+#### GET Engagements API Parameters
 
-### Status Resource
+`GET /engagements`
 
-The status resource exposes APIs that allow external applications to notify the backend of changes.  It also exposes a proxy to the LodeStar Status API to get the current component status of all LodeStar components.
+The following parameters are supported:
+
+* Header Params
+
+  * `Accept-version` - used to specify default results per page
+
+* Query Params
+
+  * `include` - attributes to include in response
+  * `exclude` - attributes to exclude in response
+  * `page` - page number to retrieve
+if provided, the specified page will be returned. defaults to 1
+  * `perPage` - number of records to retrieve for each page
+    * if provided, the specified number of records will be returned
+    * if header Accept-version is missing or set to v1, defaults to 500
+    * if header Accept-version is specified and not v1, defaults to 20
+  * `search` - query string to filter engagements
+    * supports `=`, `like`, `not like`, `exists`, and `not exists`
+    * `start` and/or `end` can be used to limit the results based on a date range (i.e. `start=2021-01-01&end=2021-05-01`)
+  * `sortOrder` - ASC for ascending and DESC for descending. defaults to descending
+  * `sortFields` - fields to sort on. defaults to customer_name,project_name
+
+#### GET Engagement Nested Resource API Parameters
 
 ```
-GET ​/status
+GET /engagements/customers/suggest
+GET /engagements/artifacts/types
+GET /engagements/categories
 ```
-Returns status of all configured components.
-```
-POST /status​/deleted
-```
-Triggers the deletion of an engagement with the customer and engagement names found in the body of the message.
-```
-POST /status​/hook
-```
-Triggers the update of Status and Commit data for the engagement that matches the customer and engagement names found in the body of the message.
 
-### Version Resource
+The following parameters are supported:
 
-The version resource exposes an endpoint that will allow the client to determine which versions of the backend, git api, and other components being used by Lodestar.
+* Query Params
+  * `page` - page number to retrieve
+    * if provided, the specified page will be returned. defaults to 1
+  * `perPage` - number of records to retrieve for each page
+      * if provided, the specified number of records will be returned
+      * if header Accept-version is missing or set to v1, defaults to 500
+      * if header Accept-version is specified and not v1, defaults to 20
+  * `suggestion` - case insensitive query string to filter engagements
+  * `sortOrder` - ASC for ascending and DESC for descending. defaults to descending
+
+
+#### GET Engagement Dashboard/Query Helper API Parameters
 
 ```
-GET  /api/v1/version
+GET /engagements/state/{state}
 ```
+
+The following parameters are supported:
+
+* Path Params
+
+    * `state` - the state to filter engagements on
+values are `upcoming`, `active`, `past`, and `terminating`
+      * if unknown value supplied, `upcoming` will be used
+* Header Params
+  * supports all the same as GET /engagements
+* Query Params
+  * supports all the same as GET /engagements
+
+```
+GET /engagements/users/summary
+```
+
+The following parameters are supported:
+
+* Query Params:
+    * supports `=`, `like`, `not like`, `exists`, and `not exists`
+    * `start` and/or `end` can be used to limit the results based on a date range (i.e. `start=2021-01-01&end=2021-05-01`)
+
+
+### Status
+
+The `status` resource exposes endpoints providing two main functionalities:
+
+1. Application component status data
+2. Webhook APIs to allow for updates to the database triggered from external changes.
+
+### Version
+
+The `version` resource exposes endpoints to retrieve application component versions.
+
+
+----
 
 ## Scheduled Jobs
 
@@ -143,6 +138,8 @@ By default, this does not insert or update any engagement that is already in the
 ### Set Missing UUIDs
 
 This job is used to check once at startup for any engagements missing UUIDs for either the engagement or the engagement users.
+
+----
 
 ## Configuration
 

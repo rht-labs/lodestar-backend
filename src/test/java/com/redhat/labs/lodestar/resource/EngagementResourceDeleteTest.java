@@ -11,6 +11,7 @@ import org.mockito.Mockito;
 
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.Launch;
+import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 import com.redhat.labs.lodestar.utils.MockUtils;
 import com.redhat.labs.lodestar.utils.TokenUtils;
@@ -27,7 +28,7 @@ class EngagementResourceDeleteTest extends IntegrationTestHelper {
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
-        Mockito.when(eRepository.findByUuid("1234", Optional.empty())).thenReturn(Optional.empty());
+        Mockito.when(eRepository.findByUuid("1234", new FilterOptions())).thenReturn(Optional.empty());
 
         // DELETE
         given()
@@ -48,7 +49,7 @@ class EngagementResourceDeleteTest extends IntegrationTestHelper {
 
         Engagement e = MockUtils.mockMinimumEngagement("c1", "e1", "1234");
         e.setLaunch(Launch.builder().build());
-        Mockito.when(eRepository.findByUuid("1234", Optional.empty())).thenReturn(Optional.of(e));
+        Mockito.when(eRepository.findByUuid("1234",new FilterOptions())).thenReturn(Optional.of(e));
 
         // DELETE
         given()
@@ -68,7 +69,7 @@ class EngagementResourceDeleteTest extends IntegrationTestHelper {
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
         Engagement e = MockUtils.mockMinimumEngagement("c1", "e1", "1234");
-        Mockito.when(eRepository.findByUuid("1234", Optional.empty())).thenReturn(Optional.of(e));
+        Mockito.when(eRepository.findByUuid("1234", new FilterOptions())).thenReturn(Optional.of(e));
 
         // DELETE
         given()

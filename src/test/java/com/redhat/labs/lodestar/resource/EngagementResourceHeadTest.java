@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 import com.redhat.labs.lodestar.utils.MockUtils;
 import com.redhat.labs.lodestar.utils.TokenUtils;
@@ -59,7 +60,7 @@ class EngagementResourceHeadTest extends IntegrationTestHelper {
 
         Engagement engagement = MockUtils.mockMinimumEngagement("c1", "e1", "1234");
         engagement.setLastUpdate("somevalue");
-        Mockito.when(eRepository.findByUuid("1234", Optional.empty())).thenReturn(Optional.of(engagement));
+        Mockito.when(eRepository.findByUuid("1234", new FilterOptions())).thenReturn(Optional.of(engagement));
 
         // HEAD
         given()
@@ -80,7 +81,7 @@ class EngagementResourceHeadTest extends IntegrationTestHelper {
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
-        Mockito.when(eRepository.findByUuid("1234", Optional.empty())).thenReturn(Optional.empty());
+        Mockito.when(eRepository.findByUuid("1234", new FilterOptions())).thenReturn(Optional.empty());
 
         // HEAD
         given()
@@ -101,7 +102,7 @@ class EngagementResourceHeadTest extends IntegrationTestHelper {
 
         Engagement engagement = MockUtils.mockMinimumEngagement("c1", "e1", "1234");
         engagement.setLastUpdate("somevalue");
-        Mockito.when(eRepository.findByCustomerNameAndProjectName("c1", "e1", Optional.empty())).thenReturn(Optional.of(engagement));
+        Mockito.when(eRepository.findByCustomerNameAndProjectName("c1", "e1", new FilterOptions())).thenReturn(Optional.of(engagement));
 
         // HEAD
         given()
