@@ -889,34 +889,22 @@ public class EngagementService {
      */
     boolean setUuidOnEngagementAttributes(Engagement engagement) {
 
-        boolean updated = false;
-
         // artifacts
-        if (setIdAndTimestampsOnEngagementAttributes(engagement.getArtifacts())) {
-            updated = true;
-        }
+        boolean aModified = setIdAndTimestampsOnEngagementAttributes(engagement.getArtifacts());
 
         // categories
-        if (setIdAndTimestampsOnEngagementAttributes(engagement.getCategories())) {
-            updated = true;
-        }
+        boolean cModified = setIdAndTimestampsOnEngagementAttributes(engagement.getCategories());
 
         // use cases
-        if (setIdAndTimestampsOnEngagementAttributes(engagement.getUseCases())) {
-            updated = true;
-        }
+        boolean uModified = setIdAndTimestampsOnEngagementAttributes(engagement.getUseCases());
 
         // scores
-        if (setIdAndTimestampsOnEngagementAttributes(engagement.getScores())) {
-            updated = true;
-        }
+        boolean sModified = setIdAndTimestampsOnEngagementAttributes(engagement.getScores());
 
         // hosting environments
-        if (setIdAndTimestampsOnEngagementAttributes(engagement.getHostingEnvironments())) {
-            updated = true;
-        }
+        boolean hModified = setIdAndTimestampsOnEngagementAttributes(engagement.getHostingEnvironments());
 
-        return updated;
+        return aModified || cModified || uModified || sModified || hModified;
 
     }
 
