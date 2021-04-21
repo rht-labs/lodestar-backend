@@ -1,7 +1,6 @@
 package com.redhat.labs.lodestar.model;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import javax.json.bind.annotation.JsonbProperty;
@@ -98,6 +97,6 @@ public class Engagement extends PanacheMongoEntityBase {
     @JsonbProperty("commit_message")
     private String commitMessage;
 
-    private Map<String, Double> scores;
+    private List<Score> scores;
 
 }

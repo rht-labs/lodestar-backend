@@ -2,15 +2,18 @@ package com.redhat.labs.lodestar.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 import javax.json.bind.Jsonb;
@@ -30,11 +33,15 @@ import org.mockito.Mockito;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import com.redhat.labs.lodestar.model.Artifact;
+import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.EngagementUser;
 import com.redhat.labs.lodestar.model.Hook;
 import com.redhat.labs.lodestar.model.HostingEnvironment;
 import com.redhat.labs.lodestar.model.Launch;
+import com.redhat.labs.lodestar.model.Score;
+import com.redhat.labs.lodestar.model.UseCase;
 import com.redhat.labs.lodestar.model.event.EventType;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
@@ -434,8 +441,7 @@ class EngagementServiceTest {
         Mockito.verify(eventBus).sendAndForget(EventType.DELETE_AND_RELOAD_ENGAGEMENT_EVENT_ADDRESS, "1234");
         Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(Mockito.eq(EventType.UPDATE_COMMITS_EVENT_ADDRESS),
                 Mockito.any(Engagement.class));
-        Mockito.verify(eventBus, Mockito.times(
-                0)).sendAndForget(Mockito.eq(EventType.UPDATE_STATUS_EVENT_ADDRESS),
+        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(Mockito.eq(EventType.UPDATE_STATUS_EVENT_ADDRESS),
                 Mockito.any(Engagement.class));
 
     }
@@ -547,7 +553,8 @@ class EngagementServiceTest {
         Engagement e1 = MockUtils.mockMinimumEngagement("customer1", "project1", "1234");
         Engagement e2 = MockUtils.mockMinimumEngagement("customer2", "project1", "5454");
         ListFilterOptions options = new ListFilterOptions();
-        PagedStringResults results = PagedStringResults.builder().results(Lists.newArrayList(e1.getCustomerName(), e2.getCustomerName())).build();
+        PagedStringResults results = PagedStringResults.builder()
+                .results(Lists.newArrayList(e1.getCustomerName(), e2.getCustomerName())).build();
         options.setSearch("customer_name like c");
         Mockito.when(repository.findCustomerSuggestions(options)).thenReturn(results);
 
@@ -683,15 +690,40 @@ class EngagementServiceTest {
     @Test
     void testSetNullUuidsAlreadySet() {
 
+        UseCase u1 = MockUtils.mockUseCase("case 1", "case one", 0);
+        u1.setUuid(UUID.randomUUID().toString());
+        u1.setCreatedAndUpdated();
+        UseCase u2 = MockUtils.mockUseCase("case 2", "case two", 1);
+        Category c1 = MockUtils.mockCategory("cat1");
+        c1.setUuid(UUID.randomUUID().toString());
+        c1.setCreatedAndUpdated();
+        Category c2 = MockUtils.mockCategory("cat2");
+        Artifact a1 = MockUtils.mockArtifact("demo 1", "demo", "http://demo-1");
+        a1.setUuid(UUID.randomUUID().toString());
+        a1.setCreatedAndUpdated();
+        Artifact a2 = MockUtils.mockArtifact("demo 2", "demo", "http://demo-2");
         EngagementUser user1 = MockUtils.mockEngagementUser("b.s@example.com", "bill", "smith", "dev", "1234", false);
         EngagementUser user2 = MockUtils.mockEngagementUser("t.j@example.com", "tom", "jones", "dev", "4321", false);
         Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p2", null);
         e1.setEngagementUsers(Sets.newHashSet(user1, user2));
+        e1.setArtifacts(Arrays.asList(a1, a2));
+        e1.setCategories(Arrays.asList(c1, c2));
+        e1.setUseCases(Arrays.asList(u1, u2));
 
+        HostingEnvironment he1 = MockUtils.mockHostingEnvironment("env1", "env1");
+        he1.setUuid(UUID.randomUUID().toString());
+        he1.setCreatedAndUpdated();
+        HostingEnvironment he2 = MockUtils.mockHostingEnvironment("env2", "env2");
+        Score s1 = MockUtils.mockScore("score1", 90.9);
+        s1.setUuid(UUID.randomUUID().toString());
+        s1.setCreatedAndUpdated();
+        Score s2 = MockUtils.mockScore("score2", 55.4);
         EngagementUser user3 = MockUtils.mockEngagementUser("j.s@example.com", "jim", "smith", "dev", null, false);
         EngagementUser user4 = MockUtils.mockEngagementUser("t.j@example.com", "tom", "jones", "dev", "4321", false);
         Engagement e2 = MockUtils.mockMinimumEngagement("c1", "p2", "7890");
         e2.setEngagementUsers(Sets.newHashSet(user3, user4));
+        e2.setScores(Arrays.asList(s1, s2));
+        e2.setHostingEnvironments(Arrays.asList(he1, he2));
 
         Mockito.when(repository.streamAll()).thenReturn(Stream.of(e1, e2));
 
@@ -839,6 +871,91 @@ class EngagementServiceTest {
         assertFalse(service.persistEngagementIfNotFound(e));
 
         Mockito.verify(repository, Mockito.times(0)).persist(Mockito.any(Engagement.class));
+
+    }
+
+    @Test
+    void testSetEngagementAttributeIdsAndTimestamps() {
+
+        Engagement persisted = MockUtils.mockMinimumEngagement("c1", "p1", "1");
+
+        // will be removed
+        HostingEnvironment he = MockUtils.mockHostingEnvironment("env", "env");
+        persisted.setHostingEnvironments(Arrays.asList(he));
+
+        // will be updated
+        Artifact a1 = MockUtils.mockArtifact("report 1", "report", "http://report-1");
+        String a1Id = UUID.randomUUID().toString();
+        a1.setUuid(a1Id);
+        a1.setCreatedAndUpdated();
+
+        // will not be updated
+        Artifact a2 = MockUtils.mockArtifact("whitepaper 1", "whitepaper", "http://whitepaper-1");
+        String a2Id = UUID.randomUUID().toString();
+        a2.setUuid(a2Id);
+        a2.setCreatedAndUpdated();
+
+        persisted.setArtifacts(Arrays.asList(a1, a2));
+
+        String updatedJson = jsonb.toJson(persisted);
+        Engagement updated = jsonb.fromJson(updatedJson, Engagement.class);
+
+        // add category
+        Category category = MockUtils.mockCategory("category1");
+        updated.setCategories(Arrays.asList(category));
+
+        // update one artifact
+        updated.getArtifacts().get(0).setTitle("updated title");
+
+        // add new artifact
+        Artifact a3 = MockUtils.mockArtifact("demo 1", "demo", "http://demo-1");
+        updated.getArtifacts().add(a3);
+
+        // remove hosting environment
+        updated.setHostingEnvironments(Arrays.asList());
+
+        // when
+        service.setIdsAndTimestamps(updated, persisted);
+
+        // hosting environment removed
+        assertTrue(updated.getHostingEnvironments().isEmpty());
+
+        // category should be added
+        assertEquals(1, updated.getCategories().size());
+        Category c = updated.getCategories().get(0);
+        assertNotNull(c.getUuid());
+        assertNotNull(c.getCreated());
+        assertNotNull(c.getUpdated());
+        assertEquals("category1", c.getName());
+
+        // a1 updated, a2 unchanged, a3 added
+        assertEquals(3, updated.getArtifacts().size());
+
+        updated.getArtifacts().stream().forEach(a -> {
+
+            assertNotNull(c.getUuid());
+
+            if (a.getUuid().equals(a1.getUuid())) {
+
+                // a1 created unchanged, modified changed
+                assertEquals(a1.getCreated(), a.getCreated());
+                assertNotEquals(a1.getUpdated(), a.getUpdated());
+
+            } else if (a.getUuid().equals(a2.getUuid())) {
+
+                // a2 created unchanged, modified unchanged
+                assertEquals(a2.getCreated(), a.getCreated());
+                assertEquals(a2.getUpdated(), a.getUpdated());
+
+            } else {
+
+                // a3 created and modified set
+                assertNotNull(c.getCreated());
+                assertNotNull(c.getUpdated());
+
+            }
+
+        });
 
     }
 

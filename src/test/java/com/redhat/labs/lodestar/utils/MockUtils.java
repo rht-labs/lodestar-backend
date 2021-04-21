@@ -15,7 +15,9 @@ import com.redhat.labs.lodestar.model.GitlabProject;
 import com.redhat.labs.lodestar.model.Hook;
 import com.redhat.labs.lodestar.model.HostingEnvironment;
 import com.redhat.labs.lodestar.model.Launch;
+import com.redhat.labs.lodestar.model.Score;
 import com.redhat.labs.lodestar.model.Status;
+import com.redhat.labs.lodestar.model.UseCase;
 
 public class MockUtils {
 
@@ -100,5 +102,13 @@ public class MockUtils {
     public static Launch mockLaunch(String dateTime, String launchedBy, String launchedByEmail) {
         return Launch.builder().launchedDateTime(dateTime).launchedBy(launchedBy).launchedByEmail(launchedByEmail)
                 .build();
+    }
+
+    public static UseCase mockUseCase(String title, String description, Integer order) {
+        return UseCase.builder().title(title).description(description).order(order).build();
+    }
+
+    public static Score mockScore(String name, Double value) {
+        return Score.builder().name(name).value(value).build();
     }
 }

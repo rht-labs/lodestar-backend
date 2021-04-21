@@ -1,4 +1,8 @@
-package com.redhat.labs.lodestar.model;
+package com.redhat.labs.lodestar.model.pagination;
+
+import java.util.List;
+
+import com.redhat.labs.lodestar.model.HostingEnvironment;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,9 +15,8 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class Category extends EngagementAttribute {
-
-    private String name;
-    private Integer count;
+public class PagedHostingEnvironmentResults extends PagedResults {
+   
+    private List<HostingEnvironment> results;
 
 }

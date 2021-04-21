@@ -195,8 +195,9 @@ public class MongoAggregationHelper {
         // create include fields from fields
         String[] fields = projectFields.get().split(",");
         Bson[] excludeId = new Bson[] { excludeId() };
+        Bson[] engagementUuid = new Bson[] { new BsonDocument("engagementUuid", new BsonString("$uuid")) };
         Bson[] bsonFields = Stream.of(fields).map(MongoAggregationHelper::getUnwindProjectField).toArray(Bson[]::new);
-        Bson[] combined = Stream.of(excludeId, bsonFields).flatMap(Stream::of).toArray(Bson[]::new);
+        Bson[] combined = Stream.of(excludeId, bsonFields, engagementUuid).flatMap(Stream::of).toArray(Bson[]::new);
 
         // project fields after unwind
         pipeline.add(project(fields(combined)));

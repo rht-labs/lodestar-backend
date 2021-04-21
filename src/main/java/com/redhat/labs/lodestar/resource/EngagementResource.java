@@ -41,7 +41,6 @@ import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.EngagementUserSummary;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
-import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
 import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
 import com.redhat.labs.lodestar.service.EngagementService;
@@ -124,51 +123,51 @@ public class EngagementResource {
 
     }
 
-    @GET
-    @Path("/categories")
-    @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
-            @APIResponse(responseCode = "200", description = "Customer data has been returned.") })
-    @Operation(summary = "Returns customers list")
-    @Counted(name = "engagement-get-all-categories-counted")
-    @Timed(name = "engagement-get-all-categories-timer", unit = MetricUnits.MILLISECONDS)
-    public Response getAllCategories(@Context UriInfo uriInfo,
-            @Parameter(name = "suggest", deprecated = true, required = false, description = "uses suggestion as case insensitive search string") @QueryParam("suggest") Optional<String> suggest,
-            @BeanParam ListFilterOptions filterOptions) {
+//    @GET
+//    @Path("/categories")
+//    @SecurityRequirement(name = "jwt", scopes = {})
+//    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+//            @APIResponse(responseCode = "200", description = "Customer data has been returned.") })
+//    @Operation(summary = "Returns customers list")
+//    @Counted(name = "engagement-get-all-categories-counted")
+//    @Timed(name = "engagement-get-all-categories-timer", unit = MetricUnits.MILLISECONDS)
+//    public Response getAllCategories(@Context UriInfo uriInfo,
+//            @Parameter(name = "suggest", deprecated = true, required = false, description = "uses suggestion as case insensitive search string") @QueryParam("suggest") Optional<String> suggest,
+//            @BeanParam ListFilterOptions filterOptions) {
+//
+//        if (suggest.isPresent()) {
+//            filterOptions.addLikeSearchCriteria("categories.name", suggest.get());
+//        }
+//
+//        PagedCategoryResults page = engagementService.getCategories(filterOptions);
+//        ResponseBuilder builder = Response.ok(page.getResults()).links(page.getLinks(uriInfo.getAbsolutePathBuilder()));
+//        page.getHeaders().entrySet().stream().forEach(e -> builder.header(e.getKey(), e.getValue()));
+//        return builder.build();
+//
+//    }
 
-        if (suggest.isPresent()) {
-            filterOptions.addLikeSearchCriteria("categories.name", suggest.get());
-        }
-
-        PagedCategoryResults page = engagementService.getCategories(filterOptions);
-        ResponseBuilder builder = Response.ok(page.getResults()).links(page.getLinks(uriInfo.getAbsolutePathBuilder()));
-        page.getHeaders().entrySet().stream().forEach(e -> builder.header(e.getKey(), e.getValue()));
-        return builder.build();
-
-    }
-
-    @GET
-    @Path("/artifact/types")
-    @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
-            @APIResponse(responseCode = "200", description = "Artifact types have been returned.") })
-    @Operation(summary = "Returns artifact type list")
-    @Counted(name = "engagement-get-all-artifacts-counted")
-    @Timed(name = "engagement-get-all-artifacts-timer", unit = MetricUnits.MILLISECONDS)
-    public Response getArtifactTypes(@Context UriInfo uriInfo,
-            @Parameter(name = "suggest", deprecated = true, required = false, description = "uses suggestion as case insensitive search string") @QueryParam("suggest") Optional<String> suggest,
-            @BeanParam ListFilterOptions filterOptions) {
-
-        if (suggest.isPresent()) {
-            filterOptions.addLikeSearchCriteria("artifacts.type", suggest.get());
-        }
-
-        PagedStringResults page = engagementService.getArtifactTypes(filterOptions);
-        ResponseBuilder builder = Response.ok(page.getResults()).links(page.getLinks(uriInfo.getAbsolutePathBuilder()));
-        page.getHeaders().entrySet().stream().forEach(e -> builder.header(e.getKey(), e.getValue()));
-        return builder.build();
-
-    }
+//    @GET
+//    @Path("/artifact/types")
+//    @SecurityRequirement(name = "jwt", scopes = {})
+//    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+//            @APIResponse(responseCode = "200", description = "Artifact types have been returned.") })
+//    @Operation(summary = "Returns artifact type list")
+//    @Counted(name = "engagement-get-all-artifacts-counted")
+//    @Timed(name = "engagement-get-all-artifacts-timer", unit = MetricUnits.MILLISECONDS)
+//    public Response getArtifactTypes(@Context UriInfo uriInfo,
+//            @Parameter(name = "suggest", deprecated = true, required = false, description = "uses suggestion as case insensitive search string") @QueryParam("suggest") Optional<String> suggest,
+//            @BeanParam ListFilterOptions filterOptions) {
+//
+//        if (suggest.isPresent()) {
+//            filterOptions.addLikeSearchCriteria("artifacts.type", suggest.get());
+//        }
+//
+//        PagedStringResults page = engagementService.getArtifactTypes(filterOptions);
+//        ResponseBuilder builder = Response.ok(page.getResults()).links(page.getLinks(uriInfo.getAbsolutePathBuilder()));
+//        page.getHeaders().entrySet().stream().forEach(e -> builder.header(e.getKey(), e.getValue()));
+//        return builder.build();
+//
+//    }
 
     /*
      * GET SINGLE

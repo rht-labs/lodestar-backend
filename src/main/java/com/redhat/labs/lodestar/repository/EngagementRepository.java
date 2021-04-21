@@ -28,16 +28,24 @@ import com.mongodb.client.FindIterable;
 import com.mongodb.client.model.FindOneAndUpdateOptions;
 import com.mongodb.client.model.ReturnDocument;
 import com.redhat.labs.lodestar.model.Artifact;
+import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Commit;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.EngagementUserSummary;
+import com.redhat.labs.lodestar.model.HostingEnvironment;
+import com.redhat.labs.lodestar.model.Score;
 import com.redhat.labs.lodestar.model.Status;
+import com.redhat.labs.lodestar.model.UseCase;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.model.pagination.PagedArtifactResults;
 import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
 import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
+import com.redhat.labs.lodestar.model.pagination.PagedHostingEnvironmentResults;
+import com.redhat.labs.lodestar.model.pagination.PagedScoreResults;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
+import com.redhat.labs.lodestar.model.pagination.PagedUseCaseResults;
+import com.redhat.labs.lodestar.util.ClassFieldUtils;
 
 import io.quarkus.mongodb.panache.PanacheMongoRepository;
 
@@ -297,6 +305,13 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
 
     }
 
+    /**
+     * Returns a {@link PagedCategoryResults} containing the {@link Category}s that
+     * match the given {@link ListFilterOptions}.
+     * 
+     * @param filterOptions
+     * @return
+     */
     public PagedCategoryResults findCategories(ListFilterOptions filterOptions) {
 
         filterOptions.setUnwindFieldName(Optional.of(CATEGORIES));
@@ -316,6 +331,39 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
 
     }
 
+    /**
+     * Returns a {@link PagedArtifactResults} containing the {@link Artifact}s that
+     * match the given {@link ListFilterOptions}.
+     * 
+     * @param filterOptions
+     * @return
+     */
+    public PagedArtifactResults findArtifacts(ListFilterOptions filterOptions) {
+
+        filterOptions.setUnwindFieldName(Optional.of(ARTIFACTS));
+        filterOptions.setUnwindProjectFieldNames(Optional
+                .of(ClassFieldUtils.classFieldNamesAsCommaSeparatedString(Artifact.class, Optional.of(ARTIFACTS))));
+
+        List<Bson> pipeline = MongoAggregationHelper.generatePagedAggregationPipeline(filterOptions);
+        Optional<PagedArtifactResults> optional = findFirstFromIterable(
+                mongoCollection().aggregate(pipeline, PagedArtifactResults.class));
+
+        PagedArtifactResults results = optional.orElse(PagedArtifactResults.builder().results(Arrays.asList()).build());
+
+        results.setCurrentPage(filterOptions.getPage().orElse(1));
+        results.setPerPage(filterOptions.getPerPage().orElse(20));
+
+        return results;
+
+    }
+
+    /**
+     * Returns a {@link PagedStringResults} containing the unique {@link Artifact}
+     * types matching the {@link ListFilterOptions}.
+     * 
+     * @param filterOptions
+     * @return
+     */
     public PagedStringResults findArtifactTypes(ListFilterOptions filterOptions) {
 
         filterOptions.setUnwindFieldName(Optional.of(ARTIFACTS));
@@ -323,18 +371,15 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
         filterOptions.setGroupByFieldName(Optional.of(TYPE));
         filterOptions.setSortFields(TYPE);
 
-        List<Bson> pipeline = MongoAggregationHelper.generatePagedAggregationPipeline(filterOptions);
-
-        Optional<PagedArtifactResults> optional = findFirstFromIterable(
-                mongoCollection().aggregate(pipeline, PagedArtifactResults.class));
-        PagedArtifactResults engagementResults = optional
-                .orElse(PagedArtifactResults.builder().results(Arrays.asList()).build());
+        // get paged artifact results
+        PagedArtifactResults artifactResults = findArtifacts(filterOptions);
 
         // get customer names from results
-        List<String> customerNames = engagementResults.getResults().stream().map(Artifact::getType)
+        List<String> customerNames = artifactResults.getResults().stream().map(Artifact::getType)
                 .collect(Collectors.toList());
 
-        PagedStringResults results = PagedStringResults.builder().totalCount(engagementResults.getTotalCount())
+        // create paged string results
+        PagedStringResults results = PagedStringResults.builder().totalCount(artifactResults.getTotalCount())
                 .results(customerNames).build();
 
         results.setCurrentPage(filterOptions.getPage().orElse(1));
@@ -344,6 +389,92 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
 
     }
 
+    /**
+     * Returns a {@link PagedScoreResults} containing the {@link Score}s that match
+     * the given {@link ListFilterOptions}.
+     * 
+     * @param filterOptions
+     * @return
+     */
+    public PagedScoreResults findScores(ListFilterOptions filterOptions) {
+
+        filterOptions.setUnwindFieldName(Optional.of("scores"));
+        filterOptions.setUnwindProjectFieldNames(
+                Optional.of(ClassFieldUtils.classFieldNamesAsCommaSeparatedString(Score.class, Optional.of("scores"))));
+
+        List<Bson> pipeline = MongoAggregationHelper.generatePagedAggregationPipeline(filterOptions);
+        Optional<PagedScoreResults> optional = findFirstFromIterable(
+                mongoCollection().aggregate(pipeline, PagedScoreResults.class));
+
+        PagedScoreResults results = optional.orElse(PagedScoreResults.builder().results(Arrays.asList()).build());
+
+        results.setCurrentPage(filterOptions.getPage().orElse(1));
+        results.setPerPage(filterOptions.getPerPage().orElse(20));
+
+        return results;
+
+    }
+
+    /**
+     * Returns the {@link PagedHostingEnvironmentResults} containing the
+     * {@link HostingEnvironment}s that match the given {@link ListFilterOptions}.
+     * 
+     * @param filterOptions
+     * @return
+     */
+    public PagedHostingEnvironmentResults findHostingEnvironments(ListFilterOptions filterOptions) {
+
+        filterOptions.setUnwindFieldName(Optional.of("hostingEnvironments"));
+        filterOptions.setUnwindProjectFieldNames(Optional.of(ClassFieldUtils
+                .classFieldNamesAsCommaSeparatedString(HostingEnvironment.class, Optional.of("hostingEnvironments"))));
+
+        List<Bson> pipeline = MongoAggregationHelper.generatePagedAggregationPipeline(filterOptions);
+        Optional<PagedHostingEnvironmentResults> optional = findFirstFromIterable(
+                mongoCollection().aggregate(pipeline, PagedHostingEnvironmentResults.class));
+
+        PagedHostingEnvironmentResults results = optional
+                .orElse(PagedHostingEnvironmentResults.builder().results(Arrays.asList()).build());
+
+        results.setCurrentPage(filterOptions.getPage().orElse(1));
+        results.setPerPage(filterOptions.getPerPage().orElse(20));
+
+        return results;
+
+    }
+
+    /**
+     * Returns the {@link PagedUseCaseResults} containing the {@link UseCase}s that
+     * match the given {@link ListFilterOptions}.
+     * 
+     * @param filterOptions
+     * @return
+     */
+    public PagedUseCaseResults findUseCases(ListFilterOptions filterOptions) {
+
+        filterOptions.setUnwindFieldName(Optional.of("useCases"));
+        filterOptions.setUnwindProjectFieldNames(Optional
+                .of(ClassFieldUtils.classFieldNamesAsCommaSeparatedString(UseCase.class, Optional.of("useCases"))));
+
+        List<Bson> pipeline = MongoAggregationHelper.generatePagedAggregationPipeline(filterOptions);
+        Optional<PagedUseCaseResults> optional = findFirstFromIterable(
+                mongoCollection().aggregate(pipeline, PagedUseCaseResults.class));
+
+        PagedUseCaseResults results = optional.orElse(PagedUseCaseResults.builder().results(Arrays.asList()).build());
+
+        results.setCurrentPage(filterOptions.getPage().orElse(1));
+        results.setPerPage(filterOptions.getPerPage().orElse(20));
+
+        return results;
+
+    }
+
+    /**
+     * Returns an {@link EngagementUserSummary} containing the count red hat and
+     * other users that match the {@link ListFilterOptions}.
+     * 
+     * @param filterOptions
+     * @return
+     */
     public EngagementUserSummary findEngagementUserSummary(ListFilterOptions filterOptions) {
 
         filterOptions.setUnwindFieldName(Optional.of("engagementUsers"));

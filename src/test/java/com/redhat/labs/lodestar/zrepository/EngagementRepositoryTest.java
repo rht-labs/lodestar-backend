@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -26,13 +27,19 @@ import com.redhat.labs.lodestar.model.EngagementUser;
 import com.redhat.labs.lodestar.model.EngagementUserSummary;
 import com.redhat.labs.lodestar.model.HostingEnvironment;
 import com.redhat.labs.lodestar.model.Launch;
+import com.redhat.labs.lodestar.model.Score;
 import com.redhat.labs.lodestar.model.Status;
+import com.redhat.labs.lodestar.model.UseCase;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.model.filter.SortOrder;
+import com.redhat.labs.lodestar.model.pagination.PagedArtifactResults;
 import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
 import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
+import com.redhat.labs.lodestar.model.pagination.PagedHostingEnvironmentResults;
+import com.redhat.labs.lodestar.model.pagination.PagedScoreResults;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
+import com.redhat.labs.lodestar.model.pagination.PagedUseCaseResults;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
 import com.redhat.labs.lodestar.utils.EmbeddedMongoTest;
 import com.redhat.labs.lodestar.utils.MockUtils;
@@ -749,7 +756,7 @@ class EngagementRepositoryTest {
         assertEquals(2, results.size());
 
     }
- 
+
     @Test
     void testGetUserSummaryNoFilter() {
 
@@ -912,6 +919,250 @@ class EngagementRepositoryTest {
         Optional<String> unknownUuid = results.getResults().stream().map(Engagement::getUuid)
                 .filter(u -> !TERMINATING_UUIDS.contains(u)).findFirst();
         assertTrue(unknownUuid.isEmpty());
+
+    }
+
+    @Test
+    void testFindArtifactsAll() {
+
+        Artifact a1 = MockUtils.mockArtifact("Demo 1", "demo", "http://demo-1");
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
+        e1.setArtifacts(Arrays.asList(a1));
+
+        Artifact a2 = MockUtils.mockArtifact("Report 1", "report", "http://report-1");
+        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
+        e2.setArtifacts(Arrays.asList(a2));
+
+        repository.persist(e1, e2);
+
+        ListFilterOptions options = ListFilterOptions.builder().build();
+
+        PagedArtifactResults pagedResults = repository.findArtifacts(options);
+        assertNotNull(pagedResults);
+        assertNotNull(pagedResults.getResults());
+
+        List<Artifact> results = pagedResults.getResults();
+        assertEquals(2, results.size());
+
+        results.stream().forEach(a -> {
+
+            if ("1111".equals(a.getEngagementUuid())) {
+                assertEquals("demo", a.getType());
+            } else if ("2222".equals(a.getEngagementUuid())) {
+                assertEquals("report", a.getType());
+            } else {
+                fail("unknown artifact: " + a);
+            }
+
+        });
+
+    }
+
+    @Test
+    void testFindArtifactsFiltered() {
+
+        Artifact a1 = MockUtils.mockArtifact("Demo 1", "demo", "http://demo-1");
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
+        e1.setArtifacts(Arrays.asList(a1));
+
+        Artifact a2 = MockUtils.mockArtifact("Report 1", "report", "http://report-1");
+        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
+        e2.setArtifacts(Arrays.asList(a2));
+
+        repository.persist(e1, e2);
+
+        ListFilterOptions options = ListFilterOptions.builder().search("uuid=1111").build();
+
+        PagedArtifactResults pagedResults = repository.findArtifacts(options);
+        assertNotNull(pagedResults);
+        assertNotNull(pagedResults.getResults());
+
+        List<Artifact> results = pagedResults.getResults();
+        assertEquals(1, results.size());
+        assertEquals("demo", results.get(0).getType());
+
+    }
+
+    @Test
+    void testFindScoresAll() {
+
+        Score s1 = MockUtils.mockScore("score 1", 88.8);
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
+        e1.setScores(Arrays.asList(s1));
+
+        Score s2 = MockUtils.mockScore("score 2", 77.8);
+        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
+        e2.setScores(Arrays.asList(s2));
+
+        repository.persist(e1, e2);
+
+        ListFilterOptions options = ListFilterOptions.builder().build();
+
+        PagedScoreResults pagedResults = repository.findScores(options);
+        assertNotNull(pagedResults);
+        assertNotNull(pagedResults.getResults());
+
+        List<Score> results = pagedResults.getResults();
+        assertEquals(2, results.size());
+
+        results.stream().forEach(a -> {
+
+            if ("1111".equals(a.getEngagementUuid())) {
+                assertEquals("score 1", a.getName());
+            } else if ("2222".equals(a.getEngagementUuid())) {
+                assertEquals("score 2", a.getName());
+            } else {
+                fail("unknown score: " + a);
+            }
+
+        });
+
+    }
+
+    @Test
+    void testFindScoresFiltered() {
+
+        Score s1 = MockUtils.mockScore("score 1", 88.8);
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
+        e1.setScores(Arrays.asList(s1));
+
+        Score s2 = MockUtils.mockScore("score 2", 77.8);
+        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
+        e2.setScores(Arrays.asList(s2));
+
+        repository.persist(e1, e2);
+
+        ListFilterOptions options = ListFilterOptions.builder().search("uuid=1111").build();
+
+        PagedScoreResults pagedResults = repository.findScores(options);
+        assertNotNull(pagedResults);
+        assertNotNull(pagedResults.getResults());
+
+        List<Score> results = pagedResults.getResults();
+        assertEquals(1, results.size());
+        assertEquals("score 1", results.get(0).getName());
+
+    }
+
+    @Test
+    void testFindUseCasesAll() {
+
+        UseCase u1 = MockUtils.mockUseCase("case 1", "use case one", 0);
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
+        e1.setUseCases(Arrays.asList(u1));
+
+        UseCase u2 = MockUtils.mockUseCase("case 2", "use case two", 0);
+        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
+        e2.setUseCases(Arrays.asList(u2));
+
+        repository.persist(e1, e2);
+
+        ListFilterOptions options = ListFilterOptions.builder().build();
+
+        PagedUseCaseResults pagedResults = repository.findUseCases(options);
+        assertNotNull(pagedResults);
+        assertNotNull(pagedResults.getResults());
+
+        List<UseCase> results = pagedResults.getResults();
+        assertEquals(2, results.size());
+
+        results.stream().forEach(a -> {
+
+            if ("1111".equals(a.getEngagementUuid())) {
+                assertEquals("case 1", a.getTitle());
+            } else if ("2222".equals(a.getEngagementUuid())) {
+                assertEquals("case 2", a.getTitle());
+            } else {
+                fail("unknown use case: " + a);
+            }
+
+        });
+
+    }
+
+    @Test
+    void testFindUseCasesFiltered() {
+
+        UseCase u1 = MockUtils.mockUseCase("case 1", "use case one", 0);
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
+        e1.setUseCases(Arrays.asList(u1));
+
+        UseCase u2 = MockUtils.mockUseCase("case 2", "use case two", 0);
+        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
+        e2.setUseCases(Arrays.asList(u2));
+
+        repository.persist(e1, e2);
+
+        ListFilterOptions options = ListFilterOptions.builder().search("uuid=1111").build();
+
+        PagedUseCaseResults pagedResults = repository.findUseCases(options);
+        assertNotNull(pagedResults);
+        assertNotNull(pagedResults.getResults());
+
+        List<UseCase> results = pagedResults.getResults();
+        assertEquals(1, results.size());
+        assertEquals("case 1", results.get(0).getTitle());
+
+    }
+
+    @Test
+    void testFindHostingEnvironmentsAll() {
+
+        HostingEnvironment h1 = MockUtils.mockHostingEnvironment("env 1", "envone");
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
+        e1.setHostingEnvironments(Arrays.asList(h1));
+
+        HostingEnvironment h2 = MockUtils.mockHostingEnvironment("env 2", "envtwo");
+        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
+        e2.setHostingEnvironments(Arrays.asList(h2));
+
+        repository.persist(e1, e2);
+
+        ListFilterOptions options = ListFilterOptions.builder().build();
+
+        PagedHostingEnvironmentResults pagedResults = repository.findHostingEnvironments(options);
+        assertNotNull(pagedResults);
+        assertNotNull(pagedResults.getResults());
+
+        List<HostingEnvironment> results = pagedResults.getResults();
+        assertEquals(2, results.size());
+
+        results.stream().forEach(a -> {
+
+            if ("1111".equals(a.getEngagementUuid())) {
+                assertEquals("env 1", a.getEnvironmentName());
+            } else if ("2222".equals(a.getEngagementUuid())) {
+                assertEquals("env 2", a.getEnvironmentName());
+            } else {
+                fail("unknown use case: " + a);
+            }
+
+        });
+
+    }
+
+    @Test
+    void testFindHostingEnvironmentsFiltered() {
+
+        HostingEnvironment h1 = MockUtils.mockHostingEnvironment("env 1", "envone");
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
+        e1.setHostingEnvironments(Arrays.asList(h1));
+
+        HostingEnvironment h2 = MockUtils.mockHostingEnvironment("env 2", "envtwo");
+        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
+        e2.setHostingEnvironments(Arrays.asList(h2));
+
+        repository.persist(e1, e2);
+
+        ListFilterOptions options = ListFilterOptions.builder().search("uuid=1111").build();
+
+        PagedHostingEnvironmentResults pagedResults = repository.findHostingEnvironments(options);
+        assertNotNull(pagedResults);
+        assertNotNull(pagedResults.getResults());
+
+        List<HostingEnvironment> results = pagedResults.getResults();
+        assertEquals(1, results.size());
+        assertEquals("env 1", results.get(0).getEnvironmentName());
 
     }
 

@@ -21,22 +21,30 @@ import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.redhat.labs.lodestar.model.Artifact;
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Commit;
 import com.redhat.labs.lodestar.model.CreationDetails;
 import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.model.EngagementAttribute;
 import com.redhat.labs.lodestar.model.EngagementUser;
 import com.redhat.labs.lodestar.model.EngagementUserSummary;
 import com.redhat.labs.lodestar.model.Hook;
 import com.redhat.labs.lodestar.model.HostingEnvironment;
 import com.redhat.labs.lodestar.model.Launch;
+import com.redhat.labs.lodestar.model.Score;
 import com.redhat.labs.lodestar.model.Status;
+import com.redhat.labs.lodestar.model.UseCase;
 import com.redhat.labs.lodestar.model.event.EventType;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
+import com.redhat.labs.lodestar.model.pagination.PagedArtifactResults;
 import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
 import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
+import com.redhat.labs.lodestar.model.pagination.PagedHostingEnvironmentResults;
+import com.redhat.labs.lodestar.model.pagination.PagedScoreResults;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
+import com.redhat.labs.lodestar.model.pagination.PagedUseCaseResults;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
 import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
 
@@ -398,6 +406,83 @@ public class EngagementService {
 
         }
 
+        // set ids and/or time stamps for modified attributes
+        setIdsAndTimestamps(engagement, existing);
+
+    }
+
+    /**
+     * Updates the UUID and/or timestamps if the {@link Artifact}, {@link Category},
+     * {@link UseCase}, {@link Score}, or {@link HostingEnvironment} is new or has
+     * been modified.
+     * 
+     * @param engagement
+     * @param existing
+     */
+    void setIdsAndTimestamps(Engagement engagement, Engagement existing) {
+
+        // categories
+        setIdAndTimstampsOnEngagementAttribute(engagement.getCategories(), existing.getCategories());
+
+        // artifacts
+        setIdAndTimstampsOnEngagementAttribute(engagement.getArtifacts(), existing.getArtifacts());
+
+        // use cases
+        setIdAndTimstampsOnEngagementAttribute(engagement.getUseCases(), existing.getUseCases());
+
+        // scores
+        setIdAndTimstampsOnEngagementAttribute(engagement.getScores(), existing.getScores());
+
+        // hosting environments
+        setIdAndTimstampsOnEngagementAttribute(engagement.getHostingEnvironments(), existing.getHostingEnvironments());
+
+    }
+
+    /**
+     * For each {@link EngagementAttribute} in the {@link List} of incoming, if the
+     * attribute is new the UUID, created and updated timestamps will be set. If the
+     * attribute exists in the {@link List} of existing, the updated timestamp will
+     * be updated in it has been modified. Otherwise, nothing will be updated.
+     * 
+     * @param incoming
+     * @param existing
+     */
+    void setIdAndTimstampsOnEngagementAttribute(List<? extends EngagementAttribute> incoming,
+            List<? extends EngagementAttribute> existing) {
+
+        // nothing to do if incoming is null
+        if (null == incoming) {
+            return;
+        }
+
+        // all new, set id and time stamps
+        if (existing == null) {
+            setIdAndTimestampsOnEngagementAttributes(incoming);
+            return;
+        }
+
+        // check if each attribute in incoming already exists, if true, and modified,
+        // set updated ts
+        incoming.stream().forEach(ia -> {
+
+            // need list of new and already exists
+            Optional<? extends EngagementAttribute> optional = existing.stream()
+                    .filter(ea -> null != ia.getUuid() && ia.getUuid().equals(ea.getUuid())).findAny();
+            if (optional.isPresent()) {
+
+                // set updated ts if modified
+                if (!ia.equals(optional.get())) {
+                    ia.setUpdated();
+                }
+
+            } else {
+
+                setIdAndTimestamps(ia);
+
+            }
+
+        });
+
     }
 
     /**
@@ -678,6 +763,29 @@ public class EngagementService {
     }
 
     /**
+     * Returns a {@link PagedArtifactResults} that match the provided
+     * {@link ListFilterOptions}. Otherwise, all {@link Artifact}s returned.
+     * 
+     * @param filterOptions
+     * @return
+     */
+    public PagedArtifactResults getArtifacts(ListFilterOptions filterOptions) {
+        return repository.findArtifacts(filterOptions);
+    }
+
+    public PagedHostingEnvironmentResults getHostingEnvironments(ListFilterOptions filterOptions) {
+        return repository.findHostingEnvironments(filterOptions);
+    }
+
+    public PagedScoreResults getScores(ListFilterOptions filterOptions) {
+        return repository.findScores(filterOptions);
+    }
+
+    public PagedUseCaseResults getUseCases(ListFilterOptions filterOptions) {
+        return repository.findUseCases(filterOptions);
+    }
+
+    /**
      * Sets a generated UUID value for each {@link Engagement} or
      * {@link EngagementUser} in the data store that does not have a UUID. Also,
      * triggers a push to Git to make sure the UUID value(s) are set in case of a
@@ -719,7 +827,10 @@ public class EngagementService {
         // set engagement user(s) uuids if required
         boolean uUuidSet = setUuidOnUsers(engagement.getEngagementUsers());
 
-        return eUuidSet || uUuidSet;
+        // set other attribute uuids if required
+        boolean aUuidSet = setUuidOnEngagementAttributes(engagement);
+
+        return eUuidSet || uUuidSet || aUuidSet;
 
     }
 
@@ -765,6 +876,88 @@ public class EngagementService {
         }
 
         return false;
+
+    }
+
+    /**
+     * Returns true if any {@link Artifact}, {@link Category}, {@link UseCase},
+     * {@link Score}, or {@link HostingEnvironment} has its UUID or timestamps
+     * updated. Otherwise, false.
+     * 
+     * @param engagement
+     * @return
+     */
+    boolean setUuidOnEngagementAttributes(Engagement engagement) {
+
+        boolean updated = false;
+
+        // artifacts
+        if (setIdAndTimestampsOnEngagementAttributes(engagement.getArtifacts())) {
+            updated = true;
+        }
+
+        // categories
+        if (setIdAndTimestampsOnEngagementAttributes(engagement.getCategories())) {
+            updated = true;
+        }
+
+        // use cases
+        if (setIdAndTimestampsOnEngagementAttributes(engagement.getUseCases())) {
+            updated = true;
+        }
+
+        // scores
+        if (setIdAndTimestampsOnEngagementAttributes(engagement.getScores())) {
+            updated = true;
+        }
+
+        // hosting environments
+        if (setIdAndTimestampsOnEngagementAttributes(engagement.getHostingEnvironments())) {
+            updated = true;
+        }
+
+        return updated;
+
+    }
+
+    /**
+     * Returns true if any {@link EngagementAttribute} has its UUID or timestamps
+     * updated. Otherwise, false.
+     * 
+     * @param attributes
+     * @return
+     */
+    boolean setIdAndTimestampsOnEngagementAttributes(List<? extends EngagementAttribute> attributes) {
+
+        if (null != attributes) {
+            return attributes.stream().map(this::setIdAndTimestamps).collect(Collectors.toSet()).contains(Boolean.TRUE);
+        }
+
+        return false;
+
+    }
+
+    /**
+     * Returns true if the UUID is set and the created and updated timestamps are
+     * set. Otherwise, false.
+     * 
+     * @param attribute
+     * @return
+     */
+    Boolean setIdAndTimestamps(EngagementAttribute attribute) {
+
+        if (null == attribute.getUuid()) {
+
+            // generate id
+            attribute.generateId();
+            // set both created and updated
+            attribute.setCreatedAndUpdated();
+
+            return Boolean.TRUE;
+
+        }
+
+        return Boolean.FALSE;
 
     }
 
