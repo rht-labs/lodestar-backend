@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Optional;
 
@@ -20,14 +21,22 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 
 import com.google.common.collect.Lists;
+import com.redhat.labs.lodestar.model.Artifact;
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.EngagementUserSummary;
+import com.redhat.labs.lodestar.model.HostingEnvironment;
+import com.redhat.labs.lodestar.model.Score;
+import com.redhat.labs.lodestar.model.UseCase;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
+import com.redhat.labs.lodestar.model.pagination.PagedArtifactResults;
 import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
 import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
+import com.redhat.labs.lodestar.model.pagination.PagedHostingEnvironmentResults;
+import com.redhat.labs.lodestar.model.pagination.PagedScoreResults;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
+import com.redhat.labs.lodestar.model.pagination.PagedUseCaseResults;
 import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 import com.redhat.labs.lodestar.utils.MockUtils;
 import com.redhat.labs.lodestar.utils.TokenUtils;
@@ -275,7 +284,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
     }
     
     @Test
-    void testGetArtifacts() throws Exception {
+    void testGetArtifactTypes() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -293,6 +302,98 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         .then()
             .statusCode(200)
             .body(containsString("a1"));
+
+    }
+
+    @Test
+    void testGetArtifacts() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Artifact a1 = MockUtils.mockArtifact("demo 1", "demo", "http://demo-1");
+        PagedArtifactResults pagedResults = PagedArtifactResults.builder().results(Arrays.asList(a1)).build();
+        Mockito.when(eRepository.findArtifacts(Mockito.any(ListFilterOptions.class))).thenReturn(pagedResults);
+
+        given()
+            .auth()
+            .oauth2(token)
+            .contentType(ContentType.JSON)
+        .when()
+            .get("/engagements/artifacts")
+        .then()
+            .statusCode(200)
+            .body(containsString("demo 1"))
+            .body(containsString("http://demo-1"));
+
+    }
+
+    @Test
+    void testGetScores() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Score score = Score.builder().name("score1").value(88.8).build();
+        PagedScoreResults pagedResults = PagedScoreResults.builder().results(Arrays.asList(score)).build();
+        Mockito.when(eRepository.findScores(Mockito.any(ListFilterOptions.class))).thenReturn(pagedResults);
+
+        given()
+            .auth()
+            .oauth2(token)
+            .contentType(ContentType.JSON)
+        .when()
+            .get("/engagements/scores")
+        .then()
+            .statusCode(200)
+            .body(containsString("score1"))
+            .body(containsString("88.8"));
+
+    }
+
+    @Test
+    void testGetHostingEnvironments() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        HostingEnvironment he = MockUtils.mockHostingEnvironment("env1", "env-one");
+        PagedHostingEnvironmentResults pagedResults = PagedHostingEnvironmentResults.builder().results(Arrays.asList(he)).build();
+        Mockito.when(eRepository.findHostingEnvironments(Mockito.any(ListFilterOptions.class))).thenReturn(pagedResults);
+
+        given()
+            .auth()
+            .oauth2(token)
+            .contentType(ContentType.JSON)
+        .when()
+            .get("engagements/hosting/environments")
+        .then()
+            .statusCode(200)
+            .body(containsString("env1"))
+            .body(containsString("env-one"));
+
+    }
+
+    @Test
+    void testGetUseCase() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        UseCase u1 = MockUtils.mockUseCase("usecase1", "use case 1", 0);
+        PagedUseCaseResults pagedResults = PagedUseCaseResults.builder().results(Arrays.asList(u1)).build();
+        Mockito.when(eRepository.findUseCases(Mockito.any(ListFilterOptions.class))).thenReturn(pagedResults);
+
+        given()
+            .auth()
+            .oauth2(token)
+            .contentType(ContentType.JSON)
+        .when()
+            .get("engagements/usecases")
+        .then()
+            .statusCode(200)
+            .body(containsString("usecase1"))
+            .body(containsString("use case 1"));
 
     }
 

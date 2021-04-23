@@ -58,8 +58,12 @@ if provided, the specified page will be returned. defaults to 1
 
 ```
 GET /engagements/customers/suggest
+GET /engagements/artifacts
 GET /engagements/artifacts/types
 GET /engagements/categories
+GET /engagements/hosting/environments
+GET /engagements/scores
+GET /engagements/usecases
 ```
 
 The following parameters are supported:

@@ -1,5 +1,6 @@
 package com.redhat.labs.lodestar.model.pagination;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +19,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PagedResults {
+public class PagedResults<T> {
 
     private static final String CURRENT_PAGE = "page";
     private static final String PER_PAGE = "per_page";
@@ -49,6 +50,9 @@ public class PagedResults {
     private Map<String, Map<String, Integer>> linkHeaders = new HashMap<>();
     @Builder.Default
     private Map<String, Object> headers = new HashMap<>();
+    
+    @Builder.Default
+    private List<T> results = new ArrayList<>();
 
     /**
      * Returns a {@link Map} containing the headers.

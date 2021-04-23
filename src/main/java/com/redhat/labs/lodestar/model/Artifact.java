@@ -1,21 +1,23 @@
 package com.redhat.labs.lodestar.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@Builder(toBuilder = true)
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Artifact {
+@ToString(callSuper = true)
+@EqualsAndHashCode(callSuper = false)
+public class Artifact extends EngagementAttribute {
 
-    private String id;
     private String title;
     private String description;
     private String type;
     private String linkAddress;
-
 
 }

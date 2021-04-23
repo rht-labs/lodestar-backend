@@ -1,29 +1,19 @@
 package com.redhat.labs.lodestar.model;
 
-import javax.json.bind.annotation.JsonbTransient;
-
-import org.bson.types.ObjectId;
-
-import io.quarkus.mongodb.panache.PanacheMongoEntity;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@Builder(toBuilder = true)
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = true)
-public class Category extends PanacheMongoEntity {
+public class Category extends EngagementAttribute {
 
     private String name;
     private Integer count;
-
-    @JsonbTransient
-    public ObjectId getId() {
-        return this.id;
-    }
 
 }

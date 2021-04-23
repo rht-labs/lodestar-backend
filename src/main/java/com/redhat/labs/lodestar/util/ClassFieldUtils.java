@@ -6,10 +6,13 @@ import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.ws.rs.WebApplicationException;
+
+import org.apache.commons.lang3.reflect.FieldUtils;
 
 public class ClassFieldUtils {
 
@@ -27,7 +30,7 @@ public class ClassFieldUtils {
 
     public static String snakeToCamelCase(String value) {
 
-        if(!value.contains("_")) {
+        if (!value.contains("_")) {
             return value;
         }
 
@@ -45,6 +48,16 @@ public class ClassFieldUtils {
         });
 
         return builder.toString();
+
+    }
+
+    public static String classFieldNamesAsCommaSeparatedString(Class<?> clazz, Optional<String> prefix) {
+
+        Field[] fields = FieldUtils.getAllFields(clazz);
+        List<String> names = Stream.of(fields).map(f -> ClassFieldUtils.getNestedFieldName(f.getName(), prefix))
+                .collect(Collectors.toList());
+
+        return String.join(",", names);
 
     }
 
@@ -126,6 +139,11 @@ public class ClassFieldUtils {
             throw new WebApplicationException(String.format("invalid field %s on %s", fieldName, clazz.getName()), 400);
         }
 
+    }
+
+    static String getNestedFieldName(String fieldName, Optional<String> prefix) {
+        return prefix.isPresent() ? new StringBuilder(prefix.get()).append(".").append(fieldName).toString()
+                : fieldName;
     }
 
 }
