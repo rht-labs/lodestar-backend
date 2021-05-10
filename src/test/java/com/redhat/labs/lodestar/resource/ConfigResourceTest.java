@@ -41,14 +41,14 @@ class ConfigResourceTest extends IntegrationTestHelper {
     }
 
     @Test
-    void testGetConfigInGitRepo() throws Exception {
+    void testGetConfigWithoutType() throws Exception {
 
         String body = "{ \"content\": \"content\", \"encoding\": \"base64\", \"file_path\": \"myfile.yaml\" }";
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsReader.json", timeClaims);
 
-        Mockito.when(gitApiClient.getConfigFile()).thenReturn(Response.ok(body).build());
+        Mockito.when(configApiClient.getRuntimeConfig(null)).thenReturn(Response.ok(body).build());
 
         given()
             .when()
@@ -64,17 +64,17 @@ class ConfigResourceTest extends IntegrationTestHelper {
     }
 
     @Test
-    void testGetConfigInGitRepoV2() throws Exception {
+    void testGetConfigWithType() throws Exception {
 
         String body = "{ \"hello\" : \"world\" }";
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsReader.json", timeClaims);
 
-        Mockito.when(gitApiClient.getConfigFileV2()).thenReturn(Response.ok(body).build());
+        Mockito.when(configApiClient.getRuntimeConfig("one")).thenReturn(Response.ok(body).build());
 
         given()
-            .headers("Accept-version", "v2")
+            .queryParam("type", "one")
             .when()
                 .auth()
                     .oauth2(token)

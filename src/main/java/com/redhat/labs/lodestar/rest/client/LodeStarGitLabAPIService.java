@@ -61,16 +61,6 @@ public interface LodeStarGitLabAPIService {
     void deleteEngagement(@PathParam("customer") String customer, @PathParam("engagement") String engagement);
 
     @GET
-    @Path("/api/v1/config")
-    @Produces("application/json")
-    Response getConfigFile();
-
-    @GET
-    @Path("/api/v2/config")
-    @Produces("application/json")
-    Response getConfigFileV2();
-
-    @GET
     @Path("/api/v1/version")
     @Produces("application/json")
     ApplicationVersion getVersion();
