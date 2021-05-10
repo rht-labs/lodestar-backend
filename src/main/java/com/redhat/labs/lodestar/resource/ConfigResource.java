@@ -42,7 +42,7 @@ public class ConfigResource {
     @Operation(summary = "Returns configuration file data.")
     public Response fetchConfigData(@QueryParam("type") Optional<String> type) {
         LOGGER.debug("Requested runtime configuration type {}", type);
-        return configApi.getRuntimeConfig(type);
+        return configApi.getRuntimeConfig(type.isPresent() ? type.get() : null);
     }
 
 }

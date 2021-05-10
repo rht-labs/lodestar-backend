@@ -1,7 +1,5 @@
 package com.redhat.labs.lodestar.rest.client;
 
-import java.util.Optional;
-
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -22,6 +20,6 @@ public interface LodeStarConfigApiClient {
     @GET
     @Path("/api/v1/configs/runtime")
     @Produces("application/json")
-    Response getRuntimeConfig(@QueryParam("type") Optional<String> type);
+    Response getRuntimeConfig(@QueryParam("type") String type);
 
 }
