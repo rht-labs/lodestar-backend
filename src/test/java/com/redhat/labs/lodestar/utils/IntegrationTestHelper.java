@@ -9,6 +9,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import com.redhat.labs.lodestar.repository.ActiveSyncRepository;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
+import com.redhat.labs.lodestar.rest.client.LodeStarConfigApiClient;
 import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
 import com.redhat.labs.lodestar.rest.client.LodeStarStatusApiClient;
 
@@ -33,6 +34,10 @@ public class IntegrationTestHelper {
 	@InjectMock
 	@RestClient
 	public LodeStarStatusApiClient statusApiClient;
+
+	@InjectMock
+	@RestClient
+	public LodeStarConfigApiClient configApiClient;
 
 	public static String[] nullEmptyBlankSource() {
 		return new String[] { null, "", "   " };
