@@ -4,7 +4,6 @@ import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
 
 import java.util.HashMap;
-import java.util.Optional;
 
 import javax.ws.rs.core.Response;
 
@@ -49,7 +48,7 @@ class ConfigResourceTest extends IntegrationTestHelper {
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsReader.json", timeClaims);
 
-        Mockito.when(configApiClient.getRuntimeConfig(Optional.empty())).thenReturn(Response.ok(body).build());
+        Mockito.when(configApiClient.getRuntimeConfig(null)).thenReturn(Response.ok(body).build());
 
         given()
             .when()
@@ -72,7 +71,7 @@ class ConfigResourceTest extends IntegrationTestHelper {
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsReader.json", timeClaims);
 
-        Mockito.when(configApiClient.getRuntimeConfig(Optional.of("one"))).thenReturn(Response.ok(body).build());
+        Mockito.when(configApiClient.getRuntimeConfig("one")).thenReturn(Response.ok(body).build());
 
         given()
             .queryParam("type", "one")
