@@ -1016,18 +1016,15 @@ public class EngagementService {
     public boolean persistEngagementIfNotFound(Engagement engagement) {
 
         if (getByIdOrName(engagement).isEmpty()) {
-            LOGGER.debug("not found " + engagement.getProjectName());
             LOGGER.trace("persisting engagment {}:{}:{}", engagement.getUuid(), engagement.getCustomerName(),
                     engagement.getProjectName());
 
             engagement.setLastUpdate(getZuluTimeAsString());
             repository.persist(engagement);
-            LOGGER.debug("---------------not found " + engagement.getProjectName());
+            
             return true;
 
         }
-        
-        LOGGER.debug("found " + engagement);
 
         return false;
 
