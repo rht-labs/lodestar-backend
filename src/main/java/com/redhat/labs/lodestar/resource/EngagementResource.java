@@ -1,5 +1,7 @@
 package com.redhat.labs.lodestar.resource;
 
+import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
@@ -38,12 +40,14 @@ import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement
 import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 
 import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.model.Engagement.EngagementState;
 import com.redhat.labs.lodestar.model.EngagementUserSummary;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
 import com.redhat.labs.lodestar.service.EngagementService;
+import com.redhat.labs.lodestar.util.DateFormatter;
 
 @RequestScoped
 @Path("/engagements")
@@ -98,6 +102,21 @@ public class EngagementResource {
         page.getHeaders().entrySet().stream().forEach(e -> builder.header(e.getKey(), e.getValue()));
         return builder.build();
 
+    }
+    
+    @GET
+    @Path("/count")
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "200", description = "Engagement counts computed.") })
+    @Operation(summary = "Gets a map of engagement counts by status")
+    @Counted(name = "engagement-total-by-status-count")
+    @Timed(name = "engagement-total-by-status-timer", unit = MetricUnits.MILLISECONDS)
+    public Map<EngagementState, Integer> countByStatus(@QueryParam(value = "localTime") String localTime) {
+        
+        LocalDateTime currentTime = localTime == null ? LocalDateTime.now() : DateFormatter.getInstance().getDateTime(localTime);
+
+        return engagementService.getEngagementCountByStatus(currentTime);
     }
 
     @GET
