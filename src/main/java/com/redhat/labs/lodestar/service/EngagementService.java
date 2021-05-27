@@ -1,8 +1,11 @@
 package com.redhat.labs.lodestar.service;
 
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -26,6 +29,7 @@ import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Commit;
 import com.redhat.labs.lodestar.model.CreationDetails;
 import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.model.Engagement.EngagementState;
 import com.redhat.labs.lodestar.model.EngagementAttribute;
 import com.redhat.labs.lodestar.model.EngagementUser;
 import com.redhat.labs.lodestar.model.EngagementUserSummary;
@@ -636,6 +640,23 @@ public class EngagementService {
                         "no engagement found with customer:project " + customerName + ":" + projectName,
                         HttpStatus.SC_NOT_FOUND));
     }
+    
+    public Map<EngagementState, Integer> getEngagementCountByStatus(LocalDateTime currentTime) {
+        
+        List<Engagement> engagementList = repository.listAll();
+        Map<EngagementState, Integer> statusCounts = new EnumMap<>(EngagementState.class);
+        
+        for (Engagement engagement : engagementList) {
+            EngagementState state =  engagement.getEngagementCurrentState(currentTime);
+            
+            int count = statusCounts.containsKey(state) ? statusCounts.get(state) + 1 : 1;
+            statusCounts.put(state, count);
+        }
+        
+        statusCounts.put(EngagementState.ANY, engagementList.size());
+
+        return statusCounts;
+    }
 
     /**
      * Returns an {@link Engagement} if it is present in the data store. Otherwise,
@@ -995,13 +1016,12 @@ public class EngagementService {
     public boolean persistEngagementIfNotFound(Engagement engagement) {
 
         if (getByIdOrName(engagement).isEmpty()) {
-
             LOGGER.trace("persisting engagment {}:{}:{}", engagement.getUuid(), engagement.getCustomerName(),
                     engagement.getProjectName());
 
             engagement.setLastUpdate(getZuluTimeAsString());
             repository.persist(engagement);
-
+            
             return true;
 
         }

@@ -1,5 +1,6 @@
 package com.redhat.labs.lodestar.model;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -10,6 +11,7 @@ import org.bson.codecs.pojo.annotations.BsonId;
 import org.bson.types.ObjectId;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.redhat.labs.lodestar.util.DateFormatter;
 import com.redhat.labs.lodestar.validation.ValidName;
 
 import io.quarkus.mongodb.panache.PanacheMongoEntityBase;
@@ -98,5 +100,42 @@ public class Engagement extends PanacheMongoEntityBase {
     private String commitMessage;
 
     private List<Score> scores;
+
+    /**
+     * The value return here is relative to the time entered. If the time entered was
+     * (currentDate) Jan 1 2020  and this engagement started on Feb 1 and ended Feb 28
+     * the returned value would be Active if it was launched.
+     * 
+     * Do not confuse this with the status field. This will tell you if the
+     * engagement is started or over (or another state) The status field is more
+     * detailed information like whether a cluster is up or down etc... Current
+     * states can be UPCOMING, ACTIVE, PAST, UNKNOWN
+     * 
+     * @param currentDate - A time to compare against. Should be local to the user
+     * @return
+     */
+    public EngagementState getEngagementCurrentState(LocalDateTime currentDate) {
+
+        if (launch == null || endDate == null || startDate == null) { // not launched or irregularly launched
+            return EngagementState.UPCOMING;
+        }
+        
+        LocalDateTime endDateLocal = DateFormatter.getInstance().getDateTime(endDate);
+        
+        if(endDateLocal.isBefore(currentDate)) { //has reached end date
+            if(archiveDate != null && DateFormatter.getInstance().getDateTime(archiveDate).isAfter(currentDate)) { //hasn't reached archive date
+                return EngagementState.TERMINATING;
+            }
+            return EngagementState.PAST;
+        }
+
+        //has not reached end date
+        return EngagementState.ACTIVE;
+    }
+
+    public enum EngagementState {
+        // The state ANY can be in any of the other states
+        UPCOMING, PAST, TERMINATING, ACTIVE, ANY;
+    }
 
 }

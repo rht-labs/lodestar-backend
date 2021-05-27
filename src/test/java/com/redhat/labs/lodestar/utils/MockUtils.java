@@ -35,8 +35,8 @@ public class MockUtils {
     public static Engagement mockEngagement() {
 
         Engagement engagement = Engagement.builder().customerName("TestCustomer").projectName("TestProject")
-                .description("Test Description").location("Raleigh, NC").startDate("20170501").endDate("20170708")
-                .archiveDate("20170930").engagementLeadName("Mister Lead").engagementLeadEmail("mister@lead.com")
+                .description("Test Description").location("Raleigh, NC").startDate("2017-05-01T00:00:00.000Z").endDate("2017-07-08T00:00:00.000Z")
+                .archiveDate("2017-09-30T00:00:00.000Z").engagementLeadName("Mister Lead").engagementLeadEmail("mister@lead.com")
                 .technicalLeadName("Mister Techlead").technicalLeadEmail("mister@techlead.com")
                 .customerContactName("Customer Contact").customerContactEmail("customer@contact.com").build();
 
