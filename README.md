@@ -100,13 +100,21 @@ values are `upcoming`, `active`, `past`, and `terminating`
 ```
 GET /engagements/users/summary
 ```
-
 The following parameters are supported:
 
 * Query Params:
     * supports `=`, `like`, `not like`, `exists`, and `not exists`
     * `start` and/or `end` can be used to limit the results based on a date range (i.e. `start=2021-01-01&end=2021-05-01`)
 
+```
+GET /engagements/count
+```
+Summarizes the count of engagements in each state
+
+The following parameters are supported:
+
+* Query Params
+  * `localTime` - the time to calculate whether at that time the    engagement was `upcoming`, `active`, `past`, and `terminating`
 
 ### Status
 
