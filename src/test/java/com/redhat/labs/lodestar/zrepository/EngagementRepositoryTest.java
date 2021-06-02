@@ -580,9 +580,40 @@ class EngagementRepositoryTest {
         assertEquals(0, results.size());
 
     }
+////
+    @Test
+    void testFindAllWithSearchExistsAttributeNull() {
+
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
+        repository.persist(e1);
+
+        ListFilterOptions fo = new ListFilterOptions();
+        fo.setSearch("description exists");
+
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
+        List<Engagement> results = pagedResults.getResults();
+        assertEquals(0, results.size());
+
+    }
 
     @Test
-    void testFindAllWithSearchExists() {
+    void testFindAllWithSearchExistsAttribute() {
+
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
+        e1.setDescription("value");
+        repository.persist(e1);
+
+        ListFilterOptions fo = new ListFilterOptions();
+        fo.setSearch("description exists");
+
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
+        List<Engagement> results = pagedResults.getResults();
+        assertEquals(1, results.size());
+
+    }
+
+    @Test
+    void testFindAllWithSearchExistsObject() {
 
         Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
         e1.setLaunch(new Launch());
@@ -598,13 +629,176 @@ class EngagementRepositoryTest {
     }
 
     @Test
-    void testFindAllWithSearchNotExists() {
+    void testFindAllWithSearchExistsObjectNull() {
+
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
+        e1.setLaunch(null);
+        repository.persist(e1);
+
+        ListFilterOptions fo = new ListFilterOptions();
+        fo.setSearch("launch exists");
+
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
+        List<Engagement> results = pagedResults.getResults();
+        assertEquals(0, results.size());
+
+    }
+
+    @Test
+    void testFindAllWithSearchExistsNonEmptyList() {
+
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
+        e1.setLaunch(new Launch());
+        Artifact a = Artifact.builder().type("one").build();
+        e1.setArtifacts(Arrays.asList(a));
+        repository.persist(e1);
+
+        ListFilterOptions fo = new ListFilterOptions();
+        fo.setSearch("artifacts exists");
+
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
+        List<Engagement> results = pagedResults.getResults();
+        assertEquals(1, results.size());
+
+    }
+
+    @Test
+    void testFindAllWithSearchExistsNullList() {
+
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
+        e1.setLaunch(new Launch());
+        e1.setArtifacts(null);
+        repository.persist(e1);
+
+        ListFilterOptions fo = new ListFilterOptions();
+        fo.setSearch("artifacts exists");
+
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
+        List<Engagement> results = pagedResults.getResults();
+        assertEquals(0, results.size());
+
+    }
+
+    @Test
+    void testFindAllWithSearchExistsEmptyList() {
+
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
+        e1.setLaunch(new Launch());
+        e1.setArtifacts(new ArrayList<>());
+        repository.persist(e1);
+
+        ListFilterOptions fo = new ListFilterOptions();
+        fo.setSearch("artifacts exists");
+
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
+        List<Engagement> results = pagedResults.getResults();
+        assertEquals(0, results.size());
+
+    }
+
+    @Test
+    void testFindAllWithSearchNotExistsAttributeNull() {
 
         Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
         repository.persist(e1);
 
         ListFilterOptions fo = new ListFilterOptions();
-        fo.setSearch("not exists launch");
+        fo.setSearch("description not exists");
+
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
+        List<Engagement> results = pagedResults.getResults();
+        assertEquals(1, results.size());
+
+    }
+
+    @Test
+    void testFindAllWithSearchNotExistsAttribute() {
+
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
+        e1.setDescription("value");
+        repository.persist(e1);
+
+        ListFilterOptions fo = new ListFilterOptions();
+        fo.setSearch("description not exists");
+
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
+        List<Engagement> results = pagedResults.getResults();
+        assertEquals(0, results.size());
+
+    }
+
+    @Test
+    void testFindAllWithSearchNotExistsObjectNull() {
+
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
+        repository.persist(e1);
+
+        ListFilterOptions fo = new ListFilterOptions();
+        fo.setSearch("launch not exists");
+
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
+        List<Engagement> results = pagedResults.getResults();
+        assertEquals(1, results.size());
+
+    }
+
+    @Test
+    void testFindAllWithSearchNotExistsObject() {
+
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
+        e1.setLaunch(Launch.builder().build());
+        repository.persist(e1);
+
+        ListFilterOptions fo = new ListFilterOptions();
+        fo.setSearch("launch not exists");
+
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
+        List<Engagement> results = pagedResults.getResults();
+        assertEquals(0, results.size());
+
+    }
+
+    @Test
+    void testFindAllWithSearchNotExistsNonEmptyList() {
+
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
+        e1.setArtifacts(Arrays.asList(Artifact.builder().type("type").build()));
+        repository.persist(e1);
+
+        ListFilterOptions fo = new ListFilterOptions();
+        fo.setSearch("artifacts not exists");
+
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
+        List<Engagement> results = pagedResults.getResults();
+        assertEquals(0, results.size());
+
+    }
+
+    @Test
+    void testFindAllWithSearchNotExistsEmptyList() {
+
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
+        e1.setArtifacts(Arrays.asList());
+        repository.persist(e1);
+
+        ListFilterOptions fo = new ListFilterOptions();
+        fo.setSearch("artifacts not exists");
+
+        PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
+        List<Engagement> results = pagedResults.getResults();
+        assertEquals(1, results.size());
+
+    }
+
+    @Test
+    void testFindAllWithSearchNotExistsNullList() {
+
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
+        e1.setArtifacts(null);
+        repository.persist(e1);
+
+        ListFilterOptions fo = new ListFilterOptions();
+        fo.setSearch("artifacts not exists");
 
         PagedEngagementResults pagedResults = repository.findPagedEngagements(fo);
         List<Engagement> results = pagedResults.getResults();
