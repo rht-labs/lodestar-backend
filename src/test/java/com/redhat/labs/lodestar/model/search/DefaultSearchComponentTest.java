@@ -61,9 +61,9 @@ class DefaultSearchComponentTest {
                 Arguments.of("customer_name not like that", "customer_name", "not like", "that",
                         "Not Filter{filter=Operator Filter{fieldName='customerName', operator='$eq', value=BsonRegularExpression{pattern='that', options='i'}}}"),
                 Arguments.of("customer_name exists", "customer_name", "exists", "",
-                        "And Filter{filters=[Operator Filter{fieldName='customerName', operator='$exists', value=BsonBoolean{value=true}}, Not Filter{filter=Filter{fieldName='customerName', value=null}}]}"),
+                        "And Filter{filters=[Operator Filter{fieldName='customerName', operator='$exists', value=BsonBoolean{value=true}}, Operator Filter{fieldName='customerName', operator='$ne', value=null}, Operator Filter{fieldName='customerName', operator='$ne', value=[]}]}"),
                 Arguments.of("customer_name not exists", "customer_name", "not exists", "",
-                        "And Filter{filters=[Operator Filter{fieldName='customerName', operator='$exists', value=BsonBoolean{value=false}}, Filter{fieldName='customerName', value=null}]}"),
+                        "Or Filter{filters=[And Filter{filters=[Operator Filter{fieldName='customerName', operator='$exists', value=BsonBoolean{value=false}}, Filter{fieldName='customerName', value=null}]}, And Filter{filters=[Operator Filter{fieldName='customerName', operator='$exists', value=BsonBoolean{value=true}}, Filter{fieldName='customerName', value=[]}]}]}"),
                 Arguments.of("customer_name=one,two,three", "customer_name", "=", "one,two,three",
                         "Or Filter{filters=[Filter{fieldName='customerName', value=one}, Filter{fieldName='customerName', value=two}, Filter{fieldName='customerName', value=three}]}"));
     }
