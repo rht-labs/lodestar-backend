@@ -1,12 +1,14 @@
 package com.redhat.labs.lodestar.model.search;
 
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.ne;
 import static com.mongodb.client.model.Filters.exists;
 import static com.mongodb.client.model.Filters.not;
 import static com.mongodb.client.model.Filters.or;
 import static com.mongodb.client.model.Filters.and;
 import static com.mongodb.client.model.Filters.regex;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -125,12 +127,14 @@ public class DefaultSearchComponent implements BsonSearchComponent {
             return Optional.of(regex(attributeName, attributeValue, "i"));
         } else if (isNotLikeOperator()) {
             return Optional.of(not(regex(attributeName, attributeValue, "i")));
-        } else if (isExistsOperator()) {
-            Bson existsAndNotNull = and(exists(attributeName, true), not(eq(attributeName, null)));
+        } else if (isExistsOperator()) { 
+            Bson existsAndNotNull = and(exists(attributeName, true), ne(attributeName, null), ne(attributeName, new ArrayList<>()));            
             return Optional.of(existsAndNotNull);
         } else if (isNotExistsOperator()) {
             Bson doesNotExistAndIsNull = and(exists(attributeName, false), eq(attributeName, null));
-            return Optional.of(doesNotExistAndIsNull);
+            Bson doesExistAndEmpty = and(exists(attributeName, true), eq(attributeName, new ArrayList<>()));
+            Bson notExists = or(doesNotExistAndIsNull, doesExistAndEmpty);
+            return Optional.of(notExists);
         } else {
             return Optional.empty();
         }

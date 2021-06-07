@@ -42,3 +42,5 @@ release.properties
 deployment/mongo-volume
 
 jacoco.exec
+/.apt_generated/
+/.apt_generated_tests/
