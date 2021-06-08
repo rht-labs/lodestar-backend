@@ -140,8 +140,7 @@ class EngagementRepositoryTest {
         Engagement e2 = MockUtils.cloneEngagement(e1);
         e2.setDescription("testing");
 
-        Optional<Engagement> optional = repository.updateEngagementIfLastUpdateMatched(e2, "value", false);
-        assertTrue(optional.isPresent());
+        assertEquals(1, repository.updateEngagement(e2, "value"));
 
     }
 
@@ -155,8 +154,7 @@ class EngagementRepositoryTest {
         Engagement e2 = MockUtils.cloneEngagement(e1);
         e2.setDescription("testing");
 
-        Optional<Engagement> optional = repository.updateEngagementIfLastUpdateMatched(e2, "value2", false);
-        assertTrue(optional.isEmpty());
+        assertEquals(0, repository.updateEngagement(e2, "value2"));
 
     }
 
