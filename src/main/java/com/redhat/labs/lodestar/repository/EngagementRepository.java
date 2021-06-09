@@ -534,60 +534,6 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
 
     }
 
-//    /**
-//     * Returns a {@link Map} containing the field names and values.
-//     * 
-//     * @param engagement
-//     * @return
-//     */
-//    Map<String, Object> createUpdateMap(Engagement engagement) {
-//
-//        TypeReference<Map<String, Object>> typeRef = new TypeReference<Map<String, Object>>() {
-//        };
-//        Map<String, Object> map = objectMapper.convertValue(engagement, typeRef);
-//
-//        // remove null values
-//        return map.entrySet().stream().filter(e -> !isNullOrEmpty(e.getValue()))
-//                .map(k -> {
-//                    System.out.println("---->"+k);
-//                    return k;
-//                })
-//                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
-//
-//    }
-//
-//    /**
-//     * Returns true if obj is null or if it is a {@link List} or {@link Map} that
-//     * contains no elements.
-//     * 
-//     * @param obj
-//     * @return
-//     */
-//    @SuppressWarnings("rawtypes")
-//    boolean isNullOrEmpty(Object obj) {
-//        return null == obj || (obj instanceof List && ((List) obj).isEmpty())
-//                || (obj instanceof Map && ((Map) obj).keySet().isEmpty());
-//    }
-//
-//    /**
-//     * Returns a {@link String} containing the Mongo Panache set query for values in
-//     * the given {@link Map}.
-//     * 
-//     * @param map
-//     * @return
-//     */
-//    String createSetQueryString(Map<String, Object> map) {
-//
-//        // create a query for each map entry
-//        List<String> queries = map.keySet().stream()
-//                .map(k -> new StringBuilder("'").append(k).append("'").append(" : :").append(k).toString())
-//                .collect(Collectors.toList());
-//
-//        // join each query
-//        return new StringBuilder("{").append(String.join(", ", queries)).append("}").toString();
-//
-//    }
-
     /**
      * Returns a FindIterable with the resulting {@link Bson} filter or all if no
      * filter provided. A projection is added if either the include or exclude is
