@@ -46,7 +46,7 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
         toUpdate.setDescription("testing");
 
         Mockito.when(eRepository.findByUuid("1234")).thenReturn(Optional.of(persisted));
-        Mockito.when(eRepository.updateEngagementIfLastUpdateMatched(Mockito.any(), Mockito.eq(toUpdate.getLastUpdate()), Mockito.any())).thenReturn(Optional.of(toUpdate));
+        Mockito.when(eRepository.updateEngagement(Mockito.any(), Mockito.eq(toUpdate.getLastUpdate()))).thenReturn(Optional.of(toUpdate));
 
         String body = quarkusJsonb.toJson(toUpdate);
 
@@ -145,7 +145,7 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
         toUpdate.setEngagementUsers(Sets.newHashSet(user1, user2, user3));
 
         Mockito.when(eRepository.findByUuid("1234")).thenReturn(Optional.of(persisted));
-        Mockito.when(eRepository.updateEngagementIfLastUpdateMatched(Mockito.any(), Mockito.eq(toUpdate.getLastUpdate()), Mockito.any())).thenReturn(Optional.of(toUpdate));
+        Mockito.when(eRepository.updateEngagement(Mockito.any(), Mockito.eq(toUpdate.getLastUpdate()))).thenReturn(Optional.of(toUpdate));
 
         String body = quarkusJsonb.toJson(toUpdate);
 
@@ -208,7 +208,7 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
         toUpdate.setDescription("testing");
 
         Mockito.when(eRepository.findByUuid("1234")).thenReturn(Optional.of(persisted));
-        Mockito.when(eRepository.updateEngagementIfLastUpdateMatched(Mockito.any(), Mockito.eq(toUpdate.getLastUpdate()), Mockito.any())).thenReturn(Optional.of(toUpdate));
+        Mockito.when(eRepository.updateEngagement(Mockito.any(), Mockito.eq(toUpdate.getLastUpdate()))).thenReturn(Optional.of(toUpdate));
 
         String body = quarkusJsonb.toJson(toUpdate);
         
@@ -358,7 +358,7 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
         toUpdate.setDescription("testing");
 
         Mockito.when(eRepository.findByCustomerNameAndProjectName("c1", "e2")).thenReturn(Optional.of(persisted));
-        Mockito.when(eRepository.updateEngagementIfLastUpdateMatched(Mockito.any(), Mockito.eq(toUpdate.getLastUpdate()), Mockito.any())).thenReturn(Optional.of(toUpdate));
+        Mockito.when(eRepository.updateEngagement(Mockito.any(), Mockito.eq(toUpdate.getLastUpdate()))).thenReturn(Optional.of(toUpdate));
 
         String body = quarkusJsonb.toJson(toUpdate);
 

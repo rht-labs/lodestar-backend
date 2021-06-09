@@ -5,10 +5,9 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.regex;
 import static com.mongodb.client.model.Projections.exclude;
 import static com.mongodb.client.model.Projections.include;
-import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
+import static com.mongodb.client.model.Updates.combine;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -61,10 +60,6 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
     private static final String ARTIFACTS = "artifacts";
     private static final String ARTIFACTS_TYPE = new StringBuilder(ARTIFACTS).append(".").append(TYPE).toString();
     private static final String COUNT = "count";
-    private static final String LAUNCH = "launch";
-
-    private static final List<String> IMMUTABLE_FIELDS = new ArrayList<>(
-            Arrays.asList("uuid", "mongoId", "projectId", "creationDetails", "status", "commits", LAUNCH));
 
     private ObjectMapper objectMapper = new ObjectMapper();
 
@@ -135,15 +130,13 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
      * 
      * @param replacement
      * @param lastUpdate
-     * @param skipLaunch
      * @return
      */
-    public Optional<Engagement> updateEngagementIfLastUpdateMatched(Engagement toUpdate, String lastUpdate,
-            Boolean skipLaunch) {
+    public Optional<Engagement> updateEngagement(Engagement toUpdate, String lastUpdate) {
 
         // create the bson for filter and update
         Bson filter = createFilterForEngagement(toUpdate, lastUpdate);
-        Bson update = createUpdateDocument(toUpdate, skipLaunch);
+        Bson update = createUpdateDocument(toUpdate);
 
         FindOneAndUpdateOptions optionAfter = new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER);
 
@@ -513,10 +506,9 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
      * {@link Engagement}.
      * 
      * @param engagement
-     * @param skipLaunch
      * @return
      */
-    private Bson createUpdateDocument(Engagement engagement, boolean skipLaunch) {
+    private Bson createUpdateDocument(Engagement engagement) {
 
         Bson updates = null;
 
@@ -524,13 +516,6 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
         TypeReference<Map<String, Object>> typeRef = new TypeReference<Map<String, Object>>() {
         };
         Map<String, Object> fieldMap = objectMapper.convertValue(engagement, typeRef);
-
-        // remove values that should not be updated
-        IMMUTABLE_FIELDS.forEach(f -> {
-            if (!f.equals(LAUNCH) || skipLaunch) {
-                fieldMap.remove(f);
-            }
-        });
 
         // add a set for each field in the update
         for (Entry<String, Object> entry : fieldMap.entrySet()) {

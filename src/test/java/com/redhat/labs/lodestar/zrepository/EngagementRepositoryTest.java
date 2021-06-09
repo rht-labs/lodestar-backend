@@ -131,6 +131,22 @@ class EngagementRepositoryTest {
     // update engagement if last update matched
 
     @Test
+    void testUpdateEngagementIfLastUpdateMatchedMultipleFieldUpdate() throws Exception {
+
+        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
+        e1.setLastUpdate("value");
+        repository.persist(e1);
+
+        Engagement e2 = MockUtils.cloneEngagement(e1);
+        e2.setLastUpdate("updated");
+        e2.setDescription("testing");
+
+        Optional<Engagement> optional = repository.updateEngagement(e2, "value");
+        assertTrue(optional.isPresent());
+
+    }
+
+    @Test
     void testUpdateEngagementIfLastUpdateMatched() throws Exception {
 
         Engagement e1 = MockUtils.mockMinimumEngagement("c1", "c2", "1234");
@@ -140,7 +156,7 @@ class EngagementRepositoryTest {
         Engagement e2 = MockUtils.cloneEngagement(e1);
         e2.setDescription("testing");
 
-        Optional<Engagement> optional = repository.updateEngagementIfLastUpdateMatched(e2, "value", false);
+        Optional<Engagement> optional = repository.updateEngagement(e2, "value");
         assertTrue(optional.isPresent());
 
     }
@@ -155,7 +171,7 @@ class EngagementRepositoryTest {
         Engagement e2 = MockUtils.cloneEngagement(e1);
         e2.setDescription("testing");
 
-        Optional<Engagement> optional = repository.updateEngagementIfLastUpdateMatched(e2, "value2", false);
+        Optional<Engagement> optional = repository.updateEngagement(e2, "value2");
         assertTrue(optional.isEmpty());
 
     }
