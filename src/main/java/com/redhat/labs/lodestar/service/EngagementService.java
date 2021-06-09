@@ -22,7 +22,6 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.redhat.labs.lodestar.model.Artifact;
 import com.redhat.labs.lodestar.model.Category;
@@ -202,12 +201,11 @@ public class EngagementService {
                 () -> new WebApplicationException("no engagement found, use POST to create", HttpStatus.SC_NOT_FOUND));
 
         String currentLastUpdated = engagement.getLastUpdate();
+
         validateHostingEnvironments(engagement.getHostingEnvironments());
         validateSubdomainOnUpdate(engagement);
         validateCustomerAndProjectNames(engagement, existing);
         setBeforeUpdate(engagement, existing);
-
-        boolean skipLaunch = skipLaunch(existing);
 
         // create copy to send to git api
         Engagement copy = clone(engagement);
@@ -218,7 +216,7 @@ public class EngagementService {
             engagement.getEngagementUsers().stream().forEach(u -> u.setReset(false));
         }
 
-        Engagement updated = repository.updateEngagementIfLastUpdateMatched(engagement, currentLastUpdated, skipLaunch)
+        Engagement updated = repository.updateEngagement(engagement, currentLastUpdated)
                 .orElseThrow(() -> new WebApplicationException(
                         "Failed to modify engagement because request contained stale data.  Please refresh and try again.",
                         HttpStatus.SC_CONFLICT));
@@ -389,6 +387,8 @@ public class EngagementService {
      */
     void setBeforeUpdate(Engagement engagement, Engagement existing) {
 
+        setImmutableFieldsOnUpdate(engagement, existing);
+
         setLastUpdate(engagement);
 
         // create new or use existing uuids for users
@@ -412,6 +412,35 @@ public class EngagementService {
 
         // set ids and/or time stamps for modified attributes
         setIdsAndTimestamps(engagement, existing);
+
+    }
+
+    /**
+     * Uses values from the existing {@link Engagement} to set fields that should be
+     * immutable.
+     * 
+     * @param engagement
+     * @param existing
+     */
+    void setImmutableFieldsOnUpdate(Engagement engagement, Engagement existing) {
+
+        // uuid
+        engagement.setUuid(existing.getUuid());
+
+        // mongo id
+        engagement.setMongoId(existing.getMongoId());
+
+        // project id
+        engagement.setProjectId(existing.getProjectId());
+
+        // creation details
+        engagement.setCreationDetails(existing.getCreationDetails());
+
+        // status
+        engagement.setStatus(existing.getStatus());
+
+        // commits
+        engagement.setCommits(existing.getCommits());
 
     }
 
@@ -536,17 +565,6 @@ public class EngagementService {
     }
 
     /**
-     * Returns true if the {@link Launch} data is present on the {@link Engagement}.
-     * Otherwise, false.
-     * 
-     * @param engagement
-     * @return
-     */
-    boolean skipLaunch(Engagement engagement) {
-        return (null != engagement.getLaunch());
-    }
-
-    /**
      * Sets the project ID for the {@link Engagement} with the matching UUID.
      * 
      * @param uuid
@@ -640,19 +658,19 @@ public class EngagementService {
                         "no engagement found with customer:project " + customerName + ":" + projectName,
                         HttpStatus.SC_NOT_FOUND));
     }
-    
+
     public Map<EngagementState, Integer> getEngagementCountByStatus(LocalDateTime currentTime) {
-        
+
         List<Engagement> engagementList = repository.listAll();
         Map<EngagementState, Integer> statusCounts = new EnumMap<>(EngagementState.class);
-        
+
         for (Engagement engagement : engagementList) {
-            EngagementState state =  engagement.getEngagementCurrentState(currentTime);
-            
+            EngagementState state = engagement.getEngagementCurrentState(currentTime);
+
             int count = statusCounts.containsKey(state) ? statusCounts.get(state) + 1 : 1;
             statusCounts.put(state, count);
         }
-        
+
         statusCounts.put(EngagementState.ANY, engagementList.size());
 
         return statusCounts;
@@ -1021,7 +1039,7 @@ public class EngagementService {
 
             engagement.setLastUpdate(getZuluTimeAsString());
             repository.persist(engagement);
-            
+
             return true;
 
         }
@@ -1090,14 +1108,7 @@ public class EngagementService {
      * @return
      */
     Engagement clone(Engagement toClone) {
-
-        try {
-            return objectMapper.readValue(objectMapper.writeValueAsString(toClone), Engagement.class);
-        } catch (JsonProcessingException e) {
-            throw new WebApplicationException("failed to create engagement for event. " + toClone,
-                    HttpStatus.SC_INTERNAL_SERVER_ERROR);
-        }
-
+        return jsonb.fromJson(jsonb.toJson(toClone), Engagement.class);
     }
 
 }

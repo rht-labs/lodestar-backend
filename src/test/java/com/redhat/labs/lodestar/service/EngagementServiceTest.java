@@ -292,7 +292,7 @@ class EngagementServiceTest {
         Mockito.when(repository.findByUuid("1234")).thenReturn(Optional.of(persisted));
         Mockito.when(repository.findByCustomerNameAndProjectName("c3", "p3", new FilterOptions()))
                 .thenReturn(Optional.empty());
-        Mockito.when(repository.updateEngagementIfLastUpdateMatched(Mockito.any(), Mockito.any(), Mockito.any()))
+        Mockito.when(repository.updateEngagement(Mockito.any(), Mockito.any()))
                 .thenReturn(Optional.of(toUpdate));
 
         Engagement updated = service.update(toUpdate);
@@ -325,7 +325,7 @@ class EngagementServiceTest {
         Mockito.when(repository.findByUuid("1234")).thenReturn(Optional.of(persisted));
         Mockito.when(repository.findByCustomerNameAndProjectName("c3", "p3", new FilterOptions()))
                 .thenReturn(Optional.empty());
-        Mockito.when(repository.updateEngagementIfLastUpdateMatched(Mockito.any(), Mockito.any(), Mockito.any()))
+        Mockito.when(repository.updateEngagement(Mockito.any(), Mockito.any()))
                 .thenReturn(Optional.of(toUpdate));
 
         Engagement updated = service.update(toUpdate);
@@ -836,14 +836,14 @@ class EngagementServiceTest {
         persisted.setProjectId(1111);
 
         Mockito.when(repository.findByUuid("1234")).thenReturn(Optional.of(persisted));
-        Mockito.when(repository.updateEngagementIfLastUpdateMatched(Mockito.any(), Mockito.any(), Mockito.any()))
+        Mockito.when(repository.updateEngagement(Mockito.any(), Mockito.any()))
                 .thenReturn(Optional.of(toUpdate));
 
         Engagement updated = service.launch(toUpdate);
         assertNotNull(updated);
         assertNotNull(updated.getLaunch());
 
-        Mockito.verify(repository).updateEngagementIfLastUpdateMatched(Mockito.any(), Mockito.any(), Mockito.any());
+        Mockito.verify(repository).updateEngagement(Mockito.any(), Mockito.any());
         Mockito.verify(eventBus).sendAndForget(Mockito.eq(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS), Mockito.any());
 
     }
