@@ -6,6 +6,7 @@ import static com.mongodb.client.model.Filters.regex;
 import static com.mongodb.client.model.Projections.exclude;
 import static com.mongodb.client.model.Projections.include;
 import static com.mongodb.client.model.Updates.set;
+import static com.mongodb.client.model.Updates.combine;
 
 import java.util.Arrays;
 import java.util.List;
@@ -124,23 +125,22 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
     }
 
     /**
-     * Returns 1 if the {@link Engagement} was updated where last update matched.
-     * Otherwise, returns 0.
+     * Returns an {@link Optional} containing the updated {@link Engagement} where
+     * last update matched. Otherwise, returns an empty {@link Optional}
      * 
-     * @param toUpdate
+     * @param replacement
      * @param lastUpdate
      * @return
      */
-    public long updateEngagement(Engagement toUpdate, String lastUpdate) {
+    public Optional<Engagement> updateEngagement(Engagement toUpdate, String lastUpdate) {
 
-        // create engagement map
-        Map<String, Object> map = createUpdateMap(toUpdate);
+        // create the bson for filter and update
+        Bson filter = createFilterForEngagement(toUpdate, lastUpdate);
+        Bson update = createUpdateDocument(toUpdate);
 
-        // create query
-        String query = createSetQueryString(map);
+        FindOneAndUpdateOptions optionAfter = new FindOneAndUpdateOptions().returnDocument(ReturnDocument.AFTER);
 
-        // update
-        return this.update(query, map).where("lastUpdate", lastUpdate);
+        return Optional.ofNullable(this.mongoCollection().findOneAndUpdate(filter, update, optionAfter));
 
     }
 
@@ -490,40 +490,103 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
      */
 
     /**
-     * Returns a {@link Map} containing the field names and values.
+     * Returns a {@link Bson} containing the filter to find {@link Engagement} with
+     * the corresponding customer name, project name, and last update timestamp.
+     * 
+     * @param engagement
+     * @param lastUpdate
+     * @return
+     */
+    private Bson createFilterForEngagement(Engagement engagement, String lastUpdate) {
+        return and(eq("uuid", engagement.getUuid()), eq("lastUpdate", lastUpdate));
+    }
+
+    /**
+     * Returns a {@link Bson} containing the fields to be updated for a given
+     * {@link Engagement}.
      * 
      * @param engagement
      * @return
      */
-    Map<String, Object> createUpdateMap(Engagement engagement) {
+    private Bson createUpdateDocument(Engagement engagement) {
 
+        Bson updates = null;
+
+        // convert to map
         TypeReference<Map<String, Object>> typeRef = new TypeReference<Map<String, Object>>() {
         };
-        return objectMapper.convertValue(engagement, typeRef);
+        Map<String, Object> fieldMap = objectMapper.convertValue(engagement, typeRef);
+
+        // add a set for each field in the update
+        for (Entry<String, Object> entry : fieldMap.entrySet()) {
+
+            Bson update = set(entry.getKey(), entry.getValue());
+
+            if (null == updates) {
+                updates = update;
+            } else {
+                updates = combine(updates, update);
+            }
+
+        }
+
+        return updates;
 
     }
 
-    /**
-     * Returns a {@link String} containing the Mongo Panache set query for values in
-     * the given {@link Map}.
-     * 
-     * @param map
-     * @return
-     */
-    String createSetQueryString(Map<String, Object> map) {
-
-        // filter immutable and nulls
-        Map<String, Object> srubbedMap = map.entrySet().stream().filter(e -> null != e.getValue())
-                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
-
-        // create a query for each map entry
-        List<String> queries = srubbedMap.keySet().stream()
-                .map(k -> new StringBuilder(k).append(" = :").append(k).toString()).collect(Collectors.toList());
-
-        // join each query
-        return String.join(",", queries);
-
-    }
+//    /**
+//     * Returns a {@link Map} containing the field names and values.
+//     * 
+//     * @param engagement
+//     * @return
+//     */
+//    Map<String, Object> createUpdateMap(Engagement engagement) {
+//
+//        TypeReference<Map<String, Object>> typeRef = new TypeReference<Map<String, Object>>() {
+//        };
+//        Map<String, Object> map = objectMapper.convertValue(engagement, typeRef);
+//
+//        // remove null values
+//        return map.entrySet().stream().filter(e -> !isNullOrEmpty(e.getValue()))
+//                .map(k -> {
+//                    System.out.println("---->"+k);
+//                    return k;
+//                })
+//                .collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+//
+//    }
+//
+//    /**
+//     * Returns true if obj is null or if it is a {@link List} or {@link Map} that
+//     * contains no elements.
+//     * 
+//     * @param obj
+//     * @return
+//     */
+//    @SuppressWarnings("rawtypes")
+//    boolean isNullOrEmpty(Object obj) {
+//        return null == obj || (obj instanceof List && ((List) obj).isEmpty())
+//                || (obj instanceof Map && ((Map) obj).keySet().isEmpty());
+//    }
+//
+//    /**
+//     * Returns a {@link String} containing the Mongo Panache set query for values in
+//     * the given {@link Map}.
+//     * 
+//     * @param map
+//     * @return
+//     */
+//    String createSetQueryString(Map<String, Object> map) {
+//
+//        // create a query for each map entry
+//        List<String> queries = map.keySet().stream()
+//                .map(k -> new StringBuilder("'").append(k).append("'").append(" : :").append(k).toString())
+//                .collect(Collectors.toList());
+//
+//        // join each query
+//        return new StringBuilder("{").append(String.join(", ", queries)).append("}").toString();
+//
+//    }
 
     /**
      * Returns a FindIterable with the resulting {@link Bson} filter or all if no

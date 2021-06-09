@@ -22,7 +22,6 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.redhat.labs.lodestar.model.Artifact;
 import com.redhat.labs.lodestar.model.Category;
@@ -217,17 +216,15 @@ public class EngagementService {
             engagement.getEngagementUsers().stream().forEach(u -> u.setReset(false));
         }
 
-        long updated = repository.updateEngagement(engagement, currentLastUpdated);
-        if (0 == updated) {
-            throw new WebApplicationException(
-                    "Failed to modify engagement because request contained stale data.  Please refresh and try again.",
-                    HttpStatus.SC_CONFLICT);
-        }
+        Engagement updated = repository.updateEngagement(engagement, currentLastUpdated)
+                .orElseThrow(() -> new WebApplicationException(
+                        "Failed to modify engagement because request contained stale data.  Please refresh and try again.",
+                        HttpStatus.SC_CONFLICT));
 
         // send update engagement event once saved
         eventBus.sendAndForget(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, copy);
 
-        return engagement;
+        return updated;
 
     }
 
@@ -1111,14 +1108,7 @@ public class EngagementService {
      * @return
      */
     Engagement clone(Engagement toClone) {
-
-        try {
-            return objectMapper.readValue(objectMapper.writeValueAsString(toClone), Engagement.class);
-        } catch (JsonProcessingException e) {
-            throw new WebApplicationException("failed to create engagement for event. " + toClone,
-                    HttpStatus.SC_INTERNAL_SERVER_ERROR);
-        }
-
+        return jsonb.fromJson(jsonb.toJson(toClone), Engagement.class);
     }
 
 }

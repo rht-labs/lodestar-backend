@@ -293,7 +293,7 @@ class EngagementServiceTest {
         Mockito.when(repository.findByCustomerNameAndProjectName("c3", "p3", new FilterOptions()))
                 .thenReturn(Optional.empty());
         Mockito.when(repository.updateEngagement(Mockito.any(), Mockito.any()))
-                .thenReturn(Long.valueOf(1));
+                .thenReturn(Optional.of(toUpdate));
 
         Engagement updated = service.update(toUpdate);
         assertNotNull(updated);
@@ -326,7 +326,7 @@ class EngagementServiceTest {
         Mockito.when(repository.findByCustomerNameAndProjectName("c3", "p3", new FilterOptions()))
                 .thenReturn(Optional.empty());
         Mockito.when(repository.updateEngagement(Mockito.any(), Mockito.any()))
-                .thenReturn(Long.valueOf(1));
+                .thenReturn(Optional.of(toUpdate));
 
         Engagement updated = service.update(toUpdate);
         assertNotNull(updated);
@@ -837,7 +837,7 @@ class EngagementServiceTest {
 
         Mockito.when(repository.findByUuid("1234")).thenReturn(Optional.of(persisted));
         Mockito.when(repository.updateEngagement(Mockito.any(), Mockito.any()))
-                .thenReturn(Long.valueOf(1));
+                .thenReturn(Optional.of(toUpdate));
 
         Engagement updated = service.launch(toUpdate);
         assertNotNull(updated);
