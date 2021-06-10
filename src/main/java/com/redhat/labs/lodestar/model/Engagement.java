@@ -101,6 +101,9 @@ public class Engagement extends PanacheMongoEntityBase {
 
     private List<Score> scores;
 
+    @JsonbProperty("billing_codes")
+    private List<BillingProject> billingCodes;
+
     /**
      * The value return here is relative to the time entered. If the time entered was
      * (currentDate) Jan 1 2020  and this engagement started on Feb 1 and ended Feb 28
