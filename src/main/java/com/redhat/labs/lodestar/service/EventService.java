@@ -24,7 +24,8 @@ import com.redhat.labs.lodestar.model.event.EventType;
 import com.redhat.labs.lodestar.model.event.RetriableEvent;
 import com.redhat.labs.lodestar.model.event.RetriableEvent.RetriableEventBuilder;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
-import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
+import com.redhat.labs.lodestar.rest.client.LodeStarActivityApiClient;
+import com.redhat.labs.lodestar.rest.client.LodeStarGitApiClient;
 
 import io.quarkus.vertx.ConsumeEvent;
 import io.vertx.mutiny.core.eventbus.EventBus;
@@ -49,7 +50,11 @@ public class EventService {
 
     @Inject
     @RestClient
-    LodeStarGitLabAPIService gitApiClient;
+    LodeStarGitApiClient gitApiClient;
+    
+    @Inject
+    @RestClient
+    LodeStarActivityApiClient activityApiClient;
 
     @Inject
     EngagementService engagementService;
@@ -490,21 +495,20 @@ public class EventService {
             eventBus.sendAndForget(EventType.UPDATE_STATUS_EVENT_ADDRESS, engagement);
             eventBus.sendAndForget(EventType.UPDATE_COMMITS_EVENT_ADDRESS, engagement);
         }
-
     }
 
     /**
      * Retrieves the {@link List} of {@link Commit}s for the given
-     * {@link Engagement} from the Git API and then updates the database.
+     * {@link Engagement} from the Activity API and then updates the database.
      * 
      * @param engagement
      */
     @ConsumeEvent(value = EventType.UPDATE_COMMITS_EVENT_ADDRESS, blocking = true)
     void consumeUpdateCommitsEvent(Engagement engagement) {
 
-        List<Commit> commits = gitApiClient.getCommits(engagement.getCustomerName(), engagement.getProjectName());
-        engagementService.setCommits(engagement.getUuid(), commits);
-
+        Response response = activityApiClient.getActivity(engagement.getUuid());
+        engagementService.setCommits(engagement.getUuid(), response.readEntity(new GenericType<List<Commit>>() {
+        }));
     }
 
     /**
@@ -524,6 +528,11 @@ public class EventService {
                     engagement.getProjectName());
         }
 
+    }
+    
+    @ConsumeEvent(value = EventType.RELOAD_ACTIVITY_EVENT_ADDRESS, blocking = true)
+    void consumeActivityReloadEvent(String name) {
+        activityApiClient.refresh();
     }
 
 }
