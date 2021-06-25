@@ -1,4 +1,5 @@
 ![Build Container](https://github.com/rht-labs/lodestar-backend/workflows/Build%20Container/badge.svg)
+[![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=rht-labs_open-management-portal-backend&metric=alert_status)](https://sonarcloud.io/dashboard?id=rht-labs_open-management-portal-backend)
 
 # Lodestar - Backend
 
