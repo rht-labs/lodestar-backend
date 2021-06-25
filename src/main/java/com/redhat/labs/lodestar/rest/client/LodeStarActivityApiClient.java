@@ -32,11 +32,15 @@ public interface LodeStarActivityApiClient {
     
     @GET
     @Path("/api/activity/uuid/{engagementUuid}")
-    public Response getActivity(@PathParam("engagementUuid") String engagementUuid);
+    public Response getActivityForUuid(@PathParam("engagementUuid") String engagementUuid);
     
     @GET
     @Path("/api/activity/uuid/{engagementUuid}")
-    Response getPaginatedActivity(@PathParam("engagementUuid") String engagementUuid, @QueryParam("page") int page, @QueryParam("pageSize") int pageSize);
+    Response getPaginatedActivityForUuid(@PathParam("engagementUuid") String engagementUuid, @QueryParam("page") int page, @QueryParam("pageSize") int pageSize);
+    
+    @GET
+    @Path("/api/activity")
+    Response getPaginatedActivity(@QueryParam("page") int page, @QueryParam("pageSize") int pageSize);
     
     @PUT
     @Path("/api/activity/refresh")

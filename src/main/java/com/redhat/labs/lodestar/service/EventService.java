@@ -506,7 +506,7 @@ public class EventService {
     @ConsumeEvent(value = EventType.UPDATE_COMMITS_EVENT_ADDRESS, blocking = true)
     void consumeUpdateCommitsEvent(Engagement engagement) {
 
-        Response response = activityApiClient.getActivity(engagement.getUuid());
+        Response response = activityApiClient.getActivityForUuid(engagement.getUuid());
         engagementService.setCommits(engagement.getUuid(), response.readEntity(new GenericType<List<Commit>>() {
         }));
     }

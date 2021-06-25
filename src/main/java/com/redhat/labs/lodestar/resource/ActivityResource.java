@@ -46,20 +46,33 @@ public class ActivityResource {
     @SecurityRequirement(name = "jwt", scopes = {})
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "400", description = "Pay attention to your paging."),
+            @APIResponse(responseCode = "200", description = "Activity list sorted by time desc") })
+    @Operation(summary = "Returns all activity for an engagement by uuid.")
+    public Response fetchActivity(@QueryParam("page") int page, @QueryParam("pageSize") int pageSize) {
+        if(page < 0 || pageSize < 1) {
+            return Response.status(Status.BAD_REQUEST).entity("{ \"error\": \"Invalid pagination\"}").build();
+        }
+        
+        return activityClient.getPaginatedActivity(page, pageSize);
+    }
+    
+    @GET
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "400", description = "Pay attention to your paging."),
             @APIResponse(responseCode = "200", description = "Activity list.") })
     @Operation(summary = "Returns all activity for an engagement by uuid.")
     @Path("/uuid/{uuid}")
-    public Response fetchActivity(@PathParam(value = "uuid") String uuid, @QueryParam("page") Integer page, @QueryParam("pageSize") Integer pageSize) {
+    public Response fetchActivityByUuid(@PathParam(value = "uuid") String uuid, @QueryParam("page") Integer page, @QueryParam("pageSize") Integer pageSize) {
         LOGGER.trace("uuid {}", uuid);
         
         if(page == null || pageSize == null) {
-            return activityClient.getActivity(uuid);
+            return activityClient.getActivityForUuid(uuid);
         } else if(page < 0 || pageSize < 1) {
-            return Response.status(Status.BAD_REQUEST).entity("Invalid pagination").build();
+            return Response.status(Status.BAD_REQUEST).entity("{ \"error\": \"Invalid pagination\"}").build();
         } 
             
-        System.out.println("callled fefe");
-        return activityClient.getPaginatedActivity(uuid, page, pageSize);
+        return activityClient.getPaginatedActivityForUuid(uuid, page, pageSize);
     }
     
     @PUT
@@ -69,7 +82,7 @@ public class ActivityResource {
     @Operation(summary = "Refresh all activity across all engagements.")
     @Path("refresh")
     public Response refresh() {
-        System.out.println("callled refresh");
+        
         eventBus.sendAndForget(EventType.RELOAD_ACTIVITY_EVENT_ADDRESS, EventType.RELOAD_ACTIVITY_EVENT_ADDRESS);
         return Response.accepted().build(); 
     }

@@ -17,8 +17,36 @@ Once the application is launched, the OpenAPI UI can be found at the following p
 ```
 http(s)://your-hostname[:port]/q/swagger-ui
 ```
+A link is also available on the home page
 
 ## Available Resources
+
+### Activity
+
+The `activity` resource exposes endpoints that allow clients to retrieve activity data for LodeStar. Activity in this context means changes users make to any engagements. Changes are propagated to gitlab and the commits are reflected as activity.
+
+#### GET All Activity
+
+* Query Params
+  
+  * `page` - The page to include in the response. required
+  * `pageSize` - The size of the page to include. required
+
+#### GET Activity By Uuid
+
+`GET /engagements/activity/{uuid}`
+
+* Query Params
+
+  * `uuid` - The uuid of the engagement
+  * `page` - The page to include in the response. PageSize also required
+  * `pageSize` - The size of the page to include. Page also required
+
+#### PUT Refresh
+
+Makes a complete refresh of the activity data in the activity service.
+
+* No params
 
 ### Config
 

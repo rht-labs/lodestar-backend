@@ -48,7 +48,7 @@ class StatusResourceTest extends IntegrationTestHelper {
             .statusCode(200);
 
         Mockito.verify(gitApiClient, Mockito.timeout(1000)).getStatus("jello", "exists");
-        Mockito.verify(activityClient, Mockito.timeout(1000)).getActivity("uuid1");
+        Mockito.verify(activityClient, Mockito.timeout(1000)).getActivityForUuid("uuid1");
 
     } 
     
@@ -70,7 +70,7 @@ class StatusResourceTest extends IntegrationTestHelper {
             .statusCode(200);
 
         Mockito.verify(gitApiClient, Mockito.times(0)).getStatus("jello", "exists");
-        Mockito.verify(activityClient, Mockito.timeout(1000)).getActivity("uuid1");
+        Mockito.verify(activityClient, Mockito.timeout(1000)).getActivityForUuid("uuid1");
 
     } 
 

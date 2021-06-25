@@ -32,11 +32,23 @@ class ActivityResourceTest extends IntegrationTestHelper {
         HashMap<String, Long> timeClaims = new HashMap<>();
         validToken = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
     }
+    
+    @Test
+    void testFetchAllActivityPaged() throws Exception {
+        given().when().auth().oauth2(validToken).get("/engagements/activity").then().statusCode(400);
+        
+        List<Commit> activity = Collections.singletonList(Commit.builder().id("a1").build());
+        Mockito.when(activityClient.getPaginatedActivity(0, 1)).thenReturn(Response.ok().entity(activity).build());
+        
+        given().queryParam("page", "0").queryParam("pageSize", "1").when().auth().oauth2(validToken).get("/engagements/activity").then().statusCode(200);
+        
+        Mockito.verify(activityClient, timeout(1000)).getPaginatedActivity(0, 1);
+    }
 
     @Test
     void testFetchActivityByUuid() throws Exception {
         List<Commit> activity = Collections.singletonList(Commit.builder().id("a1").build());
-        Mockito.when(activityClient.getActivity("1")).thenReturn(Response.ok(activity).build());
+        Mockito.when(activityClient.getActivityForUuid("1")).thenReturn(Response.ok(activity).build());
 
         given().when().auth().oauth2(validToken).get("/engagements/activity/uuid/1").then().statusCode(200).body("[0].id",
                 equalTo("a1"));
@@ -44,18 +56,18 @@ class ActivityResourceTest extends IntegrationTestHelper {
         given().queryParam("page", "3").when().auth().oauth2(validToken).get("/engagements/activity/uuid/1").then().statusCode(200).body("[0].id",
                 equalTo("a1"));
         
-        Mockito.verify(activityClient, timeout(1000).times(2)).getActivity("1");
+        Mockito.verify(activityClient, timeout(1000).times(2)).getActivityForUuid("1");
     }
     
     @Test
     void testFetchActivityByUuidAndPage() throws Exception {
         List<Commit> activity = Collections.singletonList(Commit.builder().id("a1").build());
-        Mockito.when(activityClient.getPaginatedActivity("1", 0, 1)).thenReturn(Response.ok(activity).build());
+        Mockito.when(activityClient.getPaginatedActivityForUuid("1", 0, 1)).thenReturn(Response.ok(activity).build());
 
         given().queryParam("page", "0").queryParam("pageSize", "1").when().auth().oauth2(validToken).get("/engagements/activity/uuid/1").then().statusCode(200).body("[0].id",
                 equalTo("a1"));
         
-        Mockito.verify(activityClient, timeout(1000)).getPaginatedActivity("1", 0, 1);
+        Mockito.verify(activityClient, timeout(1000)).getPaginatedActivityForUuid("1", 0, 1);
     }
 
     @Test
@@ -69,7 +81,7 @@ class ActivityResourceTest extends IntegrationTestHelper {
         given().queryParam("page", "1").queryParam("pageSize", "0").when().auth().oauth2(validToken)
         .get("/engagements/activity/uuid/1").then().statusCode(400);
         
-        Mockito.verify(activityClient, Mockito.never()).getActivity("1");
+        Mockito.verify(activityClient, Mockito.never()).getActivityForUuid("1");
     }
     
     @Test
