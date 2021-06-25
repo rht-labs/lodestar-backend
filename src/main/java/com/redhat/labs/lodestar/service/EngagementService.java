@@ -49,7 +49,7 @@ import com.redhat.labs.lodestar.model.pagination.PagedScoreResults;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
 import com.redhat.labs.lodestar.model.pagination.PagedUseCaseResults;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
-import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
+import com.redhat.labs.lodestar.rest.client.LodeStarGitApiClient;
 
 import io.vertx.mutiny.core.eventbus.EventBus;
 
@@ -78,7 +78,7 @@ public class EngagementService {
 
     @Inject
     @RestClient
-    LodeStarGitLabAPIService gitApi;
+    LodeStarGitApiClient gitApi;
 
     ObjectMapper objectMapper = new ObjectMapper();
 
@@ -576,6 +576,8 @@ public class EngagementService {
 
     /**
      * Updates the {@link Status} and {@link Commit} data on an {@link Engagement}.
+     * 
+     * TODO Commits should be removed from the engagement API when the FE has implemented the changes
      * 
      * @param hook
      * @return

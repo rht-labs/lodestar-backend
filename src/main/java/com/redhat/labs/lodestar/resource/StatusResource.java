@@ -17,12 +17,14 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
+import org.eclipse.microprofile.openapi.annotations.tags.Tags;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.redhat.labs.lodestar.model.Hook;
-import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
+import com.redhat.labs.lodestar.rest.client.LodeStarActivityApiClient;
 import com.redhat.labs.lodestar.rest.client.LodeStarStatusApiClient;
 import com.redhat.labs.lodestar.service.EngagementService;
 
@@ -30,6 +32,7 @@ import com.redhat.labs.lodestar.service.EngagementService;
 @Path("/status")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
+@Tag(name = "Status", description = "Status stuff")
 public class StatusResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(StatusResource.class);
     
@@ -39,9 +42,12 @@ public class StatusResource {
     @ConfigProperty(name = "cleanup.token")
     String cleanupToken;
     
+    @ConfigProperty(name = "engagement.file")
+    String engagementFile;
+    
     @Inject
     @RestClient
-    LodeStarGitLabAPIService gitApi;
+    LodeStarActivityApiClient activityApi;
 
     @Inject
     @RestClient
@@ -53,6 +59,7 @@ public class StatusResource {
     @POST
     @PermitAll
     @Path("/hook")
+    @Tags({@Tag(ref="Status"), @Tag(ref="Activity")})
     @APIResponses(value = { 
             @APIResponse(responseCode = "401", description = "Invalid Gitlab Token"),
             @APIResponse(responseCode = "200", description = "Returns the hook given.") })
@@ -62,6 +69,10 @@ public class StatusResource {
         if(!statusToken.equals(gitLabToken)) {
             LOGGER.error("Invalid status token used");
             return Response.status(Status.UNAUTHORIZED).build();
+        }
+        
+        if(hook.didFileChange(engagementFile)) {
+            activityApi.postHook(hook);
         }
             
         LOGGER.debug("Hook for {}", hook.getProject().getPathWithNamespace());

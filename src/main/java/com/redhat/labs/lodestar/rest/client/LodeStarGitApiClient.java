@@ -23,9 +23,9 @@ import com.redhat.labs.lodestar.model.Status;
 import com.redhat.labs.lodestar.model.status.ApplicationVersion;
 
 @ApplicationScoped
-@RegisterRestClient(configKey = "lodestar.gitlab.api")
+@RegisterRestClient(configKey = "lodestar.git.api")
 @RegisterProvider(value = LodeStarGitLabAPIServiceResponseMapper.class, priority = 50)
-public interface LodeStarGitLabAPIService {
+public interface LodeStarGitApiClient {
 
     @GET
     @Path("/api/v1/engagements")
@@ -50,9 +50,16 @@ public interface LodeStarGitLabAPIService {
     @Produces("application/json")
     Status getStatus(@PathParam("customer") String customer, @PathParam("engagement") String engagement);
 
+    /**
+     * Deprecated - use activity API with uuid
+     * @param customer
+     * @param engagement
+     * @return
+     */
     @GET
     @Path("/api/v1/engagements/customer/{customer}/{engagement}/commits")
     @Produces("application/json")
+    @Deprecated
     List<Commit> getCommits(@PathParam("customer") String customer, @PathParam("engagement") String engagement);
 
     @DELETE

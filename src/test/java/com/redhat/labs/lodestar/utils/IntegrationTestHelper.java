@@ -9,8 +9,9 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import com.redhat.labs.lodestar.repository.ActiveSyncRepository;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
+import com.redhat.labs.lodestar.rest.client.LodeStarActivityApiClient;
 import com.redhat.labs.lodestar.rest.client.LodeStarConfigApiClient;
-import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
+import com.redhat.labs.lodestar.rest.client.LodeStarGitApiClient;
 import com.redhat.labs.lodestar.rest.client.LodeStarStatusApiClient;
 
 import io.quarkus.test.junit.mockito.InjectMock;
@@ -29,7 +30,7 @@ public class IntegrationTestHelper {
 
 	@InjectMock
 	@RestClient
-	public LodeStarGitLabAPIService gitApiClient;
+	public LodeStarGitApiClient gitApiClient;
 
 	@InjectMock
 	@RestClient
@@ -38,6 +39,10 @@ public class IntegrationTestHelper {
 	@InjectMock
 	@RestClient
 	public LodeStarConfigApiClient configApiClient;
+	
+	@InjectMock
+	@RestClient
+	public LodeStarActivityApiClient activityClient;
 
 	public static String[] nullEmptyBlankSource() {
 		return new String[] { null, "", "   " };
