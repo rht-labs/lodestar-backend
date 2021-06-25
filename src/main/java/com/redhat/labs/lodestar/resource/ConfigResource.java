@@ -16,6 +16,7 @@ import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,7 @@ import com.redhat.labs.lodestar.rest.client.LodeStarConfigApiClient;
 @RequestScoped
 @Path("/config")
 @Produces(MediaType.APPLICATION_JSON)
+@Tag(name = "Config", description = "Resource to pull configuration info")
 public class ConfigResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigResource.class);
 
