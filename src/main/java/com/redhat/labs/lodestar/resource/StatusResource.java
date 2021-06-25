@@ -72,7 +72,7 @@ public class StatusResource {
         }
         
         if(hook.didFileChange(engagementFile)) {
-            activityApi.postHook(hook);
+            activityApi.postHook(hook, gitLabToken);
         }
             
         LOGGER.debug("Hook for {}", hook.getProject().getPathWithNamespace());

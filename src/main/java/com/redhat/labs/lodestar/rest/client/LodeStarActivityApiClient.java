@@ -3,6 +3,7 @@ package com.redhat.labs.lodestar.rest.client;
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
+import javax.ws.rs.HeaderParam;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
@@ -28,7 +29,7 @@ public interface LodeStarActivityApiClient {
 
     @POST
     @Path("/api/activity/hook")
-    public Response postHook(Hook hook);
+    public Response postHook(Hook hook, @HeaderParam("x-gitlab-token") String hookToken);
     
     @GET
     @Path("/api/activity/uuid/{engagementUuid}")
