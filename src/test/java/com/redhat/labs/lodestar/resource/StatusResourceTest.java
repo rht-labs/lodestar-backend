@@ -28,7 +28,7 @@ class StatusResourceTest extends IntegrationTestHelper {
     @Inject
     EngagementService engagementService;
         
-    Engagement engagement = Engagement.builder().customerName("jello").projectName("exists").build();
+    Engagement engagement = Engagement.builder().uuid("uuid1").customerName("jello").projectName("exists").build();
         
     @Test
     void testStatusValid() {
@@ -48,7 +48,7 @@ class StatusResourceTest extends IntegrationTestHelper {
             .statusCode(200);
 
         Mockito.verify(gitApiClient, Mockito.timeout(1000)).getStatus("jello", "exists");
-        Mockito.verify(gitApiClient, Mockito.timeout(1000)).getCommits("jello", "exists");
+        Mockito.verify(activityClient, Mockito.timeout(1000)).getActivityForUuid("uuid1");
 
     } 
     
@@ -70,7 +70,7 @@ class StatusResourceTest extends IntegrationTestHelper {
             .statusCode(200);
 
         Mockito.verify(gitApiClient, Mockito.times(0)).getStatus("jello", "exists");
-        Mockito.verify(gitApiClient, Mockito.timeout(1000)).getCommits("jello", "exists");
+        Mockito.verify(activityClient, Mockito.timeout(1000)).getActivityForUuid("uuid1");
 
     } 
 

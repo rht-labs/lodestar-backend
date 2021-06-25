@@ -24,5 +24,7 @@ public class EventType {
     public static final String PERSIST_ENGAGEMENT_EVENT_ADDRESS = "persist.engagement.event";
     public static final String UPDATE_COMMITS_EVENT_ADDRESS = "update.commits.event";
     public static final String UPDATE_STATUS_EVENT_ADDRESS = "update.status.event";
+    
+    public static final String RELOAD_ACTIVITY_EVENT_ADDRESS = "reload.activity.event";
 
 }

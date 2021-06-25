@@ -1,4 +1,5 @@
 ![Build Container](https://github.com/rht-labs/lodestar-backend/workflows/Build%20Container/badge.svg)
+[![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=rht-labs_open-management-portal-backend&metric=alert_status)](https://sonarcloud.io/dashboard?id=rht-labs_open-management-portal-backend)
 
 # Lodestar - Backend
 
@@ -17,8 +18,40 @@ Once the application is launched, the OpenAPI UI can be found at the following p
 ```
 http(s)://your-hostname[:port]/q/swagger-ui
 ```
+A link is also available on the home page
 
 ## Available Resources
+
+### Activity
+
+The `activity` resource exposes endpoints that allow clients to retrieve activity data for LodeStar. Activity in this context means changes users make to any engagements. Changes are propagated to gitlab and the commits are reflected as activity.
+
+#### GET All Activity
+
+`GET /engagements/activity`
+
+* Query Params
+  
+  * `page` - The page to include in the response. *required*
+  * `pageSize` - The size of the page to include. *required*
+
+#### GET Activity By Uuid
+
+`GET /engagements/activity/uuid/{uuid}`
+
+* Query Params
+
+  * `uuid` - The uuid of the engagement
+  * `page` - The page to include in the response. PageSize required when using
+  * `pageSize` - The size of the page to include. Page required when using
+
+#### PUT Refresh
+
+`PUT /engagements/activity/refresh`
+
+Makes a complete refresh of the activity data in the activity service.
+
+* No params
 
 ### Config
 

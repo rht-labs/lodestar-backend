@@ -47,7 +47,7 @@ import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
-import com.redhat.labs.lodestar.rest.client.LodeStarGitLabAPIService;
+import com.redhat.labs.lodestar.rest.client.LodeStarGitApiClient;
 import com.redhat.labs.lodestar.utils.MockUtils;
 
 import io.vertx.mutiny.core.eventbus.EventBus;
@@ -60,7 +60,7 @@ class EngagementServiceTest {
 
     EngagementRepository repository;
     EventBus eventBus;
-    LodeStarGitLabAPIService gitApi;
+    LodeStarGitApiClient gitApi;
 
     EngagementService service;
 
@@ -69,7 +69,7 @@ class EngagementServiceTest {
 
         repository = Mockito.mock(EngagementRepository.class);
         eventBus = Mockito.mock(EventBus.class);
-        gitApi = Mockito.mock(LodeStarGitLabAPIService.class);
+        gitApi = Mockito.mock(LodeStarGitApiClient.class);
 
         service = new EngagementService();
         service.statusFile = "status.json";

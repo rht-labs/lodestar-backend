@@ -52,5 +52,9 @@ class EngagementResourceTest {
 	@Nested
 	class VersionResource extends VersionResourceTest {
 	}
+	
+	@Nested
+	class ActivityResource extends ActivityResourceTest {
+	}
 
 }

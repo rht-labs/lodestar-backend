@@ -72,6 +72,11 @@ public class Engagement extends PanacheMongoEntityBase {
     private Set<EngagementUser> engagementUsers;
 
     private Status status;
+    
+    @Deprecated
+    /**
+     * Deprecated - delivered in a separate api separately
+     */
     private List<Commit> commits;
     @JsonbProperty("creation_details")
     private CreationDetails creationDetails;
