@@ -27,22 +27,26 @@ The `activity` resource exposes endpoints that allow clients to retrieve activit
 
 #### GET All Activity
 
+`GET /engagements/activity`
+
 * Query Params
   
-  * `page` - The page to include in the response. required
-  * `pageSize` - The size of the page to include. required
+  * `page` - The page to include in the response. *required*
+  * `pageSize` - The size of the page to include. *required*
 
 #### GET Activity By Uuid
 
-`GET /engagements/activity/{uuid}`
+`GET /engagements/activity/uuid/{uuid}`
 
 * Query Params
 
   * `uuid` - The uuid of the engagement
-  * `page` - The page to include in the response. PageSize also required
-  * `pageSize` - The size of the page to include. Page also required
+  * `page` - The page to include in the response. PageSize required when using
+  * `pageSize` - The size of the page to include. Page required when using
 
 #### PUT Refresh
+
+`PUT /engagements/activity/refresh`
 
 Makes a complete refresh of the activity data in the activity service.
 
