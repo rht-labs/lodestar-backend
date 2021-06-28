@@ -442,10 +442,10 @@ public class EngagementService {
         // commits
         engagement.setCommits(existing.getCommits());
 
-		// launch
-		if (null != engagement.getLaunch() &&  null != existing.getLaunch()) {
-			engagement.setLaunch(existing.getLaunch());
-		}
+        // launch
+        if (null != engagement.getLaunch() &&  null != existing.getLaunch()) {
+            engagement.setLaunch(existing.getLaunch());
+        }
 
     }
 
