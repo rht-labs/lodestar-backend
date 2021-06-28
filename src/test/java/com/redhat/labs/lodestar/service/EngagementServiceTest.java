@@ -833,7 +833,6 @@ class EngagementServiceTest {
         toUpdate.setProjectId(1111);
 
         Engagement persisted = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
-        persisted.setLaunch(Launch.builder().build());
         persisted.setProjectId(1111);
 
         Mockito.when(repository.findByUuid("1234")).thenReturn(Optional.of(persisted));

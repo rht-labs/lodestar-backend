@@ -443,7 +443,7 @@ public class EngagementService {
 		engagement.setCommits(existing.getCommits());
 
 		// launch
-		if (null != engagement.getLaunch()) {
+		if (null != engagement.getLaunch() &&  null != existing.getLaunch()) {
 			engagement.setLaunch(existing.getLaunch());
 		}
 
