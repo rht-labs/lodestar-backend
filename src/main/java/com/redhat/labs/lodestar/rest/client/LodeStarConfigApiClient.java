@@ -7,6 +7,7 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
+import org.eclipse.microprofile.rest.client.annotation.RegisterClientHeaders;
 import org.eclipse.microprofile.rest.client.annotation.RegisterProvider;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
@@ -15,6 +16,7 @@ import com.redhat.labs.lodestar.exception.mapper.LodeStarGitLabAPIServiceRespons
 @ApplicationScoped
 @RegisterRestClient(configKey = "lodestar.config.api")
 @RegisterProvider(value = LodeStarGitLabAPIServiceResponseMapper.class, priority = 50)
+@RegisterClientHeaders(JWTRequestFactory.class)
 public interface LodeStarConfigApiClient {
 
     @GET

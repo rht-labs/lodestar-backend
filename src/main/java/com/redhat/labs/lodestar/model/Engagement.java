@@ -125,7 +125,7 @@ public class Engagement extends PanacheMongoEntityBase {
      */
     public EngagementState getEngagementCurrentState(LocalDateTime currentDate) {
 
-        if (launch == null || endDate == null || startDate == null) { // not launched or irregularly launched
+        if (launch == null || endDate == null || startDate == null) { // not launched o irregularly launched
             return EngagementState.UPCOMING;
         }
         
