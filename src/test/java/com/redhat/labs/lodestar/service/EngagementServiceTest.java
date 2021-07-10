@@ -845,9 +845,66 @@ class EngagementServiceTest {
         Engagement updated = service.launch(toUpdate);
         assertNotNull(updated);
         assertNotNull(updated.getLaunch());
+        assertNull(updated.getLaunch().getLaunchedBy());
 
         Mockito.verify(repository).updateEngagement(Mockito.any(), Mockito.any());
         Mockito.verify(eventBus).sendAndForget(Mockito.eq(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS), Mockito.any());
+
+    }
+
+    @Test
+    void testLaunchReset() {
+
+        Engagement toUpdate = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
+        toUpdate.setProjectId(1111);
+
+        Engagement persisted = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
+        persisted.setLaunch(Launch.builder().launchedBy("test").build());
+        persisted.setProjectId(1111);
+
+        Mockito.when(repository.findByUuid("1234")).thenReturn(Optional.of(persisted));
+        Mockito.when(repository.updateEngagement(Mockito.any(), Mockito.any()))
+                .thenReturn(Optional.of(toUpdate));
+
+        Engagement updated = service.launch(toUpdate);
+        assertNotNull(updated);
+        assertNotNull(updated.getLaunch());
+        assertEquals("test", updated.getLaunch().getLaunchedBy());
+
+        // reset
+        toUpdate.setLaunch(null);
+        updated = service.update(updated);
+        assertNotNull(updated);
+        assertNull(updated.getLaunch());
+        
+        Mockito.verify(repository, Mockito.times(2)).updateEngagement(Mockito.any(), Mockito.any());
+        Mockito.verify(eventBus, Mockito.times(2)).sendAndForget(Mockito.eq(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS), Mockito.any());
+
+    }
+
+    @Test
+    void testLaunchNotReset() {
+
+        Engagement toUpdate = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
+        toUpdate.setLaunch(Launch.builder().launchedBy("changed").build());
+        toUpdate.setProjectId(1111);
+
+        Engagement persisted = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
+        persisted.setLaunch(Launch.builder().launchedBy("test").build());
+        persisted.setProjectId(1111);
+
+        Mockito.when(repository.findByUuid("1234")).thenReturn(Optional.of(persisted));
+        Mockito.when(repository.updateEngagement(Mockito.any(), Mockito.any()))
+                .thenReturn(Optional.of(toUpdate));
+
+        // reset
+        Engagement updated = service.update(toUpdate);
+        assertNotNull(updated);
+        assertNotNull(updated.getLaunch());
+        assertEquals("test", updated.getLaunch().getLaunchedBy());
+        
+        Mockito.verify(repository, Mockito.times(1)).updateEngagement(Mockito.any(), Mockito.any());
+        Mockito.verify(eventBus, Mockito.times(1)).sendAndForget(Mockito.eq(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS), Mockito.any());
 
     }
 
