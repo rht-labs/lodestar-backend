@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -66,13 +67,15 @@ class EngagementServiceTest {
 
     @BeforeEach
     void setup() {
+        List<String> statusFile = new ArrayList<>();
+        statusFile.add("status.json");
 
         repository = Mockito.mock(EngagementRepository.class);
         eventBus = Mockito.mock(EventBus.class);
         gitApi = Mockito.mock(LodeStarGitApiClient.class);
 
         service = new EngagementService();
-        service.statusFile = "status.json";
+        service.statusFile = statusFile;
         service.commitFilteredMessages = Lists.newArrayList("manual_refresh");
         service.jsonb = jsonb;
         service.repository = repository;

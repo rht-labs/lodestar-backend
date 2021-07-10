@@ -1,5 +1,7 @@
 package com.redhat.labs.lodestar.resource;
 
+import java.util.List;
+
 import javax.annotation.security.PermitAll;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -42,8 +44,8 @@ public class StatusResource {
     @ConfigProperty(name = "cleanup.token")
     String cleanupToken;
     
-    @ConfigProperty(name = "engagement.file")
-    String engagementFile;
+    @ConfigProperty(name = "commit.watch.files")
+    List<String> commitedFilesToWatch;
     
     @Inject
     @RestClient
@@ -71,7 +73,7 @@ public class StatusResource {
             return Response.status(Status.UNAUTHORIZED).build();
         }
         
-        if(hook.didFileChange(engagementFile)) {
+        if(hook.didFileChange(commitedFilesToWatch)) {
             activityApi.postHook(hook, gitLabToken);
         }
             

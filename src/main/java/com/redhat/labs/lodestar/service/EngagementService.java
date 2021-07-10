@@ -62,7 +62,7 @@ public class EngagementService {
     private static final String BACKEND_BOT_EMAIL = "lodestar-backend-bot@bot.com";
 
     @ConfigProperty(name = "status.file")
-    String statusFile;
+    List<String> statusFile;
 
     @ConfigProperty(name = "commit.msg.filter.list", defaultValue = "not.set")
     List<String> commitFilteredMessages;
