@@ -4,7 +4,7 @@ services:
     image: 'mongo'
     container_name: 'lodestar-mongo'
     environment:
-      - MONGO_INITDB_DATABASE=engagement
+      - MONGO_INITDB_DATABASE=artifacts
       - MONGO_INITDB_ROOT_USERNAME=mongouser
       - MONGO_INITDB_ROOT_PASSWORD=mongopassword
     volumes: 
