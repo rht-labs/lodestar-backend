@@ -29,11 +29,11 @@ public interface LodeStarActivityApiClient {
 
     @POST
     @Path("/api/activity/hook")
-    public Response postHook(Hook hook, @HeaderParam("x-gitlab-token") String hookToken);
+    Response postHook(Hook hook, @HeaderParam("x-gitlab-token") String hookToken);
     
     @GET
     @Path("/api/activity/uuid/{engagementUuid}")
-    public Response getActivityForUuid(@PathParam("engagementUuid") String engagementUuid);
+    Response getActivityForUuid(@PathParam("engagementUuid") String engagementUuid);
     
     @GET
     @Path("/api/activity/uuid/{engagementUuid}")
@@ -45,6 +45,6 @@ public interface LodeStarActivityApiClient {
     
     @PUT
     @Path("/api/activity/refresh")
-    public Response refresh();
+    Response refresh();
 
 }
