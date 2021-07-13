@@ -27,10 +27,12 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.model.pagination.PagedArtifactResults;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
+import com.redhat.labs.lodestar.service.ArtifactService;
 import com.redhat.labs.lodestar.service.EngagementService;
 
 @RequestScoped
@@ -38,6 +40,7 @@ import com.redhat.labs.lodestar.service.EngagementService;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @SecurityScheme(securitySchemeName = "jwt", type = SecuritySchemeType.HTTP, scheme = "bearer", bearerFormat = "JWT")
+@Tag(name = "Artifacts", description = "Artifacts for Engagements")
 public class EngagementArtifactResource {
 
     @Inject
@@ -45,7 +48,10 @@ public class EngagementArtifactResource {
 
     @Inject
     EngagementService engagementService;
-
+    
+    @Inject
+    ArtifactService artifactService;
+    
     @GET
     @Path("/artifacts")
     @SecurityRequirement(name = "jwt", scopes = {})
@@ -56,7 +62,12 @@ public class EngagementArtifactResource {
     @Timed(name = "engagement-get-all-artifacts-timer", unit = MetricUnits.MILLISECONDS)
     public Response getArtifacts(@Context UriInfo uriInfo,
             @Parameter(name = "suggest", deprecated = true, required = false, description = "uses suggestion as case insensitive search string") @QueryParam("suggest") Optional<String> suggest,
+            @QueryParam(value = "engagementUuid") String engagementUuid, @QueryParam(value = "type") String type, @QueryParam("dash") boolean dashboardView,
             @BeanParam ListFilterOptions filterOptions) {
+        
+        if(filterOptions.getApiVersion() == null || filterOptions.getApiVersion().equals("v2")) {
+            return artifactService.getArtifacts(filterOptions, engagementUuid, type, dashboardView);
+        }
 
         if (suggest.isPresent()) {
             filterOptions.addLikeSearchCriteria("artifacts.type", suggest.get());

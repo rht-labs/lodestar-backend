@@ -148,5 +148,13 @@ public class ListFilterOptions extends FilterOptions {
         return Stream.of(search.split("&")).filter(s -> s.startsWith(fieldName)).findFirst();
 
     }
+    
+    public Integer getPreviousPage() {
+        return this.page == null || this.page == 1 ? null : this.page - 1;
+    }
+    
+    public Integer getNextPage() {
+        return this.page == null ? null : this.page + 1;
+    }
 
 }

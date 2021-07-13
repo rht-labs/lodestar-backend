@@ -9,6 +9,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import com.redhat.labs.lodestar.repository.ActiveSyncRepository;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
+import com.redhat.labs.lodestar.rest.client.ArtifactApiClient;
 import com.redhat.labs.lodestar.rest.client.LodeStarActivityApiClient;
 import com.redhat.labs.lodestar.rest.client.LodeStarConfigApiClient;
 import com.redhat.labs.lodestar.rest.client.LodeStarGitApiClient;
@@ -18,34 +19,38 @@ import io.quarkus.test.junit.mockito.InjectMock;
 
 public class IntegrationTestHelper {
 
-	JsonbConfig config = new JsonbConfig().withFormatting(true)
-			.withPropertyNamingStrategy(PropertyNamingStrategy.LOWER_CASE_WITH_UNDERSCORES);
-	public Jsonb quarkusJsonb = JsonbBuilder.create(config);
+    JsonbConfig config = new JsonbConfig().withFormatting(true)
+            .withPropertyNamingStrategy(PropertyNamingStrategy.LOWER_CASE_WITH_UNDERSCORES);
+    public Jsonb quarkusJsonb = JsonbBuilder.create(config);
 
-	@InjectMock
-	public ActiveSyncRepository acRepository;
+    @InjectMock
+    public ActiveSyncRepository acRepository;
 
-	@InjectMock
-	public EngagementRepository eRepository;
+    @InjectMock
+    public EngagementRepository eRepository;
 
-	@InjectMock
-	@RestClient
-	public LodeStarGitApiClient gitApiClient;
+    @InjectMock
+    @RestClient
+    public LodeStarGitApiClient gitApiClient;
 
-	@InjectMock
-	@RestClient
-	public LodeStarStatusApiClient statusApiClient;
+    @InjectMock
+    @RestClient
+    public LodeStarStatusApiClient statusApiClient;
 
-	@InjectMock
-	@RestClient
-	public LodeStarConfigApiClient configApiClient;
-	
-	@InjectMock
-	@RestClient
-	public LodeStarActivityApiClient activityClient;
+    @InjectMock
+    @RestClient
+    public LodeStarConfigApiClient configApiClient;
+    
+    @InjectMock
+    @RestClient
+    public LodeStarActivityApiClient activityClient;
+    
+    @InjectMock
+    @RestClient
+    public ArtifactApiClient artifactClient;
 
-	public static String[] nullEmptyBlankSource() {
-		return new String[] { null, "", "   " };
-	}
+    public static String[] nullEmptyBlankSource() {
+        return new String[] { null, "", "   " };
+    }
 
 }

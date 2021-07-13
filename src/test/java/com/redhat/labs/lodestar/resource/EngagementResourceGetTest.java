@@ -28,6 +28,7 @@ import com.redhat.labs.lodestar.model.EngagementUserSummary;
 import com.redhat.labs.lodestar.model.HostingEnvironment;
 import com.redhat.labs.lodestar.model.Score;
 import com.redhat.labs.lodestar.model.UseCase;
+import com.redhat.labs.lodestar.model.filter.ArtifactOptions;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.model.pagination.PagedArtifactResults;
@@ -304,9 +305,9 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
             .body(containsString("a1"));
 
     }
-
+    
     @Test
-    void testGetArtifacts() throws Exception {
+    void testGetArtifactsV1() throws Exception {
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -314,6 +315,29 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         Artifact a1 = MockUtils.mockArtifact("demo 1", "demo", "http://demo-1");
         PagedArtifactResults pagedResults = PagedArtifactResults.builder().results(Arrays.asList(a1)).build();
         Mockito.when(eRepository.findArtifacts(Mockito.any(ListFilterOptions.class))).thenReturn(pagedResults);
+
+        given()
+            .auth()
+            .oauth2(token)
+            .contentType(ContentType.JSON)
+            .header("Accept-version", "v1")
+        .when()
+            .get("/engagements/artifacts")
+        .then()
+            .statusCode(200)
+            .body(containsString("demo 1"))
+            .body(containsString("http://demo-1"));
+
+    }
+
+    @Test
+    void testGetArtifactsV2() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Artifact a1 = MockUtils.mockArtifact("demo 1", "demo", "http://demo-1");
+        Mockito.when(artifactClient.getArtifacts(Mockito.any(ArtifactOptions.class))).thenReturn(javax.ws.rs.core.Response.ok(Arrays.asList(a1)).build());
 
         given()
             .auth()
