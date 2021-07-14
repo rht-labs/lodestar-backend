@@ -1,9 +1,11 @@
 package com.redhat.labs.lodestar.rest.client;
 
+import java.util.List;
 import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.Consumes;
+import javax.ws.rs.GET;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -26,6 +28,10 @@ import com.redhat.labs.lodestar.model.EngagementUser;
 @ClientHeaderParam(name = "version", value = "v1")
 @Path("/api/participants")
 public interface ParticipantApiClient {
+    
+    @GET
+    @Path("/engagements/uuid/{engagementUuid}")
+    List<EngagementUser> getParticipantsForEngagement(@PathParam("engagementUuid") String uuid);
 
     @PUT
     @Path("/engagements/uuid/{engagementUuid}")

@@ -1,5 +1,7 @@
 package com.redhat.labs.lodestar.service;
 
+import java.util.List;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
@@ -9,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.model.EngagementUser;
 import com.redhat.labs.lodestar.model.event.EventType;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.rest.client.ParticipantApiClient;
@@ -25,6 +28,10 @@ public class ParticipantService {
     
     @Inject
     EngagementService engagementService;
+    
+    public List<EngagementUser> getParticiipantsForEngagement(String engagementUuid) {
+        return participantRestClient.getParticipantsForEngagement(engagementUuid);
+    }
     
     @ConsumeEvent(value = EventType.UPDATE_PARTICIPANTS_EVENT_ADDESS)
     public void updateParticipants(String message) {

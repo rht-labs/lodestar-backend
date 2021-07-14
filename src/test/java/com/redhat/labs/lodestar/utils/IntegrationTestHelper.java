@@ -14,6 +14,7 @@ import com.redhat.labs.lodestar.rest.client.LodeStarActivityApiClient;
 import com.redhat.labs.lodestar.rest.client.LodeStarConfigApiClient;
 import com.redhat.labs.lodestar.rest.client.LodeStarGitApiClient;
 import com.redhat.labs.lodestar.rest.client.LodeStarStatusApiClient;
+import com.redhat.labs.lodestar.rest.client.ParticipantApiClient;
 
 import io.quarkus.test.junit.mockito.InjectMock;
 
@@ -48,6 +49,10 @@ public class IntegrationTestHelper {
     @InjectMock
     @RestClient
     public ArtifactApiClient artifactClient;
+    
+    @InjectMock
+    @RestClient
+    public ParticipantApiClient participantClient;
 
     public static String[] nullEmptyBlankSource() {
         return new String[] { null, "", "   " };
