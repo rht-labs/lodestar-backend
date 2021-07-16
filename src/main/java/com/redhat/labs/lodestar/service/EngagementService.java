@@ -62,7 +62,7 @@ public class EngagementService {
     private static final String BACKEND_BOT_EMAIL = "lodestar-backend-bot@bot.com";
 
     @ConfigProperty(name = "status.file")
-    String statusFile;
+    List<String> statusFile;
 
     @ConfigProperty(name = "commit.msg.filter.list", defaultValue = "not.set")
     List<String> commitFilteredMessages;
@@ -223,9 +223,24 @@ public class EngagementService {
 
         // send update engagement event once saved
         eventBus.sendAndForget(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, copy);
+        
+        String message = String.format("%s,%s,%s", engagement.getUuid(), engagement.getLastUpdateByEmail(), engagement.getLastUpdateByName());
+
+        if(commitMessageContains(copy, "engagement_users")) {
+            eventBus.sendAndForget(EventType.UPDATE_PARTICIPANTS_EVENT_ADDESS, message);
+        }
+        
+        if(commitMessageContains(copy, "artifacts")) {
+            eventBus.sendAndForget(EventType.UPDATE_ARTIFACTS_EVENT_ADDRESS, message);
+        }
 
         return updated;
 
+    }
+    
+    private boolean commitMessageContains(Engagement engagement, String containee) {
+        return engagement.getCommitMessage() != null 
+                && engagement.getCommitMessage().contains(containee);
     }
 
     /**
@@ -442,6 +457,11 @@ public class EngagementService {
         // commits
         engagement.setCommits(existing.getCommits());
 
+        // launch
+        if (null != engagement.getLaunch() &&  null != existing.getLaunch()) {
+            engagement.setLaunch(existing.getLaunch());
+        }
+
     }
 
     /**
@@ -522,9 +542,13 @@ public class EngagementService {
      * Sets a {@link UUID} for new {@link EngagementUser} or uses existing
      * {@link UUID} for existing {@link EngagementUser}s.
      * 
+     * @deprecated Migrated to participant service. It is safe to remove this when no longer
+     * persisting users to engagements. 
+     * 
      * @param engagement
      * @param existing
      */
+    @Deprecated
     void setUserUuidsBeforeUpdate(Engagement engagement, Engagement existing) {
 
         Set<EngagementUser> incomingUsers = engagement.getEngagementUsers();

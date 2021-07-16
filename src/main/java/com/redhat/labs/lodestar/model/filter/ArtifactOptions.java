@@ -1,0 +1,42 @@
+package com.redhat.labs.lodestar.model.filter;
+
+import java.util.Optional;
+
+import javax.ws.rs.QueryParam;
+
+import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class ArtifactOptions {
+    
+    @Parameter(name = "engagementUuid", required = false, description = "return only artifacts for the given engagement uuid")
+    @QueryParam("engagementUuid")
+    private String engagementUuid;
+    
+    @Parameter(name = "type", required = false, description = "return only artifacts for the given type. Do not use with engagementUuid")
+    @QueryParam("type")
+    private String type;
+
+    public Optional<String> getEngagementUuid() {
+        return Optional.ofNullable(engagementUuid);
+    }
+    
+    public Optional<String> getType() {
+        return Optional.ofNullable(type);
+    }
+    
+    @Parameter(name = "page", required = false, description = "page number of results to return")
+    @QueryParam("page")
+    private Integer page;
+
+    @Parameter(name = "perPage", required = false, description = "number of results per page to return")
+    @QueryParam("perPage")
+    private Integer perPage;
+}

@@ -20,18 +20,20 @@ class CommitTest {
 	
 	@Test
 	void testFileChanges() {
+	    List<String> statusFile = new ArrayList<>();
+	    statusFile.add("status.json");
 		
 		Commit commit = Commit.builder().added(CHANGES).build();
-		assertTrue(commit.didFileChange("status.json"));
+		assertTrue(commit.didFileChange(statusFile));
 		
 		commit = Commit.builder().modified(CHANGES).build();
-		assertTrue(commit.didFileChange("status.json"));
+		assertTrue(commit.didFileChange(statusFile));
 		
 		commit = Commit.builder().removed(CHANGES).build();
-		assertTrue(commit.didFileChange("status.json"));
+		assertTrue(commit.didFileChange(statusFile));
 		
 		commit = Commit.builder().build();
-		assertFalse(commit.didFileChange("status.json"));
+		assertFalse(commit.didFileChange(statusFile));
 		
 	}
 
