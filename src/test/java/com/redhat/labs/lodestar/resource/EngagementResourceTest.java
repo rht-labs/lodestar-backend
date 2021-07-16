@@ -56,5 +56,10 @@ class EngagementResourceTest {
 	@Nested
 	class ActivityResource extends ActivityResourceTest {
 	}
+	
+	@Nested
+	class ParticipantResource extends ParticipantResourceTest {
+	    
+	}
 
 }
