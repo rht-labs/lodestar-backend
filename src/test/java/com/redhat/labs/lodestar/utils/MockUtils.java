@@ -89,9 +89,13 @@ public class MockUtils {
     public static Category mockCategory(String name) {
         return Category.builder().name(name).build();
     }
+    
+    public static Artifact mockArtifact(String uuid, String title, String type, String link) {
+        return Artifact.builder().uuid(uuid).title(title).type(type).linkAddress(link).build();
+    }
 
     public static Artifact mockArtifact(String title, String type, String link) {
-        return Artifact.builder().title(title).type(type).linkAddress(link).build();
+        return mockArtifact(null,  title, type, link);
     }
 
     public static Engagement cloneEngagement(Engagement e) throws JsonMappingException, JsonProcessingException {

@@ -36,7 +36,7 @@ public class ArtifactOptions {
     @QueryParam("page")
     private Integer page;
 
-    @Parameter(name = "perPage", required = false, description = "number of results per page to return")
-    @QueryParam("perPage")
-    private Integer perPage;
+    @Parameter(name = "pageSize", required = false, description = "number of results per page to return")
+    @QueryParam("pageSize")
+    private Integer pageSize;
 }

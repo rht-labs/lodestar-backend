@@ -38,4 +38,8 @@ public interface ParticipantApiClient {
     Response updateParticipants(@PathParam(value = "engagementUuid") String engagementUuid,
             @QueryParam(value = "authorName") String authorName, @QueryParam(value = "authorEmail") String authorEmail,
             Set<EngagementUser> participants);
+    
+    @PUT
+    @Path("/refresh")
+    Response refreshParticipants();
 }

@@ -310,39 +310,6 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
 
     }
 
-    @Test
-    void testDbRefreshWithPurge() throws Exception {
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
-
-        given()
-            .auth()
-            .oauth2(token)
-            .queryParam("purgeFirst", true)
-        .when()
-            .put("/engagements/refresh")
-        .then()
-            .statusCode(202);
-
-    }
-
-    @Test
-    void testDbRefreshWithoutPurge() throws Exception {
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
-
-        given()
-            .auth()
-            .oauth2(token)
-            .queryParam("purgeFirst", false)
-        .when()
-            .put("/engagements/refresh")
-        .then()
-            .statusCode(202);
-
-    }
 
     @Test
     void testPutEngagementByNamesWithAuthAndRoleSuccess() throws Exception {

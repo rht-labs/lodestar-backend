@@ -49,4 +49,15 @@ public class ParticipantService {
         }
         
     }
+    
+    @ConsumeEvent(value = EventType.RELOAD_PARTICIPANTS_EVENT_ADDRESS, blocking = true)
+    public void refesh(String message) {
+        try {
+            LOGGER.debug("refresh {}", message);
+            participantRestClient.refreshParticipants();
+            LOGGER.debug("refresh {} completed", message);
+        } catch (WebApplicationException wae) { //without catching this it will fail silently
+            LOGGER.error("Failed to refresh participants {}", wae.getResponse(), wae);
+        }
+    }
 }
