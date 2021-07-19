@@ -58,6 +58,7 @@ public class RefreshResource {
     @PUT
     @SecurityRequirement(name = "jwt", scopes = {})
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "400", description = "No refresh data set selected. Options are engagements, artifacts, participants and activity. You can mix and match"),
             @APIResponse(responseCode = "404", description = "UUID provided, but no engagement found in database."),
             @APIResponse(responseCode = "202", description = "The request was accepted and will be processed.") })
     @Operation(summary = "Refreshes database with data in git, purging first if the query paramater set to true.")
@@ -99,7 +100,7 @@ public class RefreshResource {
             return Response.accepted().build();
         }
 
-        return Response.status(404).entity("{ \"message\" : \"No refresh source was selected\" }").build();
+        return Response.status(400).entity("{ \"message\" : \"No refresh source was selected\" }").build();
 
     }
 

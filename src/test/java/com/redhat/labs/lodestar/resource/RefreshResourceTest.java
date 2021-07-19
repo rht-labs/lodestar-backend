@@ -30,7 +30,7 @@ public class RefreshResourceTest extends IntegrationTestHelper {
     void testActivityReload() throws Exception {
 
         given().when().auth().oauth2(validToken)
-                .put("/engagements/refresh").then().statusCode(404);
+                .put("/engagements/refresh").then().statusCode(400);
         
         given().queryParam("activity", true).when().auth().oauth2(validToken)
         .put("/engagements/refresh").then().statusCode(202);
