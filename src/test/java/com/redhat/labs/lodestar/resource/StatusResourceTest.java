@@ -141,7 +141,7 @@ class StatusResourceTest extends IntegrationTestHelper {
         given()
         .when()
             .contentType(ContentType.JSON)
-            .post("/status/hook")
+            .post("/status/deleted")
         .then()
             .statusCode(401);
     }

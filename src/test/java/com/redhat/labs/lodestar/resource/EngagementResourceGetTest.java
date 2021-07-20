@@ -2,13 +2,18 @@ package com.redhat.labs.lodestar.resource;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.is;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 
 import javax.ws.rs.WebApplicationException;
@@ -24,8 +29,10 @@ import com.google.common.collect.Lists;
 import com.redhat.labs.lodestar.model.Artifact;
 import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.model.EngagementArtifact;
 import com.redhat.labs.lodestar.model.EngagementUserSummary;
 import com.redhat.labs.lodestar.model.HostingEnvironment;
+import com.redhat.labs.lodestar.model.Launch;
 import com.redhat.labs.lodestar.model.Score;
 import com.redhat.labs.lodestar.model.UseCase;
 import com.redhat.labs.lodestar.model.filter.ArtifactOptions;
@@ -350,6 +357,53 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
             .body(containsString("demo 1"))
             .body(containsString("http://demo-1"));
 
+    }
+    
+    @Test
+    void testGetArtifactsV2Dash() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        EngagementArtifact a1 = EngagementArtifact.builder().engagementUuid("euuid").uuid("uuid").type("demo")
+                .title("demo 1").linkAddress("http://demo-1").build();
+
+        Mockito.when(artifactClient.getArtifacts(Mockito.any(ArtifactOptions.class))).thenReturn(
+                javax.ws.rs.core.Response.ok(Collections.singletonList(a1)).header("x-total-artifacts", 1).build());
+
+        Optional<Engagement> engagement = Optional
+                .of(Engagement.builder().customerName("Pizza").projectName("Pie").build());
+        Mockito.when(eRepository.findByUuid(Mockito.eq("euuid"), Mockito.any(FilterOptions.class)))
+                .thenReturn(engagement);
+
+        given().auth().oauth2(token).contentType(ContentType.JSON).queryParam("dash", true).when()
+                .get("/engagements/artifacts").then().statusCode(200).body("size()", is(1))
+                .body("title", hasItem("demo 1")).body("link_address", hasItem("http://demo-1"))
+                .body("customer_name", hasItem("Pizza")).body("project_name", hasItem("Pie"));
+
+    }
+    
+    @Test
+    void testCountByStatus() throws Exception {
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        List<Engagement> engagements = new ArrayList<>();
+        engagements.add(Engagement.builder().customerName("Upcoming").build());
+        engagements.add(Engagement.builder().customerName("Upcoming 2").build());
+        engagements.add(Engagement.builder().customerName("Past").startDate("2020-04-30T00:00:00.000Z")
+                .endDate("2020-07-30T00:00:00.000Z").launch(new Launch()).build());
+        engagements.add(Engagement.builder().customerName("Active").startDate("2020-04-30T00:00:00.000Z")
+                .endDate("2021-07-30T00:00:00.000Z").launch(new Launch()).build());
+        engagements.add(Engagement.builder().customerName("Terminating").startDate("2020-04-30T00:00:00.000Z")
+                .endDate("2021-05-30T00:00:00.000Z").archiveDate("2021-07-30T00:00:00.000Z").launch(new Launch())
+                .build());
+
+        Mockito.when(eRepository.listAll()).thenReturn(engagements);
+
+        given().auth().oauth2(token).contentType(ContentType.JSON).queryParam("localTime", "2021-06-30T00:00:00.000Z")
+                .get("/engagements/count").then().statusCode(200).body("ANY", equalTo(5)).body("ACTIVE", equalTo(1))
+                .body("TERMINATING", equalTo(1)).body("PAST", equalTo(1)).body("UPCOMING", equalTo(2));
     }
 
     @Test

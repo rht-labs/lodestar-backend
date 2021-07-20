@@ -24,7 +24,7 @@ import com.redhat.labs.lodestar.model.event.EventType;
 import com.redhat.labs.lodestar.model.event.RetriableEvent;
 import com.redhat.labs.lodestar.model.event.RetriableEvent.RetriableEventBuilder;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
-import com.redhat.labs.lodestar.rest.client.LodeStarActivityApiClient;
+import com.redhat.labs.lodestar.rest.client.ActivityApiClient;
 import com.redhat.labs.lodestar.rest.client.LodeStarGitApiClient;
 
 import io.quarkus.vertx.ConsumeEvent;
@@ -54,7 +54,7 @@ public class EventService {
     
     @Inject
     @RestClient
-    LodeStarActivityApiClient activityApiClient;
+    ActivityApiClient activityApiClient;
 
     @Inject
     EngagementService engagementService;
@@ -532,7 +532,9 @@ public class EventService {
     
     @ConsumeEvent(value = EventType.RELOAD_ACTIVITY_EVENT_ADDRESS, blocking = true)
     void consumeActivityReloadEvent(String name) {
+        LOGGER.debug("refresh {}", name);
         activityApiClient.refresh();
+        LOGGER.debug("refresh {} completed", name);
     }
 
 }

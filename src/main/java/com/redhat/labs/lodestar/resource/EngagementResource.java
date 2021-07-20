@@ -38,6 +38,7 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.Engagement.EngagementState;
@@ -54,6 +55,7 @@ import com.redhat.labs.lodestar.util.DateFormatter;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @SecurityScheme(securitySchemeName = "jwt", type = SecuritySchemeType.HTTP, scheme = "bearer", bearerFormat = "JWT")
+@Tag(name = "Engagements", description = "Base engagement apis")
 public class EngagementResource {
 
     private static final String ACCEPT_VERSION_1 = "v1";
@@ -372,24 +374,6 @@ public class EngagementResource {
 
         engagementService.launch(engagement);
         return engagement;
-
-    }
-
-    @PUT
-    @Path("/refresh")
-    @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
-            @APIResponse(responseCode = "404", description = "UUID provided, but no engagement found in database."),
-            @APIResponse(responseCode = "202", description = "The request was accepted and will be processed.") })
-    @Operation(summary = "Refreshes database with data in git, purging first if the query paramater set to true.")
-    @Counted(name = "engagement-put-refresh-counted")
-    @Timed(name = "engagement-put-refresh-timer", unit = MetricUnits.MILLISECONDS)
-    public Response refresh(@QueryParam("purgeFirst") Boolean purgeFirst, @QueryParam("uuid") String uuid,
-            @QueryParam("projectId") String projectId) {
-
-        // start the sync process
-        engagementService.syncGitToDatabase(Boolean.TRUE.equals(purgeFirst), uuid, projectId);
-        return Response.accepted().build();
 
     }
 

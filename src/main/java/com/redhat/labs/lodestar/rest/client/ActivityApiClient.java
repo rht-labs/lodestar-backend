@@ -25,7 +25,7 @@ import com.redhat.labs.lodestar.model.Hook;
 @Produces("application/json")
 @Consumes("application/json")
 @ClientHeaderParam(name = "version", value = "v1")
-public interface LodeStarActivityApiClient {
+public interface ActivityApiClient {
 
     @POST
     @Path("/api/activity/hook")

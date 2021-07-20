@@ -84,12 +84,5 @@ class ActivityResourceTest extends IntegrationTestHelper {
         Mockito.verify(activityClient, Mockito.never()).getActivityForUuid("1");
     }
     
-    @Test
-    void testActivityReload() throws Exception {
-
-        given().when().auth().oauth2(validToken)
-                .put("/engagements/activity/refresh").then().statusCode(202);
-        
-        Mockito.verify(activityClient, Mockito.timeout(1000)).refresh();
-    }
+    
 }

@@ -26,7 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.redhat.labs.lodestar.model.Hook;
-import com.redhat.labs.lodestar.rest.client.LodeStarActivityApiClient;
+import com.redhat.labs.lodestar.rest.client.ActivityApiClient;
 import com.redhat.labs.lodestar.rest.client.LodeStarStatusApiClient;
 import com.redhat.labs.lodestar.service.EngagementService;
 
@@ -49,7 +49,7 @@ public class StatusResource {
     
     @Inject
     @RestClient
-    LodeStarActivityApiClient activityApi;
+    ActivityApiClient activityApi;
 
     @Inject
     @RestClient
