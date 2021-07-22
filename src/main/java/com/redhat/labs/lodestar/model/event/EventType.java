@@ -28,5 +28,7 @@ public class EventType {
     public static final String UPDATE_ARTIFACTS_EVENT_ADDRESS = "update.artifacts.event";
     
     public static final String RELOAD_ACTIVITY_EVENT_ADDRESS = "reload.activity.event";
+    public static final String RELOAD_ARTIFACTS_EVENT_ADDRESS = "reload.artifacts.event";
+    public static final String RELOAD_PARTICIPANTS_EVENT_ADDRESS = "reload.participants.event";
    
 }

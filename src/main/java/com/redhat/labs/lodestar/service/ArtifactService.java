@@ -34,11 +34,11 @@ public class ArtifactService {
     EngagementService engagementService;
     
     public Response getArtifacts(ListFilterOptions filterOptions, String engagementUuid, String type, boolean dashboardView) {
-        int page = filterOptions.getPage().isEmpty() ? 0 : filterOptions.getPage().get() - 1;
-        int pageSize = filterOptions.getPerPage().isEmpty() ? 100 : filterOptions.getPerPage().get();
+        int page = filterOptions.getPage().isPresent() ? filterOptions.getPage().get() - 1 : 0;
+        int pageSize = filterOptions.getPerPage().isPresent() ? filterOptions.getPerPage().get() : 100;
         
 
-        ArtifactOptions options = ArtifactOptions.builder().page(page).perPage(pageSize)
+        ArtifactOptions options = ArtifactOptions.builder().page(page).pageSize(pageSize)
                 .engagementUuid(engagementUuid).type(type).build(); //1 based vs 0 based. Should stabilize around 0 based
 
         
@@ -57,11 +57,11 @@ public class ArtifactService {
             
         }
         
-        int totalArtifacts = Integer.valueOf(response.getHeaderString("x-total-artifacts"));
+        int totalArtifacts = Integer.parseInt(response.getHeaderString("x-total-artifacts"));
         
         return Response.ok(artifacts).header("x-current-page", page).header("x-per-page", pageSize)
                 .header("x-total-artifacts", totalArtifacts).header("x-next-page", options.getPage() + 1)
-                .header("x-total-pages", (totalArtifacts / filterOptions.getPerPage().get()) + 1).build();
+                .header("x-total-pages", (totalArtifacts / pageSize) + 1).build();
         
     }
     
@@ -77,6 +77,17 @@ public class ArtifactService {
             LOGGER.error("Failed to update artifacts for engagement {} {}", wae.getResponse().getStatus(), message);
         } catch (RuntimeException wae) {
             LOGGER.error("Failed to update artifacts for engagement {}", message, wae);
+        }
+    }
+    
+    @ConsumeEvent(value = EventType.RELOAD_ARTIFACTS_EVENT_ADDRESS, blocking = true)
+    public void refesh(String message) {
+        try {
+            LOGGER.debug("refresh {}", message);
+            artifactRestClient.refreshArtifacts();
+            LOGGER.debug("refresh {} completed", message);
+        } catch (WebApplicationException wae) { //without catching this it will fail silently
+            LOGGER.error("Failed to refresh artifacts {}", wae.getResponse(), wae);
         }
     }
     

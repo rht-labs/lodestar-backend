@@ -4,7 +4,6 @@ import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
@@ -22,8 +21,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.redhat.labs.lodestar.model.event.EventType;
-import com.redhat.labs.lodestar.rest.client.LodeStarActivityApiClient;
+import com.redhat.labs.lodestar.rest.client.ActivityApiClient;
 
 import io.vertx.mutiny.core.eventbus.EventBus;
 
@@ -37,7 +35,7 @@ public class ActivityResource {
 
     @Inject
     @RestClient
-    LodeStarActivityApiClient activityClient;
+    ActivityApiClient activityClient;
     
     @Inject
     EventBus eventBus;
@@ -74,16 +72,5 @@ public class ActivityResource {
             
         return activityClient.getPaginatedActivityForUuid(uuid, page, pageSize);
     }
-    
-    @PUT
-    @SecurityRequirement(name = "jwt", scopes = {})
-    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
-            @APIResponse(responseCode = "200", description = "Activity list.") })
-    @Operation(summary = "Refresh all activity across all engagements.")
-    @Path("refresh")
-    public Response refresh() {
-        
-        eventBus.sendAndForget(EventType.RELOAD_ACTIVITY_EVENT_ADDRESS, EventType.RELOAD_ACTIVITY_EVENT_ADDRESS);
-        return Response.accepted().build(); 
-    }
+
 }
