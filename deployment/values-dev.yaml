@@ -1,26 +1,26 @@
-name: omp-backend
+name: lodestar-backend
 development: true
 
 servicePort: 8080
 
-imageName: "omp-backend"
+imageName: "lodestar-backend"
 imageTag: "latest"
 
-builderImage: registry.access.redhat.com/redhat-openjdk-18/openjdk18-openshift
-builderImageTag: 1.8
+builderImage: registry.access.redhat.com/ubi8/openjdk-11
+builderImageTag: 1.3
 
 git:
-  uri: https://github.com/rht-labs/open-management-portal-backend.git
+  uri: https://github.com/rht-labs/lodestar-backend.git
   ref: master
 
-ompGitlabApiUrl: http://omp-git-api:8080
+lodestarGitlabApiUrl: http://lodestar-git-api:8080
 jwtPublicKeyLocation: false
 jwtIssuer: false
 jwtEnable: true
-mongodbServiceName: omp-backend-mongodb
+mongodbServiceName: lodestar-backend-mongodb
 mongodbUser: mongouser
 mongodbPassword: mongopassword
 mongodbDatabase: engagements
 mongodbAdminPassword: mongoadminpassword
-versions:
-  sampleApp: v34.4
+token:
+  webhook: nope

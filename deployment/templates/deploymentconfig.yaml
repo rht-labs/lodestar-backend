@@ -29,10 +29,28 @@ spec:
       containers:
       - envFrom:
         - secretRef:
-            name: omp-backend-configuration
+            name: lodestar-backend-configuration
         env:
-        - name: OMP_BACKEND_GIT_TAG
+        - name: LODESTAR_BACKEND_GIT_TAG
           value: {{ .Values.imageTag }}
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 8080
+            scheme: HTTP
+          timeoutSeconds: 1
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 8080
+            scheme: HTTP
+          timeoutSeconds: 1
+          periodSeconds: 10
+          successThreshold: 1
+          failureThreshold: 3
         image: {{ .Values.name }}:{{ .Values.imageTag }}
         imagePullPolicy: Always
         name: {{ .Values.name }}
@@ -42,19 +60,11 @@ spec:
         resources: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
-        volumeMounts:
-          - mountPath: /config
-            name: version-vol
       dnsPolicy: ClusterFirst
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
       terminationGracePeriodSeconds: 30
-      volumes:
-        - configMap:
-            defaultMode: 420
-            name: version-cm
-          name: version-vol
   test: false
   triggers:
   - type: ConfigChange

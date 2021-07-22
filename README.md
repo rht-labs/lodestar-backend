@@ -1,90 +1,190 @@
-![Build Container](https://github.com/rht-labs/open-management-portal-backend/workflows/Build%20Container/badge.svg)
+![Build Container](https://github.com/rht-labs/lodestar-backend/workflows/Build%20Container/badge.svg)
+[![Sonarcloud Status](https://sonarcloud.io/api/project_badges/measure?project=rht-labs_open-management-portal-backend&metric=alert_status)](https://sonarcloud.io/dashboard?id=rht-labs_open-management-portal-backend)
 
-# Open Management Portal - Backend
+# Lodestar - Backend
 
-The API for the Open Management Portal.
+The API for Lodestar.
 
-## JSON REST APIs
+----
 
-The JSON REST APIs consist of three resources types:
+# JSON REST API
 
-* config
-* engagements
-* git sync
-* version
+## OpenAPI Documentation of APIs
 
-The application, once running, also exposes a Swagger UI that will provide more details about each of the APIs described below.  It can be found using the `/swagger-ui` path for the application.
+The JSON APIs are documented using using OpenAPI.  The OpenAPI UI can be used to view the exposed endpoints and interact directly with them.
 
-### Config Resource
-
-The config resource exposes an API that will return the configured config file from git using the [Git API](https://github.com/rht-labs/open-management-portal-git-api).
+Once the application is launched, the OpenAPI UI can be found at the following path:
 
 ```
-GET /config
+http(s)://your-hostname[:port]/q/swagger-ui
+```
+A link is also available on the home page
+
+## Available Resources
+
+### Activity
+
+The `activity` resource exposes endpoints that allow clients to retrieve activity data for LodeStar. Activity in this context means changes users make to any engagements. Changes are propagated to gitlab and the commits are reflected as activity.
+
+#### GET All Activity
+
+`GET /engagements/activity`
+
+* Query Params
+  
+  * `page` - The page to include in the response. *required*
+  * `pageSize` - The size of the page to include. *required*
+
+#### GET Activity By Uuid
+
+`GET /engagements/activity/uuid/{uuid}`
+
+* Query Params
+
+  * `uuid` - The uuid of the engagement
+  * `page` - The page to include in the response. PageSize required when using
+  * `pageSize` - The size of the page to include. Page required when using
+
+#### PUT Refresh
+
+`PUT /engagements/activity/refresh`
+
+Makes a complete refresh of the activity data in the activity service.
+
+* No params
+
+### Config
+
+The `config` resource exposes endpoints that allow clients to retrieve application configuration data.
+
+### Engagements
+
+The `engagements` resource exposes various CRUD endpoints that allow clients to create, retrieve, update, and delete engagements.
+
+#### GET Engagements API Parameters
+
+`GET /engagements`
+
+The following parameters are supported:
+
+* Header Params
+
+  * `Accept-version` - used to specify default results per page
+
+* Query Params
+
+  * `include` - attributes to include in response
+  * `exclude` - attributes to exclude in response
+  * `page` - page number to retrieve
+if provided, the specified page will be returned. defaults to 1
+  * `perPage` - number of records to retrieve for each page
+    * if provided, the specified number of records will be returned
+    * if header Accept-version is missing or set to v1, defaults to 500
+    * if header Accept-version is specified and not v1, defaults to 20
+  * `search` - query string to filter engagements
+    * supports `=`, `like`, `not like`, `exists`, and `not exists`
+    * `start` and/or `end` can be used to limit the results based on a date range (i.e. `start=2021-01-01&end=2021-05-01`)
+  * `sortOrder` - ASC for ascending and DESC for descending. defaults to descending
+  * `sortFields` - fields to sort on. defaults to customer_name,project_name
+
+#### GET Engagement Nested Resource API Parameters
+
+```
+GET /engagements/customers/suggest
+GET /engagements/artifacts
+GET /engagements/artifacts/types
+GET /engagements/categories
+GET /engagements/hosting/environments
+GET /engagements/scores
+GET /engagements/usecases
 ```
 
-It's recommended to add the version header with the a version above v1. v1 returns yaml wrapped json. Fun! v2 and forward return pure json with all git information stripped out.
+The following parameters are supported:
 
-### Engagement Resource
+* Query Params
+  * `page` - page number to retrieve
+    * if provided, the specified page will be returned. defaults to 1
+  * `perPage` - number of records to retrieve for each page
+      * if provided, the specified number of records will be returned
+      * if header Accept-version is missing or set to v1, defaults to 500
+      * if header Accept-version is specified and not v1, defaults to 20
+  * `suggestion` - case insensitive query string to filter engagements
+  * `sortOrder` - ASC for ascending and DESC for descending. defaults to descending
 
-The engagements resource exposes an API that allows clients to create, retrieve, and delete engagement resources.  The unique key for an engagement consists of `customer_name` and `project_name`.  The following endpoints will update the configured Mongo DB and mark the records as modified so an asynchronous process can push the changes to Gitlab using the [Git API](https://github.com/rht-labs/open-management-portal-git-api).
 
-```
-# create an engagement
-POST /engagements
-# update a specific engagement
-PUT  /engagements/customers/{customerId}/projects/{projectId}
-# adds launch data to an engagement and syncs with git api
-PUT  /engagements/launch
-# retrieve all engagements
-GET  /engagements
-# retrieve a specific engagement
-GET  /engagements/customers/{customerId}/projects/{projectId}
-```
-
-### Git Sync Resource
-
-There are two exposed endpoints that will allow clients to deliberately sync data from Mongo DB to Gitlab using the [Git API](https://github.com/rht-labs/open-management-portal-git-api) or to clear the data from the Mongo DB and insert all engagements from Gitlab.
+#### GET Engagement Dashboard/Query Helper API Parameters
 
 ```
-# push all modified resources from Mongo DB to Gitlab
-PUT  /engagements/process/modified
-# clear Mongo DB, replace with engagement data from Gitlab
-PUT  /engagements/refresh
+GET /engagements/state/{state}
 ```
 
-### Version Resource
+The following parameters are supported:
 
-The version resource exposes an endpoint that will allow the client to determine which versions of the backend, git api, and other components being used by OMP.
+* Path Params
 
-```
-GET  /api/v1/version
-```
-
-### Events Resource
-
-The events resource is an endpoint that implements a websocket.  The current implementation requires a valid token to be passed using the `access-token` query parameter.  When connected, messages can be send using the websocket.
-
-The only messages currently pushed out to clients are modified `engagement` resources.  When an engagement is modified not using the REST APIs, a list of `engagement` resources will be placed on the websocket for processing by clients.  
-
-For example, a database refresh will put a list of all `engagements` loaded from Git into the database on to the websocket.  Or if the status of the engagement changes, a list containing the `engagement` that's status changed will be placed on the websocket.
-
-Messages passed from clients to the backend will be logged and ignored.  Only messages from the backend to clients has been implemented.
+    * `state` - the state to filter engagements on
+values are `upcoming`, `active`, `past`, and `terminating`
+      * if unknown value supplied, `upcoming` will be used
+* Header Params
+  * supports all the same as GET /engagements
+* Query Params
+  * supports all the same as GET /engagements
 
 ```
-GET  /engagements/events?access-token=
+GET /engagements/users/summary
+```
+The following parameters are supported:
+
+* Query Params:
+    * supports `=`, `like`, `not like`, `exists`, and `not exists`
+    * `start` and/or `end` can be used to limit the results based on a date range (i.e. `start=2021-01-01&end=2021-05-01`)
+
+```
+GET /engagements/count
+```
+Summarizes the count of engagements in each state
+
+The following parameters are supported:
+
+* Query Params
+  * `localTime` - the time to calculate whether at that time the    engagement was `upcoming`, `active`, `past`, and `terminating`
+
+### Status
+
+The `status` resource exposes endpoints providing two main functionalities:
+
+1. Application component status data
+2. Webhook APIs to allow for updates to the database triggered from external changes.
+
+### Version
+
+The `version` resource exposes endpoints to retrieve application component versions.
+
+
+----
+
+## Scheduled Jobs
+
+There are currently 2 scheduled jobs that run on a given active node of the LodeStar Backend.
+
+### GitLab to Database sync
+
+This job is responsible for inserting into the databse any engagement in GitLab that is not currently in the database.
+
+The job interval can be set using the environment variable `AUTO_REPOP_CRON`, but is defaulted to every 5 minutes.
+
+For example:
+```
+auto.repopulate.cron.expr=${AUTO_REPOP_CRON:0 0/5 * * * ?}
 ```
 
-## Scheduled Auto Sync to Git API
+By default, this does not insert or update any engagement that is already in the database.  Repopulation of the entire database can be triggered using the `PUT ​/engagements​/refresh` API and setting the query param `purgeFirst=true`.
 
-A configurable auto sync feature allows data that has been modified in Mongo DB to be pushed to Gitlab using the [Git API](https://github.com/rht-labs/open-management-portal-git-api).  This feature is configured using a CRON expression that can be updated in the application.properties file or overridden using environment variables.
+### Set Missing UUIDs
 
-```
-# defaults to sync every 30 seconds
-auto.save.cron.expr=0/30 * * * * ?
-```
+This job is used to check once at startup for any engagements missing UUIDs for either the engagement or the engagement users.
 
-__NOTE:__ There is no current auto sync from Gitlab to Mongo DB.  The `/engagements/refresh` API can be used to force a refresh of the data in Mongo DB from Gitlab if changes have been made without using the Backend APIs
+----
 
 ## Configuration
 
@@ -94,7 +194,8 @@ The following environment variables are available:
 | Name | Example Value | Required |
 |------|---------------|----------|
 | JWT_LOGGING| INFO | False |
-| OMP_BACKEND_LOGGING | INFO | False |
+| LODESTAR_BACKEND_LOGGING | INFO | False |
+| LODESTAR_BACKEND_MIN_LOGGING | TRACE | false |
 
 ### JWT
 
@@ -110,7 +211,7 @@ The following environment variables are available:
 |------|---------------|----------|
 | MONGODB_USER | monguser | True |
 | MONGODB_PASSWORD | mongopassword | True |
-| DATABASE_SERVICE_NAME | omp-backend-mongodb | True |
+| DATABASE_SERVICE_NAME | lodestar-mongodb | True |
 | MONGODB_DATABASE | engagements | True |
 
 
@@ -118,21 +219,48 @@ The following environment variables are available:
 
 | Name | Example Value | Required |
 |------|---------------|----------|
-| OMP_GITLAB_API_URL   | http://omp-git-api:8080 | True |
+| LODESTAR_GITLAB_API_URL   | http://lodestar-git-api:8080 | True |
+
+### Status API
+
+| Name | Example Value | Required |
+|------|---------------|----------|
+| LODESTAR_STATUS_API_URL |  http://lodestar-status:8080 | True |
 
 ### Version Resource
 
 | Name | Example Value | Required |
 |------|---------------|----------|
-| OMP_BACKEND_GIT_COMMIT | not.set | False |
-| OMP_BACKEND_GIT_TAG | not.set | False |
-| OMP_BACKEND_VERSIONS_PATH | /config/version-manifest.yml | False |
+| LODESTAR_BACKEND_GIT_COMMIT | not.set | False |
+| LODESTAR_BACKEND_GIT_TAG | not.set | False |
 
-### Git Auto Sync
+### Status Resource
 
 | Name | Example Value | Required |
 |------|---------------|----------|
-| AUTO_SAVE_CRON_EXPR | 0/30 * * * * ? | False |
+| WEBHOOK_TOKEN | myToken | True |
+| CLEANUP_TOKEN | cToken | False |
+
+### Engagements Resource
+
+| Name | Example Value | Required |
+|------|---------------|----------|
+| COMMIT_FILTERED_MESSAGE_LIST | manual_refresh | False |
+
+### Git Database Sync
+
+| Name | Example Value | Required |
+|------|---------------|----------|
+| AUTO_REPOP_CRON | 0 0/5 * * * ? | False |
+
+### Git Database Sync
+
+| Name | Example Value | Required |
+|------|---------------|----------|
+| EVENT_MAX_RETRIES | 5 | False |
+| EVENT_RETRY_DELAY_FACTOR | 2 | False |
+| EVENT_RETRY_MAX_DELAY | 60 | False |
+| EVENT_GET_PER_PAGE | 20 | False |
 
 ## Development
 

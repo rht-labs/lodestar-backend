@@ -3,6 +3,9 @@
 .classpath
 .settings/
 bin/
+.env
+
+.factorypath
 
 # IntelliJ
 .idea
@@ -37,3 +40,7 @@ release.properties
 .applier/roles
 .adhoc
 deployment/mongo-volume
+
+jacoco.exec
+/.apt_generated/
+/.apt_generated_tests/
