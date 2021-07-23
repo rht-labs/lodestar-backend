@@ -1,6 +1,7 @@
 package com.redhat.labs.lodestar.rest.client;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -28,7 +29,11 @@ import com.redhat.labs.lodestar.model.EngagementUser;
 @ClientHeaderParam(name = "version", value = "v1")
 @Path("/api/participants")
 public interface ParticipantApiClient {
-    
+
+    @GET
+    Response getParticipants(@QueryParam("engagementUuids") Set<String> engagementUuids,
+            @QueryParam("page") Integer page, @QueryParam("pageSize") Integer pageSize);
+
     @GET
     @Path("/engagements/uuid/{engagementUuid}")
     List<EngagementUser> getParticipantsForEngagement(@PathParam("engagementUuid") String uuid);
@@ -38,7 +43,11 @@ public interface ParticipantApiClient {
     Response updateParticipants(@PathParam(value = "engagementUuid") String engagementUuid,
             @QueryParam(value = "authorName") String authorName, @QueryParam(value = "authorEmail") String authorEmail,
             Set<EngagementUser> participants);
-    
+
+    @GET
+    @Path("/enabled")
+    Map<String, Integer> getEnabledParticipants();
+
     @PUT
     @Path("/refresh")
     Response refreshParticipants();

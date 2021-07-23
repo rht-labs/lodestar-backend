@@ -48,10 +48,10 @@ public class EngagementArtifactResource {
 
     @Inject
     EngagementService engagementService;
-    
+
     @Inject
     ArtifactService artifactService;
-    
+
     @GET
     @Path("/artifacts")
     @SecurityRequirement(name = "jwt", scopes = {})
@@ -62,10 +62,11 @@ public class EngagementArtifactResource {
     @Timed(name = "engagement-get-all-artifacts-timer", unit = MetricUnits.MILLISECONDS)
     public Response getArtifacts(@Context UriInfo uriInfo,
             @Parameter(name = "suggest", deprecated = true, required = false, description = "uses suggestion as case insensitive search string") @QueryParam("suggest") Optional<String> suggest,
-            @QueryParam(value = "engagementUuid") String engagementUuid, @QueryParam(value = "type") String type, @QueryParam("dash") boolean dashboardView,
+            @QueryParam(value = "engagementUuid") String engagementUuid, @QueryParam(value = "type") String type,
+            @Parameter(description = "Dashboard View. Includes Customer and Engagement Name") @QueryParam("dash") boolean dashboardView,
             @BeanParam ListFilterOptions filterOptions) {
-        
-        if(filterOptions.getApiVersion() == null || filterOptions.getApiVersion().equals("v2")) {
+
+        if (filterOptions.getApiVersion() == null || filterOptions.getApiVersion().equals("v2")) {
             return artifactService.getArtifacts(filterOptions, engagementUuid, type, dashboardView);
         }
 

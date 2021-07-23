@@ -15,7 +15,7 @@ import com.redhat.labs.lodestar.model.EngagementUser;
 import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.rest.client.ParticipantApiClient;
 
-public class ParticipantServiceTest {
+class ParticipantServiceTest {
 
     ParticipantService participantService;
     
@@ -44,7 +44,7 @@ public class ParticipantServiceTest {
     }
     
     @Test
-    public void testUpdateParticipants() {
+    void testUpdateParticipants() {
         participantService.updateParticipants("1,b,c");
         Mockito.verify(participantClient).updateParticipants("1", "b", "c", users);
         

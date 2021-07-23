@@ -344,12 +344,13 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
         Artifact a1 = MockUtils.mockArtifact("demo 1", "demo", "http://demo-1");
-        Mockito.when(artifactClient.getArtifacts(Mockito.any(ArtifactOptions.class))).thenReturn(javax.ws.rs.core.Response.ok(Arrays.asList(a1)).build());
+        Mockito.when(artifactClient.getArtifacts(Mockito.any(ArtifactOptions.class))).thenReturn(javax.ws.rs.core.Response.ok(Arrays.asList(a1)).header("x-total-artifacts", 1).build());
 
         given()
             .auth()
             .oauth2(token)
             .contentType(ContentType.JSON)
+            .header("Accept-version", "v2")
         .when()
             .get("/engagements/artifacts")
         .then()

@@ -16,7 +16,7 @@ import io.quarkus.test.junit.QuarkusTest;
 
 @QuarkusTest
 @Tag("nested")
-public class RefreshResourceTest extends IntegrationTestHelper {
+class RefreshResourceTest extends IntegrationTestHelper {
     
     static String validToken;
 
