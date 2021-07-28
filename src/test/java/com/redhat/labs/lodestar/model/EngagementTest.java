@@ -8,11 +8,11 @@ import org.junit.jupiter.api.Test;
 
 import com.redhat.labs.lodestar.util.DateFormatter;
 
-public class EngagementTest {
+class EngagementTest {
     private String currentTime = "2021-05-25T00:00:00.000Z";
     
     @Test
-    public void testEngagementUpcoming() {
+    void testEngagementUpcoming() {
         String pastTime = "2021-04-08T00:00:00.000Z";
         
         Engagement notLaunched = new Engagement();
@@ -33,7 +33,7 @@ public class EngagementTest {
     }
     
     @Test
-    public void testEngagementPast() {
+    void testEngagementPast() {
         LocalDateTime currentTimeLocal = DateFormatter.getInstance().getDateTime(currentTime);
         LocalDateTime startTimeLocal = currentTimeLocal.minus(60, ChronoUnit.DAYS);
         LocalDateTime endTimeLocal = currentTimeLocal.minus(30, ChronoUnit.DAYS);
@@ -51,7 +51,7 @@ public class EngagementTest {
     }
     
     @Test
-    public void testEngagementTerminating() {
+    void testEngagementTerminating() {
         LocalDateTime currentTimeLocal = DateFormatter.getInstance().getDateTime(currentTime);
         LocalDateTime startTimeLocal = currentTimeLocal.minus(60, ChronoUnit.DAYS);
         LocalDateTime endTimeLocal = currentTimeLocal.minus(30, ChronoUnit.DAYS);
@@ -66,7 +66,7 @@ public class EngagementTest {
     }
     
     @Test
-    public void testEngagementActive() {
+    void testEngagementActive() {
         LocalDateTime currentTimeLocal = DateFormatter.getInstance().getDateTime(currentTime);
         LocalDateTime startTimeLocal = currentTimeLocal.minus(60, ChronoUnit.DAYS);
         LocalDateTime endTimeLocal = currentTimeLocal.plus(15, ChronoUnit.DAYS);

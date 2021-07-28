@@ -34,8 +34,16 @@ public class ArtifactService {
     EngagementService engagementService;
     
     public Response getArtifacts(ListFilterOptions filterOptions, String engagementUuid, String type, boolean dashboardView) {
-        int page = filterOptions.getPage().isPresent() ? filterOptions.getPage().get() - 1 : 0;
-        int pageSize = filterOptions.getPerPage().isPresent() ? filterOptions.getPerPage().get() : 100;
+        int page = 0;
+        int pageSize = 100;
+        
+        if(filterOptions.getPage().isPresent()) {
+            page = filterOptions.getPage().get() - 1;
+        }
+        
+        if(filterOptions.getPerPage().isPresent()) {
+            pageSize = filterOptions.getPerPage().get();
+        }
         
 
         ArtifactOptions options = ArtifactOptions.builder().page(page).pageSize(pageSize)
@@ -44,24 +52,23 @@ public class ArtifactService {
         
         Response response = artifactRestClient.getArtifacts(options);
         
-        if(!dashboardView) {
-            return response;
-        }
-        
+        int currentPage = page + 1; // 0 based vs 1 based. Need to rectify at some point
+        int totalArtifacts = Integer.parseInt(response.getHeaderString("x-total-artifacts"));
+        int totalPages = totalArtifacts / pageSize + 1;
         List<EngagementArtifact>  artifacts = response.readEntity(new GenericType<List<EngagementArtifact>>(){});
         
-        for(EngagementArtifact artifact : artifacts) {
-            Engagement e = engagementService.getByUuid(artifact.getEngagementUuid(), new FilterOptions("customerName,projectName", null));
-            artifact.setCustomerName(e.getCustomerName());
-            artifact.setProjectName(e.getProjectName());
-            
+        if(dashboardView) { //enrich data with customer and engagement name
+            for(EngagementArtifact artifact : artifacts) {
+                Engagement e = engagementService.getByUuid(artifact.getEngagementUuid(), new FilterOptions("customerName,projectName", null));
+                artifact.setCustomerName(e.getCustomerName());
+                artifact.setProjectName(e.getProjectName());
+                
+            }
         }
         
-        int totalArtifacts = Integer.parseInt(response.getHeaderString("x-total-artifacts"));
-        
-        return Response.ok(artifacts).header("x-current-page", page).header("x-per-page", pageSize)
-                .header("x-total-artifacts", totalArtifacts).header("x-next-page", options.getPage() + 1)
-                .header("x-total-pages", (totalArtifacts / pageSize) + 1).build();
+        return Response.ok(artifacts).header("x-current-page", currentPage).header("x-per-page", pageSize)
+                .header("x-total-artifacts", totalArtifacts).header("x-next-page", currentPage + 1)
+                .header("x-total-pages", totalPages).build();
         
     }
     
