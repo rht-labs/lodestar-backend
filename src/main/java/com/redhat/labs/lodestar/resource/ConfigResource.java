@@ -5,6 +5,7 @@ import java.util.Optional;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -44,5 +45,14 @@ public class ConfigResource {
         LOGGER.debug("Requested runtime configuration type {}", type);
         return configService.getRuntimeConfig(type);
     }
-
+    
+    @PUT
+    @Path("/rbac/cache")
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "200", description = "Cache invalidated.") })
+    public Response invalidateRbacCache() {
+        configService.invalidateCache();
+        return Response.ok().build();
+    }
 }

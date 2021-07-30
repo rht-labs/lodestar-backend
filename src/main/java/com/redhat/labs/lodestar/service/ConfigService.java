@@ -15,6 +15,9 @@ import org.slf4j.LoggerFactory;
 
 import com.redhat.labs.lodestar.rest.client.ConfigApiClient;
 
+import io.quarkus.cache.CacheInvalidateAll;
+import io.quarkus.cache.CacheResult;
+
 @ApplicationScoped
 public class ConfigService {
 	private static final Logger LOGGER = LoggerFactory.getLogger(ConfigService.class);
@@ -23,9 +26,9 @@ public class ConfigService {
 	@RestClient 
 	ConfigApiClient configApiClient;
 	
-	//TODO cache this
+	@CacheResult(cacheName = "rbac-cache")
 	public List<String> getPermission(String engagementType) {
-		LOGGER.debug("type []", engagementType);
+		LOGGER.debug("type {}", engagementType);
 		
 		Map<String, List<String>> allPermissions = configApiClient.getPermission();
 		
@@ -36,8 +39,9 @@ public class ConfigService {
 		return Collections.emptyList();
 	}
 	
-	public void inValidateCache() {
-		//TODO
+	@CacheInvalidateAll(cacheName = "rbac-cache")
+	public void invalidateCache() {
+		LOGGER.debug("Invalidating rbac cache");
 	}
 	
 	public Response getRuntimeConfig(Optional<String> type) {
