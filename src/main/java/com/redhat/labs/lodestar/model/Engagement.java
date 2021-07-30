@@ -72,6 +72,10 @@ public class Engagement extends PanacheMongoEntityBase {
     private Set<EngagementUser> engagementUsers;
 
     private Status status;
+    //can the user viewing this engagement write to it
+    //only set when viewing an individual engagement and not a list
+    //also checked before PUT/POST actions
+    private Boolean writeable;
     
     @Deprecated
     /**

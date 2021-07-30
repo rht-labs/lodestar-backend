@@ -1,6 +1,7 @@
 package com.redhat.labs.lodestar.service;
 
 import java.util.List;
+import java.util.Optional;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -33,23 +34,15 @@ public class ArtifactService {
     @Inject
     EngagementService engagementService;
     
-    public Response getArtifacts(ListFilterOptions filterOptions, String engagementUuid, String type, boolean dashboardView) {
-        int page = 0;
-        int pageSize = 100;
+    public Response getArtifacts(ListFilterOptions filterOptions, String engagementUuid, String type, List<String> region, boolean dashboardView) {
+        Optional<Integer> pageO = filterOptions.getPage();
+        Optional<Integer> pageSizeO = filterOptions.getPerPage();
+        int page = pageO.isPresent() ? pageO.get() : 0;
+        int pageSize = pageSizeO.isPresent() ? pageSizeO.get() : 100;
         
-        if(filterOptions.getPage().isPresent()) {
-            page = filterOptions.getPage().get() - 1;
-        }
-        
-        if(filterOptions.getPerPage().isPresent()) {
-            pageSize = filterOptions.getPerPage().get();
-        }
-        
-
         ArtifactOptions options = ArtifactOptions.builder().page(page).pageSize(pageSize)
-                .engagementUuid(engagementUuid).type(type).build(); //1 based vs 0 based. Should stabilize around 0 based
+                .engagementUuid(engagementUuid).type(type).region(region).build(); //1 based vs 0 based. Should stabilize around 0 based
 
-        
         Response response = artifactRestClient.getArtifacts(options);
         
         int currentPage = page + 1; // 0 based vs 1 based. Need to rectify at some point

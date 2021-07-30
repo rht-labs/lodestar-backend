@@ -47,6 +47,7 @@ import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
+import com.redhat.labs.lodestar.service.ConfigService;
 import com.redhat.labs.lodestar.service.EngagementService;
 import com.redhat.labs.lodestar.util.DateFormatter;
 import com.redhat.labs.lodestar.util.JWTUtils;
@@ -72,6 +73,9 @@ public class EngagementResource {
 
     @Inject
     EngagementService engagementService;
+    
+    @Inject
+    ConfigService configService;
 
     /*
      * GET LIST
@@ -158,6 +162,10 @@ public class EngagementResource {
             @BeanParam FilterOptions filterOptions) {
 
         Engagement engagement = engagementService.getByCustomerAndProjectName(customerName, projectName, filterOptions);
+        
+        boolean writer = jwtUtils.isAllowedToWriteEngagement(jwt, configService.getPermission(engagement.getType()));
+        engagement.setWriteable(writer);
+        
         return Response.ok(engagement).header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
                 .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER).build();
 
@@ -175,6 +183,10 @@ public class EngagementResource {
     public Response get(@PathParam("id") String uuid, @BeanParam FilterOptions filterOptions) {
 
         Engagement engagement = engagementService.getByUuid(uuid, filterOptions);
+        
+        boolean writer = jwtUtils.isAllowedToWriteEngagement(jwt, configService.getPermission(engagement.getType()));
+        engagement.setWriteable(writer);
+        
         return Response.ok(engagement).header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
                 .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER).build();
 
@@ -296,6 +308,12 @@ public class EngagementResource {
     @Counted(name = "engagement-post-counted")
     @Timed(name = "engagement-post-timer", unit = MetricUnits.MILLISECONDS)
     public Response post(@Valid Engagement engagement, @Context UriInfo uriInfo) {
+        
+        boolean writer = jwtUtils.isAllowedToWriteEngagement(jwt, configService.getPermission(engagement.getType()));
+        if(!writer) {
+            String message = String.format("{\"message\": \"You cannot modify %s engagements\"}", engagement.getType());
+            return Response.status(403).entity(message).build();
+        }
 
         // pull user info from token
         engagement.setLastUpdateByName(jwtUtils.getUsernameFromToken(jwt));
@@ -325,14 +343,20 @@ public class EngagementResource {
     @Operation(deprecated = true, summary = "Updates the engagement resource in the database.")
     @Counted(name = "engagement-put-dep-counted")
     @Timed(name = "engagement-put-dep-timer", unit = MetricUnits.MILLISECONDS)
-    public Engagement put(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName,
+    public Response put(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName,
             @Valid Engagement engagement) {
+        
+        boolean writer = jwtUtils.isAllowedToWriteEngagement(jwt, configService.getPermission(engagement.getType()));
+        if(!writer) {
+            String message = String.format("{\"message\": \"You cannot modify %s engagements\"}", engagement.getType());
+            return Response.status(403).entity(message).build();
+        }
 
         // pull user info from token
         engagement.setLastUpdateByName(jwtUtils.getUsernameFromToken(jwt));
         engagement.setLastUpdateByEmail(jwtUtils.getUserEmailFromToken(jwt));
 
-        return engagementService.update(engagement);
+        return Response.ok(engagementService.update(engagement)).build();
 
     }
 
@@ -345,13 +369,19 @@ public class EngagementResource {
     @Operation(summary = "Updates the engagement resource in the database.")
     @Counted(name = "engagement-put-by-uuid-counted")
     @Timed(name = "engagement-put-by-uuid-timer", unit = MetricUnits.MILLISECONDS)
-    public Engagement put(@PathParam("id") String uuid, @Valid Engagement engagement) {
+    public Response put(@PathParam("id") String uuid, @Valid Engagement engagement) {
 
+        boolean writer = jwtUtils.isAllowedToWriteEngagement(jwt, configService.getPermission(engagement.getType()));
+        if(!writer) {
+            String message = String.format("{\"message\": \"You cannot modify %s engagements\"}", engagement.getType());
+            return Response.status(403).entity(message).build();
+        }
+        
         // pull user info from token
         engagement.setLastUpdateByName(jwtUtils.getUsernameFromToken(jwt));
         engagement.setLastUpdateByEmail(jwtUtils.getUserEmailFromToken(jwt));
 
-        return engagementService.update(engagement);
+        return Response.ok(engagementService.update(engagement)).build();
 
     }
 
@@ -363,14 +393,20 @@ public class EngagementResource {
     @Operation(summary = "Adds launch data to the engagement resource and immediately persists it to git.")
     @Counted(name = "engagement-put-launch-counted")
     @Timed(name = "engagement-put-launch-timer", unit = MetricUnits.MILLISECONDS)
-    public Engagement launch(@Valid Engagement engagement) {
+    public Response launch(@Valid Engagement engagement) {
+        
+        boolean writer = jwtUtils.isAllowedToWriteEngagement(jwt, configService.getPermission(engagement.getType()));
+        if(!writer) {
+            String message = String.format("{\"message\": \"You cannot modify %s engagements\"}", engagement.getType());
+            return Response.status(403).entity(message).build();
+        }
 
         // pull user info from token
         engagement.setLastUpdateByName(jwtUtils.getUsernameFromToken(jwt));
         engagement.setLastUpdateByEmail(jwtUtils.getUserEmailFromToken(jwt));
 
         engagementService.launch(engagement);
-        return engagement;
+        return Response.ok(engagement).build();
 
     }
 
@@ -405,6 +441,13 @@ public class EngagementResource {
     @Timed(name = "engagement-delete-by-uuid-timer", unit = MetricUnits.MILLISECONDS)
     public Response delete(@PathParam("id") String uuid) {
 
+        Engagement engagement = engagementService.getByUuid(uuid, new FilterOptions());
+        boolean writer = jwtUtils.isAllowedToWriteEngagement(jwt, configService.getPermission(engagement.getType()));
+        if(!writer) {
+            String message = String.format("{\"message\": \"You cannot modify %s engagements\"}", engagement.getType());
+            return Response.status(403).entity(message).build();
+        }
+        
         engagementService.deleteEngagement(uuid);
         return Response.accepted().build();
 

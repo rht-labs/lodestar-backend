@@ -1,5 +1,12 @@
 package com.redhat.labs.lodestar.utils;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.mockito.Mockito;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -18,6 +25,7 @@ import com.redhat.labs.lodestar.model.Launch;
 import com.redhat.labs.lodestar.model.Score;
 import com.redhat.labs.lodestar.model.Status;
 import com.redhat.labs.lodestar.model.UseCase;
+import com.redhat.labs.lodestar.rest.client.ConfigApiClient;
 
 public class MockUtils {
 
@@ -29,7 +37,8 @@ public class MockUtils {
     }
 
     public static Engagement mockMinimumEngagement(String customerName, String projectName, String uuid) {
-        return Engagement.builder().customerName(customerName).projectName(projectName).uuid(uuid).build();
+        return Engagement.builder().customerName(customerName).projectName(projectName).uuid(uuid).type("Residency")
+                .build();
     }
 
     public static Engagement mockEngagement() {
@@ -42,6 +51,15 @@ public class MockUtils {
 
         return engagement;
 
+    }
+    
+    public static void mockRbac(ConfigApiClient api) {
+        Map<String, List<String>> rbac = new HashMap<>();
+        List<String> writers = Arrays.asList(new String[] { "writer" });
+        
+        rbac.put("Residency", writers);
+        
+        Mockito.when(api.getPermission()).thenReturn(rbac);
     }
 
     public static HostingEnvironment mockHostingEnvironment(String environmentName, String ocpSubdomain) {

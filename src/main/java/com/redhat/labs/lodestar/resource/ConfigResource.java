@@ -17,11 +17,10 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.redhat.labs.lodestar.rest.client.LodeStarConfigApiClient;
+import com.redhat.labs.lodestar.service.ConfigService;
 
 @RequestScoped
 @Path("/config")
@@ -34,8 +33,7 @@ public class ConfigResource {
     JsonWebToken jwt;
 
     @Inject
-    @RestClient
-    LodeStarConfigApiClient configApi;
+    ConfigService configService;
 
     @GET
     @SecurityRequirement(name = "jwt", scopes = {})
@@ -44,7 +42,7 @@ public class ConfigResource {
     @Operation(summary = "Returns configuration file data.")
     public Response fetchConfigData(@QueryParam("type") Optional<String> type) {
         LOGGER.debug("Requested runtime configuration type {}", type);
-        return configApi.getRuntimeConfig(type.isPresent() ? type.get() : null);
+        return configService.getRuntimeConfig(type);
     }
 
 }

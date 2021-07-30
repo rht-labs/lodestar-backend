@@ -1,5 +1,6 @@
 package com.redhat.labs.lodestar.resource;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
@@ -64,10 +65,11 @@ public class EngagementArtifactResource {
             @Parameter(name = "suggest", deprecated = true, required = false, description = "uses suggestion as case insensitive search string") @QueryParam("suggest") Optional<String> suggest,
             @QueryParam(value = "engagementUuid") String engagementUuid, @QueryParam(value = "type") String type,
             @Parameter(description = "Dashboard View. Includes Customer and Engagement Name") @QueryParam("dash") boolean dashboardView,
+            @Parameter(description = "v2 only. use search otherwise") @QueryParam("region") List<String> region,
             @BeanParam ListFilterOptions filterOptions) {
 
         if (filterOptions.getApiVersion() == null || filterOptions.getApiVersion().equals("v2")) {
-            return artifactService.getArtifacts(filterOptions, engagementUuid, type, dashboardView);
+            return artifactService.getArtifacts(filterOptions, engagementUuid, type, region, dashboardView);
         }
 
         if (suggest.isPresent()) {

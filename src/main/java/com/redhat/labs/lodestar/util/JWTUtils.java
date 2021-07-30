@@ -1,5 +1,6 @@
 package com.redhat.labs.lodestar.util;
 
+import java.util.List;
 import java.util.Optional;
 
 import javax.inject.Singleton;
@@ -9,6 +10,7 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 
 @Singleton
 public class JWTUtils {
+
     private static final String NAME_CLAIM = "name";
     private static final String PREFERRED_USERNAME_CLAIM = "preferred_username";
     private static final String USER_EMAIL_CLAIM = "email";
@@ -47,6 +49,10 @@ public class JWTUtils {
 
         return DEFAULT_EMAIL;
 
+    }
+    
+    public boolean isAllowedToWriteEngagement(JsonWebToken jwt, List<String> allowedGroups) {
+        return jwt.getGroups().stream().filter(allowedGroups::contains).findAny().isPresent();
     }
 
     public Optional<String> claimIsValid(JsonWebToken jwt, String claimName) {

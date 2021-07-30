@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -13,8 +14,11 @@ import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.json.JsonArray;
+import javax.json.JsonObject;
 import javax.json.bind.Jsonb;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 
 import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -49,6 +53,7 @@ import com.redhat.labs.lodestar.model.pagination.PagedScoreResults;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
 import com.redhat.labs.lodestar.model.pagination.PagedUseCaseResults;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
+import com.redhat.labs.lodestar.rest.client.ConfigApiClient;
 import com.redhat.labs.lodestar.rest.client.LodeStarGitApiClient;
 
 import io.vertx.mutiny.core.eventbus.EventBus;
@@ -79,8 +84,10 @@ public class EngagementService {
     @Inject
     @RestClient
     LodeStarGitApiClient gitApi;
-
-    ObjectMapper objectMapper = new ObjectMapper();
+    
+    @Inject
+    @RestClient
+    ConfigApiClient configApi;
 
     /**
      * Creates a new {@link Engagement} resource in the data store and marks if for
