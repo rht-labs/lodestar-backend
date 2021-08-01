@@ -92,7 +92,7 @@ public class ParticipantService {
         try {
             LOGGER.debug("refresh {}", message);
             Response response = participantRestClient.refreshParticipants();
-            LOGGER.debug("refresh of {} completed. Participant count is {} ", message, response.getHeaderString("x-total-participants"));
+            LOGGER.debug("refresh {} completed. Participant count is {} ", message, response.getHeaderString("x-total-participants"));
         } catch (WebApplicationException wae) { //without catching this it will fail silently
             LOGGER.error("Failed to refresh participants {}", wae.getResponse(), wae);
         }
