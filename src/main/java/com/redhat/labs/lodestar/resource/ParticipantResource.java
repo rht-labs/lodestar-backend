@@ -41,8 +41,8 @@ import com.redhat.labs.lodestar.util.JWTUtils;
 @SecurityScheme(securitySchemeName = "jwt", type = SecuritySchemeType.HTTP, scheme = "bearer", bearerFormat = "JWT")
 @Tag(name = "Participants", description = "Participants in Engagements")
 public class ParticipantResource {
-    private final static String DEFAULT_PAGE_SIZE = "100";
-    private final static String DEFAULT_PAGE = "0";
+    private static final String DEFAULT_PAGE_SIZE = "100";
+    private static final String DEFAULT_PAGE = "0";
 
     @Inject
     ParticipantService participantService;
@@ -116,8 +116,21 @@ public class ParticipantResource {
     @Operation(summary = "Returns participant list for an engagement")
     @Counted(name = "get-enabled-participants-counted")
     @Timed(name = "get-enabled-participants-timer", unit = MetricUnits.MILLISECONDS)
-    public Response getEnabledParticipants(@PathParam(value = "eUuid") String engagementUuid) {
-        Map<String, Integer> participants = participantService.getEnabledParticipants();
+    public Response getEnabledParticipants(@QueryParam(value = "region") List<String> region) {
+        Map<String, Long> participants = participantService.getEnabledParticipants(region);
+        return Response.ok(participants).build();
+    }
+    
+    @GET
+    @Path("/enabled/breakdown")
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "200", description = "Enabled participants have been returned as a map") })
+    @Operation(summary = "Returns participant list for an engagement")
+    @Counted(name = "get-enabled-participants-all-regions-counted")
+    @Timed(name = "get-enabled-participants-regions-timer", unit = MetricUnits.MILLISECONDS)
+    public Response getEnabledParticipantsAllRegions() {
+        Map<String, Map<String, Long>> participants = participantService.getEnabledParticipantsAllRegions();
         return Response.ok(participants).build();
     }
 

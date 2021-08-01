@@ -44,8 +44,12 @@ public class ParticipantService {
         return participantRestClient.getParticipants(engagementUuids, page, pageSize);
     }
     
-    public Map<String, Integer> getEnabledParticipants() {
-        return participantRestClient.getEnabledParticipants();
+    public Map<String, Long> getEnabledParticipants(List<String> region) {
+        return participantRestClient.getEnabledParticipants(region);
+    }
+    
+    public Map<String,Map<String, Long>> getEnabledParticipantsAllRegions() {
+        return participantRestClient.getEnabledParticipantsAllRegions();
     }
     
     /**
@@ -57,7 +61,9 @@ public class ParticipantService {
      * @return A response value indicating success (200) or failure (anything else)
      */
     public Response updateParticipants(String engagementUuid, String authorName, String authorEmail, Set<EngagementUser> participants) {
-        return participantRestClient.updateParticipants(engagementUuid, authorName, authorEmail, participants);
+        
+        Engagement engagement = engagementService.getByUuid(engagementUuid, new FilterOptions());
+        return participantRestClient.updateParticipants(engagementUuid, engagement.getRegion(), authorName, authorEmail, participants);
     }
     
     /**
@@ -71,7 +77,7 @@ public class ParticipantService {
         Engagement engagement = engagementService.getByUuid(uuidNameEmail[0], new FilterOptions());
         
         try {
-            participantRestClient.updateParticipants(uuidNameEmail[0], uuidNameEmail[1], uuidNameEmail[2], engagement.getEngagementUsers());
+            participantRestClient.updateParticipants(engagement.getUuid(), engagement.getRegion(),uuidNameEmail[1], uuidNameEmail[2], engagement.getEngagementUsers());
             LOGGER.debug("Updated participants for engagement {}", engagement.getUuid());
         } catch (WebApplicationException wae) {
             LOGGER.error("Failed to update participants for engagement {} {}", wae.getResponse().getStatus(), message);
@@ -85,8 +91,8 @@ public class ParticipantService {
     public void refesh(String message) {
         try {
             LOGGER.debug("refresh {}", message);
-            participantRestClient.refreshParticipants();
-            LOGGER.debug("refresh {} completed", message);
+            Response response = participantRestClient.refreshParticipants();
+            LOGGER.debug("refresh of {} completed. Participant count is {} ", message, response.getHeaderString("x-total-participants"));
         } catch (WebApplicationException wae) { //without catching this it will fail silently
             LOGGER.error("Failed to refresh participants {}", wae.getResponse(), wae);
         }
