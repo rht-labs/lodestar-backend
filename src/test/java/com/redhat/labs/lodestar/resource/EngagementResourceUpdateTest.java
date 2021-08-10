@@ -32,9 +32,33 @@ import io.restassured.response.Response;
 @QuarkusTest
 @Tag("nested")
 class EngagementResourceUpdateTest extends IntegrationTestHelper {
+    
+    @Test
+    void testPutEngagementWithUuidNoGroup() throws Exception {
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Engagement engagement = MockUtils.mockEngagement();
+        String body = quarkusJsonb.toJson(engagement);
+        given().when().auth().oauth2(token).body(body).contentType(ContentType.JSON).put("/engagements/1234").then()
+                .statusCode(403);
+    }
+    
+    @Test
+    void testLaunchNoGroup() throws Exception {
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Engagement engagement = MockUtils.mockEngagement();
+        String body = quarkusJsonb.toJson(engagement);
+        given().when().auth().oauth2(token).body(body).contentType(ContentType.JSON).put("/engagements/launch").then()
+                .statusCode(403);
+    }
 
     @Test
     void testPutEngagementWithAuthAndRoleSuccess() throws Exception {
+        
+        MockUtils.mockRbac(configApiClient);
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -128,6 +152,8 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
 
     @Test
     void testPutEngagementWithAuthAndRoleDuplicateUsers() throws Exception {
+        
+        MockUtils.mockRbac(configApiClient);
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -172,6 +198,8 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
 
     @Test
     void testPutEngagementWithAuthAndRoleEngagementDoesNotExist() throws Exception {
+        
+        MockUtils.mockRbac(configApiClient);
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -197,6 +225,8 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
 
     @Test
     void testLaunchEngagementWithAuthAndRoleSuccess() throws Exception {
+        
+        MockUtils.mockRbac(configApiClient);
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -229,6 +259,8 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
 
     @Test
     void testLaunchEngagementWithAuthAndRoleEngagementAlreadyLaunched() throws Exception {
+        
+        MockUtils.mockRbac(configApiClient);
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -257,6 +289,8 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
     @Test
     void testLaunchEngagementWithAuthAndRoleEngagementNotFound() throws Exception {
 
+        MockUtils.mockRbac(configApiClient);
+        
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
@@ -282,6 +316,8 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
 
     @Test
     void testPutEngagementWithConflictingHostingEvironmentSubdomain() throws Exception {
+        
+        MockUtils.mockRbac(configApiClient);
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -313,6 +349,8 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
 
     @Test
     void testPutEngagementByNamesWithAuthAndRoleSuccess() throws Exception {
+        
+        MockUtils.mockRbac(configApiClient);
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -342,7 +380,17 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
                 .body("project_name", equalTo(toUpdate.getProjectName()))
                 .body("project_id", equalTo(1234))
                 .body("description", equalTo(toUpdate.getDescription()));
+    }
+    
+    @Test
+    void testPutEngagementWithNameNoGroup() throws Exception {
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
+        Engagement engagement = MockUtils.mockEngagement();
+        String body = quarkusJsonb.toJson(engagement);
+        given().when().auth().oauth2(token).body(body).contentType(ContentType.JSON).put("/engagements/customers/c1/projects/e2").then()
+                .statusCode(403);
     }
 
     @Test

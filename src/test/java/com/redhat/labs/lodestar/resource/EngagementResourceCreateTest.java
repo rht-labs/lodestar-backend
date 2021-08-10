@@ -51,9 +51,26 @@ class EngagementResourceCreateTest extends IntegrationTestHelper {
         Mockito.verify(gitApiClient, Mockito.times(0)).createOrUpdateEngagement(Mockito.any(), Mockito.anyString(), Mockito.anyString());
 
     }
+    
+    @Test
+    void testPostEngagementWithNoGroup() throws Exception {
+
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Engagement engagement = MockUtils.mockMinimumEngagement("c1", "e1", "9090");
+ 
+        String body = quarkusJsonb.toJson(engagement);
+
+        // POST engagement
+        given().when().auth().oauth2(token).body(body).contentType(ContentType.JSON).post("/engagements").then()
+                .statusCode(403);
+    }
 
     @Test
     void testPostEngagementWithAuthAndRoleSuccess() throws Exception {
+        
+        MockUtils.mockRbac(configApiClient);
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -137,11 +154,14 @@ class EngagementResourceCreateTest extends IntegrationTestHelper {
 
     @Test
     void testPostEngagementWithAuthAndRoleEngagemenntAlreadyExists() throws Exception {
+        
+        MockUtils.mockRbac(configApiClient);
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
         Engagement engagement = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
+        engagement.setType("Residency");
         Mockito.when(eRepository.findByUuid("1234")).thenReturn(Optional.of(engagement));
         String body = quarkusJsonb.toJson(engagement);
 
@@ -163,6 +183,8 @@ class EngagementResourceCreateTest extends IntegrationTestHelper {
 
     @Test
     void testEngagementWithSubdomainAlreadyExists() throws Exception {
+    	
+    	MockUtils.mockRbac(configApiClient);
 
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -175,6 +197,7 @@ class EngagementResourceCreateTest extends IntegrationTestHelper {
         engagement2.setProjectName("anotherRandomName");
         HostingEnvironment env2 = HostingEnvironment.builder().environmentName("e2").ocpSubDomain("aSuperRandomSubdomain").build();
         engagement2.setHostingEnvironments(Arrays.asList(env2));
+        engagement2.setType("Residency");
 
         Mockito.when(eRepository.findByUuid("5432")).thenReturn(Optional.empty());
         Mockito.when(eRepository.findBySubdomain("aSuperRandomSubdomain")).thenReturn(Optional.of(engagement));

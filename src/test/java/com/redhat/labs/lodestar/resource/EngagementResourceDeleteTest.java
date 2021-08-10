@@ -40,9 +40,26 @@ class EngagementResourceDeleteTest extends IntegrationTestHelper {
             .statusCode(404);
         
     }
+    
+    @Test
+    void testDeleteNoAuth() throws Exception {
+        
+        HashMap<String, Long> timeClaims = new HashMap<>();
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+
+        Engagement e = MockUtils.mockMinimumEngagement("c1", "e1", "1234");
+        e.setLaunch(Launch.builder().build());
+        Mockito.when(eRepository.findByUuid("1234", new FilterOptions())).thenReturn(Optional.of(e));
+
+        // DELETE
+        given().when().auth().oauth2(token).delete("/engagements/1234").then().statusCode(403);
+        
+    }
 
     @Test
     void testDeleteEngagementAlreadyLaunched() throws Exception {
+        
+        MockUtils.mockRbac(configApiClient);
         
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
@@ -64,6 +81,8 @@ class EngagementResourceDeleteTest extends IntegrationTestHelper {
     
     @Test
     void testDeleteEngagementSuccess() throws Exception {
+        
+        MockUtils.mockRbac(configApiClient);
         
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);

@@ -5,6 +5,7 @@ import java.util.Optional;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
 import javax.ws.rs.GET;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
@@ -17,11 +18,10 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.redhat.labs.lodestar.rest.client.LodeStarConfigApiClient;
+import com.redhat.labs.lodestar.service.ConfigService;
 
 @RequestScoped
 @Path("/config")
@@ -34,8 +34,7 @@ public class ConfigResource {
     JsonWebToken jwt;
 
     @Inject
-    @RestClient
-    LodeStarConfigApiClient configApi;
+    ConfigService configService;
 
     @GET
     @SecurityRequirement(name = "jwt", scopes = {})
@@ -44,7 +43,16 @@ public class ConfigResource {
     @Operation(summary = "Returns configuration file data.")
     public Response fetchConfigData(@QueryParam("type") Optional<String> type) {
         LOGGER.debug("Requested runtime configuration type {}", type);
-        return configApi.getRuntimeConfig(type.isPresent() ? type.get() : null);
+        return configService.getRuntimeConfig(type);
     }
-
+    
+    @PUT
+    @Path("/rbac/cache")
+    @SecurityRequirement(name = "jwt", scopes = {})
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "200", description = "Cache invalidated.") })
+    public Response invalidateRbacCache() {
+        configService.invalidateCache();
+        return Response.ok().build();
+    }
 }

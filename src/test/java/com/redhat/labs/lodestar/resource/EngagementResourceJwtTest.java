@@ -37,6 +37,8 @@ class EngagementResourceJwtTest extends IntegrationTestHelper {
     })
     void testPostEngagementWithAuthAndRoleHasUserClaim(String claimFile, String lastUpdateName, String lastUpdateEmail) throws Exception {
 
+        MockUtils.mockRbac(configApiClient);
+        
         HashMap<String, Long> timeClaims = new HashMap<>();
         String token = TokenUtils.generateTokenString(claimFile, timeClaims);
 
