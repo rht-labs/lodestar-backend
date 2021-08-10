@@ -39,14 +39,18 @@ public interface ParticipantApiClient {
     List<EngagementUser> getParticipantsForEngagement(@PathParam("engagementUuid") String uuid);
 
     @PUT
-    @Path("/engagements/uuid/{engagementUuid}")
-    Response updateParticipants(@PathParam(value = "engagementUuid") String engagementUuid,
+    @Path("/engagements/uuid/{engagementUuid}/{region}")
+    Response updateParticipants(@PathParam(value = "engagementUuid") String engagementUuid, @PathParam(value = "region") String region,
             @QueryParam(value = "authorName") String authorName, @QueryParam(value = "authorEmail") String authorEmail,
             Set<EngagementUser> participants);
 
     @GET
     @Path("/enabled")
-    Map<String, Integer> getEnabledParticipants();
+    Map<String, Long> getEnabledParticipants(@QueryParam("region") List<String> region);
+    
+    @GET
+    @Path("/enabled/breakdown")
+    Map<String,Map<String, Long>> getEnabledParticipantsAllRegions();
 
     @PUT
     @Path("/refresh")

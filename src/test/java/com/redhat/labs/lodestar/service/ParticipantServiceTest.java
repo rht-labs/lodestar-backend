@@ -31,12 +31,12 @@ class ParticipantServiceTest {
         participantClient = Mockito.mock(ParticipantApiClient.class);
         
         users = Collections.singleton(EngagementUser.builder().build());
-        Engagement engagement = Engagement.builder().uuid("1").engagementUsers(users).build();
+        Engagement engagement = Engagement.builder().uuid("1").region("na").engagementUsers(users).build();
         Mockito.when(engagementService.getByUuid(Mockito.eq("1"), Mockito.any(FilterOptions.class))).thenReturn(engagement);
         
-        Mockito.when(participantClient.updateParticipants("1", "b", "c", users)).thenReturn(Response.ok().build());
-        Mockito.when(participantClient.updateParticipants("1", "x", "c", users)).thenThrow(new WebApplicationException());
-        Mockito.when(participantClient.updateParticipants("1", "z", "c", users)).thenThrow(new RuntimeException());
+        Mockito.when(participantClient.updateParticipants("1", "na", "b", "c", users)).thenReturn(Response.ok().build());
+        Mockito.when(participantClient.updateParticipants("1", "na", "x", "c", users)).thenThrow(new WebApplicationException());
+        Mockito.when(participantClient.updateParticipants("1", "na", "z", "c", users)).thenThrow(new RuntimeException());
         
         participantService = new ParticipantService();
         participantService.engagementService = engagementService;
@@ -46,12 +46,12 @@ class ParticipantServiceTest {
     @Test
     void testUpdateParticipants() {
         participantService.updateParticipants("1,b,c");
-        Mockito.verify(participantClient).updateParticipants("1", "b", "c", users);
+        Mockito.verify(participantClient).updateParticipants("1", "na", "b", "c", users);
         
         participantService.updateParticipants("1,x,c");
-        Mockito.verify(participantClient).updateParticipants("1", "x", "c", users);
+        Mockito.verify(participantClient).updateParticipants("1", "na", "x", "c", users);
         
         participantService.updateParticipants("1,z,c");
-        Mockito.verify(participantClient).updateParticipants("1", "z", "c", users);
+        Mockito.verify(participantClient).updateParticipants("1", "na", "z", "c", users);
     }
 }
