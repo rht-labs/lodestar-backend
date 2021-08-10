@@ -26,7 +26,7 @@ public class ArtifactOptions {
     @QueryParam("type")
     private String type;
     
-    @Parameter(name = "region", required = false, description = "return only artifacts for the given region. Do not use with engagementUuiud")
+    @Parameter(name = "region", required = false, description = "return only artifacts for the given region. Do not use with engagementUuid")
     @QueryParam("region")
     @Builder.Default
     private List<String> region = new ArrayList<>();
