@@ -1,5 +1,8 @@
 package com.redhat.labs.lodestar.rest.client;
 
+import java.util.List;
+import java.util.Map;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -15,11 +18,16 @@ import com.redhat.labs.lodestar.exception.mapper.LodeStarGitLabAPIServiceRespons
 @ApplicationScoped
 @RegisterRestClient(configKey = "lodestar.config.api")
 @RegisterProvider(value = LodeStarGitLabAPIServiceResponseMapper.class, priority = 50)
-public interface LodeStarConfigApiClient {
+@Path("/api/v1/configs/runtime")
+public interface ConfigApiClient {
 
     @GET
-    @Path("/api/v1/configs/runtime")
     @Produces("application/json")
     Response getRuntimeConfig(@QueryParam("type") String type);
+
+    @GET
+    @Path("/rbac")
+    @Produces("application/json")
+    Map<String, List<String>> getPermission();
 
 }

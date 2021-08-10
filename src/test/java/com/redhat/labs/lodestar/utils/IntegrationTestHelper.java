@@ -11,7 +11,7 @@ import com.redhat.labs.lodestar.repository.ActiveSyncRepository;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
 import com.redhat.labs.lodestar.rest.client.ArtifactApiClient;
 import com.redhat.labs.lodestar.rest.client.ActivityApiClient;
-import com.redhat.labs.lodestar.rest.client.LodeStarConfigApiClient;
+import com.redhat.labs.lodestar.rest.client.ConfigApiClient;
 import com.redhat.labs.lodestar.rest.client.LodeStarGitApiClient;
 import com.redhat.labs.lodestar.rest.client.LodeStarStatusApiClient;
 import com.redhat.labs.lodestar.rest.client.ParticipantApiClient;
@@ -40,7 +40,7 @@ public class IntegrationTestHelper {
 
     @InjectMock
     @RestClient
-    public LodeStarConfigApiClient configApiClient;
+    public ConfigApiClient configApiClient;
     
     @InjectMock
     @RestClient

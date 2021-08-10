@@ -24,13 +24,13 @@ import io.quarkus.test.junit.QuarkusTest;
 
 @QuarkusTest
 @Tag("nested")
-public class EngagementResourceCountTest extends IntegrationTestHelper {
+class EngagementResourceCountTest extends IntegrationTestHelper {
 
     @Inject
     EngagementService service;
 
     @Test
-    public void testest() throws Exception {
+    void testest() throws Exception {
 
         String url = "/engagements/count";
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", new HashMap<String, Long>());

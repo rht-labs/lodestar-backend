@@ -4,6 +4,8 @@ import static io.restassured.RestAssured.given;
 
 import java.util.HashMap;
 
+import javax.ws.rs.core.Response;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -40,6 +42,17 @@ class RefreshResourceTest extends IntegrationTestHelper {
     
     @Test
     void testParticipantReload() throws Exception {
+
+        given().queryParam("participants", true).when().auth().oauth2(validToken)
+        .put("/engagements/refresh").then().statusCode(202);
+        
+        Mockito.verify(participantClient, Mockito.timeout(1000)).refreshParticipants();
+    }
+    
+    @Test
+    void testParticipantReloadFail() throws Exception {
+        
+        Mockito.when(participantClient.refreshParticipants()).thenReturn(Response.serverError().build());
 
         given().queryParam("participants", true).when().auth().oauth2(validToken)
         .put("/engagements/refresh").then().statusCode(202);
