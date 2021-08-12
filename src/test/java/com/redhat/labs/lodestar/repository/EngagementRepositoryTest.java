@@ -1,4 +1,4 @@
-package com.redhat.labs.lodestar.zrepository;
+package com.redhat.labs.lodestar.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -36,7 +36,6 @@ import com.redhat.labs.lodestar.model.filter.SortOrder;
 import com.redhat.labs.lodestar.model.pagination.PagedArtifactResults;
 import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
 import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
-import com.redhat.labs.lodestar.model.pagination.PagedHostingEnvironmentResults;
 import com.redhat.labs.lodestar.model.pagination.PagedScoreResults;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
 import com.redhat.labs.lodestar.model.pagination.PagedUseCaseResults;
@@ -1312,67 +1311,6 @@ class EngagementRepositoryTest {
         List<UseCase> results = pagedResults.getResults();
         assertEquals(1, results.size());
         assertEquals("case 1", results.get(0).getTitle());
-
-    }
-
-    @Test
-    void testFindHostingEnvironmentsAll() {
-
-        HostingEnvironment h1 = MockUtils.mockHostingEnvironment("env 1", "envone");
-        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
-        e1.setHostingEnvironments(Arrays.asList(h1));
-
-        HostingEnvironment h2 = MockUtils.mockHostingEnvironment("env 2", "envtwo");
-        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
-        e2.setHostingEnvironments(Arrays.asList(h2));
-
-        repository.persist(e1, e2);
-
-        ListFilterOptions options = ListFilterOptions.builder().build();
-
-        PagedHostingEnvironmentResults pagedResults = repository.findHostingEnvironments(options);
-        assertNotNull(pagedResults);
-        assertNotNull(pagedResults.getResults());
-
-        List<HostingEnvironment> results = pagedResults.getResults();
-        assertEquals(2, results.size());
-
-        results.stream().forEach(a -> {
-
-            if ("1111".equals(a.getEngagementUuid())) {
-                assertEquals("env 1", a.getEnvironmentName());
-            } else if ("2222".equals(a.getEngagementUuid())) {
-                assertEquals("env 2", a.getEnvironmentName());
-            } else {
-                fail("unknown use case: " + a);
-            }
-
-        });
-
-    }
-
-    @Test
-    void testFindHostingEnvironmentsFiltered() {
-
-        HostingEnvironment h1 = MockUtils.mockHostingEnvironment("env 1", "envone");
-        Engagement e1 = MockUtils.mockMinimumEngagement("c1", "p1", "1111");
-        e1.setHostingEnvironments(Arrays.asList(h1));
-
-        HostingEnvironment h2 = MockUtils.mockHostingEnvironment("env 2", "envtwo");
-        Engagement e2 = MockUtils.mockMinimumEngagement("c2", "p2", "2222");
-        e2.setHostingEnvironments(Arrays.asList(h2));
-
-        repository.persist(e1, e2);
-
-        ListFilterOptions options = ListFilterOptions.builder().search("uuid=1111").build();
-
-        PagedHostingEnvironmentResults pagedResults = repository.findHostingEnvironments(options);
-        assertNotNull(pagedResults);
-        assertNotNull(pagedResults.getResults());
-
-        List<HostingEnvironment> results = pagedResults.getResults();
-        assertEquals(1, results.size());
-        assertEquals("env 1", results.get(0).getEnvironmentName());
 
     }
 

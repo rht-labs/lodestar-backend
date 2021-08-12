@@ -66,5 +66,10 @@ class EngagementResourceTest {
 	class RefreshResource extends RefreshResourceTest {
         
     }
+	
+	@Nested
+	class HostingResource extends HostingResourceTest {
+	    
+	}
 
 }

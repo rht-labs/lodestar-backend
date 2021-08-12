@@ -35,6 +35,8 @@ class ArtifactServiceTest {
         Mockito.when(engagementService.getByUuid(Mockito.eq("uuid3"), Mockito.any(FilterOptions.class))).thenThrow(new WebApplicationException("test", 500));
         Mockito.when(artifactClient.updateArtifacts("uuid1", artifacts, "Mitch", "mitch@mitch.com")).thenReturn(Response.ok().build());
 
+        Mockito.when(artifactClient.refreshArtifacts()).thenThrow(new WebApplicationException());
+        
         artifactService = new ArtifactService();
         artifactService.artifactRestClient = artifactClient;
         artifactService.engagementService = engagementService;
@@ -63,5 +65,11 @@ class ArtifactServiceTest {
         artifactService.sendUpdate(uuidNameEmail);
         
         Mockito.verify(artifactClient, Mockito.never()).updateArtifacts("uuid3", artifacts, "Mitch", "mitch@mitch.com");
+    }
+    
+    @Test
+    void testRefresh() {
+        artifactService.refesh("no");
+        Mockito.verify(artifactClient).refreshArtifacts();
     }
 }

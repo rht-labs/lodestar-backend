@@ -22,13 +22,16 @@ public class EventType {
     public static final String GET_PAGE_OF_ENGAGEMENTS_EVENT_ADDRESS = "get.page.of.engagements.event";
     public static final String PERSIST_ENGAGEMENT_LIST_EVENT_ADDRESS = "persist.engagement.list.event";
     public static final String PERSIST_ENGAGEMENT_EVENT_ADDRESS = "persist.engagement.event";
-    public static final String UPDATE_COMMITS_EVENT_ADDRESS = "update.commits.event";
-    public static final String UPDATE_STATUS_EVENT_ADDRESS = "update.status.event";
-    public static final String UPDATE_PARTICIPANTS_EVENT_ADDESS = "update.participants.event";
+    
     public static final String UPDATE_ARTIFACTS_EVENT_ADDRESS = "update.artifacts.event";
+    public static final String UPDATE_COMMITS_EVENT_ADDRESS = "update.commits.event";
+    public static final String UPDATE_HOSTING_EVENT_ADDRESS = "update.hosting.event";
+    public static final String UPDATE_PARTICIPANTS_EVENT_ADDESS = "update.participants.event";
+    public static final String UPDATE_STATUS_EVENT_ADDRESS = "update.status.event";
     
     public static final String RELOAD_ACTIVITY_EVENT_ADDRESS = "reload.activity.event";
     public static final String RELOAD_ARTIFACTS_EVENT_ADDRESS = "reload.artifacts.event";
+    public static final String RELOAD_HOSTING_EVENT_ADDRESS = "reload.hosting.event";
     public static final String RELOAD_PARTICIPANTS_EVENT_ADDRESS = "reload.participants.event";
    
 }

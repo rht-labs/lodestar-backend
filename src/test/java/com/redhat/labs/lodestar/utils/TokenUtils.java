@@ -10,6 +10,7 @@ import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.microprofile.jwt.Claims;
@@ -40,6 +41,15 @@ public class TokenUtils {
         // Use the test private key associated with the test public key for a valid signature
         PrivateKey pk = readPrivateKey("/privateKey.pem");
         return generateTokenString(pk, "/privateKey.pem", jsonResName, timeClaims);
+    }
+    
+    public static String generateTokenString(String jsonResName) {
+        Map<String, Long> timeClaims = new HashMap<>();
+        try {
+            return generateTokenString(jsonResName, timeClaims);
+        } catch (Exception e) {
+            throw new RuntimeException("Couldn't generate fake token");
+        }
     }
 
     @SuppressWarnings("deprecation")

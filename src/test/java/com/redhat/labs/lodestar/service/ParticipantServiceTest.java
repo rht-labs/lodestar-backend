@@ -38,6 +38,7 @@ class ParticipantServiceTest {
         Mockito.when(participantClient.updateParticipants("1", "na", "x", "c", users)).thenThrow(new WebApplicationException());
         Mockito.when(participantClient.updateParticipants("1", "na", "z", "c", users)).thenThrow(new RuntimeException());
         
+        Mockito.when(participantClient.refreshParticipants()).thenThrow(new WebApplicationException());
         participantService = new ParticipantService();
         participantService.engagementService = engagementService;
         participantService.participantRestClient = participantClient;
@@ -53,5 +54,11 @@ class ParticipantServiceTest {
         
         participantService.updateParticipants("1,z,c");
         Mockito.verify(participantClient).updateParticipants("1", "na", "z", "c", users);
+    }
+    
+    @Test
+    void testRefresh() {
+        participantService.refesh("no");
+        Mockito.verify(participantClient).refreshParticipants();
     }
 }
