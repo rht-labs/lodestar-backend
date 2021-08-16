@@ -31,7 +31,6 @@ import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.EngagementArtifact;
 import com.redhat.labs.lodestar.model.EngagementUserSummary;
-import com.redhat.labs.lodestar.model.HostingEnvironment;
 import com.redhat.labs.lodestar.model.Launch;
 import com.redhat.labs.lodestar.model.Score;
 import com.redhat.labs.lodestar.model.UseCase;
@@ -41,7 +40,6 @@ import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.model.pagination.PagedArtifactResults;
 import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
 import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
-import com.redhat.labs.lodestar.model.pagination.PagedHostingEnvironmentResults;
 import com.redhat.labs.lodestar.model.pagination.PagedScoreResults;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
 import com.redhat.labs.lodestar.model.pagination.PagedUseCaseResults;
@@ -427,29 +425,6 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
             .statusCode(200)
             .body(containsString("score1"))
             .body(containsString("88.8"));
-
-    }
-
-    @Test
-    void testGetHostingEnvironments() throws Exception {
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
-
-        HostingEnvironment he = MockUtils.mockHostingEnvironment("env1", "env-one");
-        PagedHostingEnvironmentResults pagedResults = PagedHostingEnvironmentResults.builder().results(Arrays.asList(he)).build();
-        Mockito.when(eRepository.findHostingEnvironments(Mockito.any(ListFilterOptions.class))).thenReturn(pagedResults);
-
-        given()
-            .auth()
-            .oauth2(token)
-            .contentType(ContentType.JSON)
-        .when()
-            .get("engagements/hosting/environments")
-        .then()
-            .statusCode(200)
-            .body(containsString("env1"))
-            .body(containsString("env-one"));
 
     }
 

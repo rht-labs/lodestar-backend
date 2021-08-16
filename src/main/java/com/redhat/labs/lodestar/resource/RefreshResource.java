@@ -11,7 +11,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.metrics.MetricUnits;
-import org.eclipse.microprofile.metrics.annotation.Counted;
 import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SecuritySchemeType;
@@ -27,6 +26,7 @@ import com.redhat.labs.lodestar.model.event.EventType;
 import com.redhat.labs.lodestar.rest.client.ActivityApiClient;
 import com.redhat.labs.lodestar.service.ArtifactService;
 import com.redhat.labs.lodestar.service.EngagementService;
+import com.redhat.labs.lodestar.service.HostingService;
 import com.redhat.labs.lodestar.service.ParticipantService;
 
 import io.vertx.mutiny.core.eventbus.EventBus;
@@ -47,6 +47,9 @@ public class RefreshResource {
 
     @Inject
     ArtifactService artifactService;
+    
+    @Inject
+    HostingService hostingService;
 
     @Inject
     @RestClient
@@ -62,7 +65,6 @@ public class RefreshResource {
             @APIResponse(responseCode = "404", description = "UUID provided, but no engagement found in database."),
             @APIResponse(responseCode = "202", description = "The request was accepted and will be processed.") })
     @Operation(summary = "Refreshes database with data in git, purging first if the query paramater set to true.")
-    @Counted(name = "engagement-put-refresh-counted")
     @Timed(name = "engagement-put-refresh-timer", unit = MetricUnits.MILLISECONDS)
     public Response refresh(
             @Parameter(description = "When set deletes engagements first.") @QueryParam("purgeFirst") Boolean purgeFirst,
@@ -71,7 +73,8 @@ public class RefreshResource {
             @Parameter(description = "Refresh artifacts") @QueryParam("artifacts") boolean refreshArtifacts,
             @Parameter(description = "Refresh participants") @QueryParam("participants") boolean refreshParticipants,
             @Parameter(description = "Refresh activity") @QueryParam("activity") boolean refreshActivity,
-            @Parameter(description = "Refresh engagements") @QueryParam("engagements") boolean refreshEngagements) {
+            @Parameter(description = "Refresh engagements") @QueryParam("engagements") boolean refreshEngagements,
+            @Parameter(description = "Refresh hosting") @QueryParam("hosting") boolean refreshHosting) {
 
         boolean didPickSomething = false;
 
@@ -88,6 +91,11 @@ public class RefreshResource {
 
         if (refreshArtifacts) {
             eventBus.sendAndForget(EventType.RELOAD_ARTIFACTS_EVENT_ADDRESS, EventType.RELOAD_ARTIFACTS_EVENT_ADDRESS);
+            didPickSomething = true;
+        }
+        
+        if(refreshHosting) {
+            eventBus.sendAndForget(EventType.RELOAD_HOSTING_EVENT_ADDRESS, EventType.RELOAD_ARTIFACTS_EVENT_ADDRESS);
             didPickSomething = true;
         }
 

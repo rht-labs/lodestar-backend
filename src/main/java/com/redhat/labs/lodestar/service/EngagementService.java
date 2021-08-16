@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -14,8 +13,6 @@ import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
 import javax.json.bind.Jsonb;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -36,6 +33,7 @@ import com.redhat.labs.lodestar.model.Engagement.EngagementState;
 import com.redhat.labs.lodestar.model.EngagementAttribute;
 import com.redhat.labs.lodestar.model.EngagementUser;
 import com.redhat.labs.lodestar.model.EngagementUserSummary;
+import com.redhat.labs.lodestar.model.ErrorMessage;
 import com.redhat.labs.lodestar.model.Hook;
 import com.redhat.labs.lodestar.model.HostingEnvironment;
 import com.redhat.labs.lodestar.model.Launch;
@@ -48,7 +46,6 @@ import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.model.pagination.PagedArtifactResults;
 import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
 import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
-import com.redhat.labs.lodestar.model.pagination.PagedHostingEnvironmentResults;
 import com.redhat.labs.lodestar.model.pagination.PagedScoreResults;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
 import com.redhat.labs.lodestar.model.pagination.PagedUseCaseResults;
@@ -239,6 +236,10 @@ public class EngagementService {
         
         if(commitMessageContains(copy, "artifacts")) {
             eventBus.sendAndForget(EventType.UPDATE_ARTIFACTS_EVENT_ADDRESS, message);
+        }
+        
+        if(commitMessageContains(copy, "hosting_environments")) {
+            eventBus.sendAndForget(EventType.UPDATE_HOSTING_EVENT_ADDRESS, message);
         }
 
         return updated;
@@ -708,6 +709,14 @@ public class EngagementService {
 
         return statusCounts;
     }
+    
+    public Response getNotWriteableResponse(String engagementUuid, String type) {
+        return Response.status(403).entity(new ErrorMessage("User is not authorized to write to type %s for %s", type, engagementUuid)).build();
+    }
+    
+    public Engagement getByUuid(String uuid) {
+        return getByUuid(uuid, new FilterOptions());
+    }
 
     /**
      * Returns an {@link Engagement} if it is present in the data store. Otherwise,
@@ -843,10 +852,6 @@ public class EngagementService {
      */
     public PagedArtifactResults getArtifacts(ListFilterOptions filterOptions) {
         return repository.findArtifacts(filterOptions);
-    }
-
-    public PagedHostingEnvironmentResults getHostingEnvironments(ListFilterOptions filterOptions) {
-        return repository.findHostingEnvironments(filterOptions);
     }
 
     public PagedScoreResults getScores(ListFilterOptions filterOptions) {

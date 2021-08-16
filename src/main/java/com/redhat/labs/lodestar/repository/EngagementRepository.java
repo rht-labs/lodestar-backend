@@ -5,8 +5,8 @@ import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.regex;
 import static com.mongodb.client.model.Projections.exclude;
 import static com.mongodb.client.model.Projections.include;
-import static com.mongodb.client.model.Updates.set;
 import static com.mongodb.client.model.Updates.combine;
+import static com.mongodb.client.model.Updates.set;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,7 +31,6 @@ import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Commit;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.EngagementUserSummary;
-import com.redhat.labs.lodestar.model.HostingEnvironment;
 import com.redhat.labs.lodestar.model.Score;
 import com.redhat.labs.lodestar.model.Status;
 import com.redhat.labs.lodestar.model.UseCase;
@@ -40,7 +39,6 @@ import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.model.pagination.PagedArtifactResults;
 import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
 import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
-import com.redhat.labs.lodestar.model.pagination.PagedHostingEnvironmentResults;
 import com.redhat.labs.lodestar.model.pagination.PagedScoreResults;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
 import com.redhat.labs.lodestar.model.pagination.PagedUseCaseResults;
@@ -400,33 +398,6 @@ public class EngagementRepository implements PanacheMongoRepository<Engagement> 
                 mongoCollection().aggregate(pipeline, PagedScoreResults.class));
 
         PagedScoreResults results = optional.orElse(PagedScoreResults.builder().results(Arrays.asList()).build());
-
-        results.setCurrentPage(filterOptions.getPage().orElse(1));
-        results.setPerPage(filterOptions.getPerPage().orElse(20));
-
-        return results;
-
-    }
-
-    /**
-     * Returns the {@link PagedHostingEnvironmentResults} containing the
-     * {@link HostingEnvironment}s that match the given {@link ListFilterOptions}.
-     * 
-     * @param filterOptions
-     * @return
-     */
-    public PagedHostingEnvironmentResults findHostingEnvironments(ListFilterOptions filterOptions) {
-
-        filterOptions.setUnwindFieldName(Optional.of("hostingEnvironments"));
-        filterOptions.setUnwindProjectFieldNames(Optional.of(ClassFieldUtils
-                .classFieldNamesAsCommaSeparatedString(HostingEnvironment.class, Optional.of("hostingEnvironments"))));
-
-        List<Bson> pipeline = MongoAggregationHelper.generatePagedAggregationPipeline(filterOptions);
-        Optional<PagedHostingEnvironmentResults> optional = findFirstFromIterable(
-                mongoCollection().aggregate(pipeline, PagedHostingEnvironmentResults.class));
-
-        PagedHostingEnvironmentResults results = optional
-                .orElse(PagedHostingEnvironmentResults.builder().results(Arrays.asList()).build());
 
         results.setCurrentPage(filterOptions.getPage().orElse(1));
         results.setPerPage(filterOptions.getPerPage().orElse(20));

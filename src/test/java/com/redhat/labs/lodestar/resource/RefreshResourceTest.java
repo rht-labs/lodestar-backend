@@ -52,7 +52,7 @@ class RefreshResourceTest extends IntegrationTestHelper {
     @Test
     void testParticipantReloadFail() throws Exception {
         
-        Mockito.when(participantClient.refreshParticipants()).thenReturn(Response.serverError().build());
+        Mockito.when(participantClient.refreshParticipants()).thenReturn(Response.status(403).build());
 
         given().queryParam("participants", true).when().auth().oauth2(validToken)
         .put("/engagements/refresh").then().statusCode(202);
@@ -62,11 +62,22 @@ class RefreshResourceTest extends IntegrationTestHelper {
     
     @Test
     void testArtifactsReload() throws Exception {
-
+        
         given().queryParam("artifacts", true).when().auth().oauth2(validToken)
         .put("/engagements/refresh").then().statusCode(202);
         
         Mockito.verify(artifactClient, Mockito.timeout(1000)).refreshArtifacts();
+    }
+    
+    @Test
+    void testHostingReload() throws Exception {
+        Response r = Response.ok().header("x-total-hosting", 1000000000).build();
+        Mockito.when(hostingApiClient.refreshHostingEnvironments()).thenReturn(r);
+
+        given().queryParam("hosting", true).when().auth().oauth2(validToken)
+        .put("/engagements/refresh").then().statusCode(202);
+        
+        Mockito.verify(hostingApiClient, Mockito.timeout(1000)).refreshHostingEnvironments();
     }
     
     @Test
