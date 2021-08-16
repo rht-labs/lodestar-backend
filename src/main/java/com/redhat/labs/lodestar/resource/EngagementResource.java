@@ -302,6 +302,7 @@ public class EngagementResource {
     @POST
     @SecurityRequirement(name = "jwt", scopes = {})
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "403", description = "Not authorized for engagement type"),
             @APIResponse(responseCode = "409", description = "Engagement resource already exists"),
             @APIResponse(responseCode = "201", description = "Engagement stored in database") })
     @Operation(summary = "Creates the engagement resource in the database.")
@@ -311,8 +312,7 @@ public class EngagementResource {
         
         boolean writer = jwtUtils.isAllowedToWriteEngagement(jwt, configService.getPermission(engagement.getType()));
         if(!writer) {
-            String message = String.format("{\"message\": \"You cannot modify %s engagements\"}", engagement.getType());
-            return Response.status(403).entity(message).build();
+            return forbiddenResponse(engagement.getType());
         }
 
         // pull user info from token
@@ -324,7 +324,7 @@ public class EngagementResource {
 
         // build location response
         UriBuilder builder = uriInfo.getAbsolutePathBuilder();
-        builder.path("/customers/" + created.getCustomerName() + "/projects/" + created.getProjectName());
+        builder.path("/" + engagement.getUuid());
         return Response.created(builder.build()).entity(created).build();
 
     }
@@ -338,6 +338,7 @@ public class EngagementResource {
     @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/customers/{customerName}/projects/{projectName}")
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "403", description = "Not authorized for engagement type"),
             @APIResponse(responseCode = "404", description = "Engagement resource not found to update"),
             @APIResponse(responseCode = "200", description = "Engagement updated in the database") })
     @Operation(deprecated = true, summary = "Updates the engagement resource in the database.")
@@ -348,8 +349,7 @@ public class EngagementResource {
         
         boolean writer = jwtUtils.isAllowedToWriteEngagement(jwt, configService.getPermission(engagement.getType()));
         if(!writer) {
-            String message = String.format("{\"message\": \"You cannot modify %s engagements\"}", engagement.getType());
-            return Response.status(403).entity(message).build();
+            return forbiddenResponse(engagement.getType());
         }
 
         // pull user info from token
@@ -364,6 +364,7 @@ public class EngagementResource {
     @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/{id}")
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "403", description = "Not authorized for engagement type"),
             @APIResponse(responseCode = "404", description = "Engagement resource not found to update"),
             @APIResponse(responseCode = "200", description = "Engagement updated in the database") })
     @Operation(summary = "Updates the engagement resource in the database.")
@@ -373,8 +374,7 @@ public class EngagementResource {
 
         boolean writer = jwtUtils.isAllowedToWriteEngagement(jwt, configService.getPermission(engagement.getType()));
         if(!writer) {
-            String message = String.format("{\"message\": \"You cannot modify %s engagements\"}", engagement.getType());
-            return Response.status(403).entity(message).build();
+            return forbiddenResponse(engagement.getType());
         }
         
         // pull user info from token
@@ -389,6 +389,7 @@ public class EngagementResource {
     @Path("/launch")
     @SecurityRequirement(name = "jwt", scopes = {})
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "403", description = "Not authorized for engagement type"),
             @APIResponse(responseCode = "200", description = "Launch data added to engagement resource and persisted to git") })
     @Operation(summary = "Adds launch data to the engagement resource and immediately persists it to git.")
     @Counted(name = "engagement-put-launch-counted")
@@ -397,8 +398,7 @@ public class EngagementResource {
         
         boolean writer = jwtUtils.isAllowedToWriteEngagement(jwt, configService.getPermission(engagement.getType()));
         if(!writer) {
-            String message = String.format("{\"message\": \"You cannot modify %s engagements\"}", engagement.getType());
-            return Response.status(403).entity(message).build();
+            return forbiddenResponse(engagement.getType());
         }
 
         // pull user info from token
@@ -433,6 +433,7 @@ public class EngagementResource {
     @SecurityRequirement(name = "jwt", scopes = {})
     @Path("/{id}")
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "403", description = "Not authorized for engagement type"),
             @APIResponse(responseCode = "404", description = "Engagement resource not found to delete"),
             @APIResponse(responseCode = "400", description = "Engagement resource has already been launched"),
             @APIResponse(responseCode = "202", description = "Engagement deleted in the database and sent to Git for processing") })
@@ -444,13 +445,17 @@ public class EngagementResource {
         Engagement engagement = engagementService.getByUuid(uuid, new FilterOptions());
         boolean writer = jwtUtils.isAllowedToWriteEngagement(jwt, configService.getPermission(engagement.getType()));
         if(!writer) {
-            String message = String.format("{\"message\": \"You cannot modify %s engagements\"}", engagement.getType());
-            return Response.status(403).entity(message).build();
+            return forbiddenResponse(engagement.getType());
         }
         
         engagementService.deleteEngagement(uuid);
         return Response.accepted().build();
 
+    }
+    
+    private Response forbiddenResponse(String type) {
+        String message = String.format("{\"message\": \"You cannot modify %s engagements\"}", type);
+        return Response.status(403).entity(message).build();
     }
 
     private void setDefaultPagingFilterOptions(ListFilterOptions options) {
