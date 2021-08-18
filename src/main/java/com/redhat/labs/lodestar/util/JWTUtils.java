@@ -52,7 +52,7 @@ public class JWTUtils {
     }
     
     public boolean isAllowedToWriteEngagement(JsonWebToken jwt, List<String> allowedGroups) {
-        return jwt.getGroups().stream().filter(allowedGroups::contains).findAny().isPresent();
+        return jwt.getGroups().stream().anyMatch(allowedGroups::contains);
     }
 
     public Optional<String> claimIsValid(JsonWebToken jwt, String claimName) {

@@ -4,7 +4,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -14,11 +13,8 @@ import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
-import javax.json.JsonArray;
-import javax.json.JsonObject;
 import javax.json.bind.Jsonb;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Response;
 
 import org.apache.http.HttpStatus;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -71,6 +67,9 @@ public class EngagementService {
 
     @ConfigProperty(name = "commit.msg.filter.list", defaultValue = "not.set")
     List<String> commitFilteredMessages;
+    
+    @ConfigProperty(name = "v2.enabled")
+    boolean v2Enabled;
 
     @Inject
     Jsonb jsonb;
@@ -233,11 +232,11 @@ public class EngagementService {
         
         String message = String.format("%s,%s,%s", engagement.getUuid(), engagement.getLastUpdateByEmail(), engagement.getLastUpdateByName());
 
-        if(commitMessageContains(copy, "engagement_users")) {
+        if(v2Enabled && commitMessageContains(copy, "engagement_users")) {
             eventBus.sendAndForget(EventType.UPDATE_PARTICIPANTS_EVENT_ADDESS, message);
         }
         
-        if(commitMessageContains(copy, "artifacts")) {
+        if(v2Enabled && commitMessageContains(copy, "artifacts")) {
             eventBus.sendAndForget(EventType.UPDATE_ARTIFACTS_EVENT_ADDRESS, message);
         }
 
