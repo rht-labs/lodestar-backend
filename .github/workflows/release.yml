@@ -13,7 +13,7 @@ jobs:
       id: need_to_build
       run: |
         function image_exists() {
-            curl --silent -f -lSL https://quay.io/v1/repositories/rht-labs/lodestar-backend/tags/$1 > /dev/null
+            curl --silent -f -lSL https://quay.io/v1/repositories/${{ github.repository }}/tags/$1 > /dev/null
         }
         if image_exists ${{ github.sha }}; then
             echo "Image exists - not building"
@@ -24,11 +24,27 @@ jobs:
         fi
     - uses: actions/checkout@v2
       if: steps.need_to_build.outputs.need_to_build == 1
+    - name: Find and Replace Reader Writer
+      if: steps.need_to_build.outputs.need_to_build == 1
+      shell: bash
+      env:
+        READER: ${{ secrets.READERS }}
+        WRITER: ${{ secrets.WRITERS }}
+      run: |
+        sed -i '/^quarkus.http.auth.policy.role-reader.roles-allowed/ s/$/,'"$READER"'/' src/main/resources/application.properties
+        sed -i '/^quarkus.http.auth.policy.role-writer.roles-allowed/ s/$/,'"$WRITER"'/' src/main/resources/application.properties
+    - name: Find and Replace Commit
+      if: steps.need_to_build.outputs.need_to_build == 1
+      uses: jacobtomlinson/gha-find-replace@0.1.2
+      with:
+        find: "###GIT_COMMIT###"
+        replace: "${{ github.sha }}"
+        include: ".s2i"
     - uses: redhat-cop/github-actions/s2i@v2
       if: steps.need_to_build.outputs.need_to_build == 1
       with:
         base: registry.access.redhat.com/ubi8/openjdk-11:1.3
-        output_image: "quay.io/rht-labs/lodestar-backend:${{ github.sha }}"
+        output_image: "quay.io/${{ github.repository }}:${{ github.sha }}"
         image_push_registry: quay.io
         image_push_username: ${{ secrets.QUAY_USERNAME }}
         image_push_password: ${{ secrets.QUAY_PASSWORD }}
@@ -41,7 +57,7 @@ jobs:
     - name: tag with release version
       uses: tinact/docker.image-retag@1.0.2
       with:
-        image_name: rht-labs/lodestar-backend
+        image_name: ${{ github.repository }}
         image_old_tag: ${{ github.sha }}
         image_new_tag: ${{ github.event.release.tag_name }}
         registry: quay.io
@@ -50,7 +66,7 @@ jobs:
     - name: tag with latest
       uses: tinact/docker.image-retag@1.0.2
       with:
-        image_name: rht-labs/lodestar-backend
+        image_name: ${{ github.repository }}
         image_old_tag: ${{ github.sha }}
         registry: quay.io
         registry_username: ${{ secrets.QUAY_USERNAME }}
