@@ -2,6 +2,7 @@ package com.redhat.labs.lodestar.resource;
 
 import java.util.List;
 
+import javax.annotation.PostConstruct;
 import javax.annotation.security.PermitAll;
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -45,7 +46,7 @@ public class StatusResource {
     String cleanupToken;
     
     @ConfigProperty(name = "commit.watch.files")
-    List<String> commitedFilesToWatch;
+    List<String> committedFilesToWatch;
     
     @Inject
     @RestClient
@@ -57,6 +58,12 @@ public class StatusResource {
     
     @Inject
     EngagementService engagementService;
+
+    @PostConstruct
+    void trimToken() {
+        statusToken = statusToken.trim();
+        cleanupToken = cleanupToken.trim();
+    }
 
     @POST
     @PermitAll
@@ -73,7 +80,7 @@ public class StatusResource {
             return Response.status(Status.UNAUTHORIZED).build();
         }
         
-        if(hook.didFileChange(commitedFilesToWatch)) {
+        if(hook.didFileChange(committedFilesToWatch)) {
             activityApi.postHook(hook, gitLabToken);
         }
             
@@ -98,7 +105,7 @@ public class StatusResource {
         }
         
         if(hook.wasProjectDeleted()) {
-            LOGGER.debug("Remove engagement cust {} proj {}", hook.getCustomerName(), hook.getEngagementName());
+            LOGGER.debug("Remove engagement customer {} proj {}", hook.getCustomerName(), hook.getEngagementName());
             engagementService.deleteByCustomerAndProjectName(hook.getCustomerName(), hook.getEngagementName());
             return Response.status(204).build();
         }
