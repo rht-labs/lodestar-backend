@@ -61,8 +61,11 @@ public class StatusResource {
 
     @PostConstruct
     void trimToken() {
+        LOGGER.debug("Status match before trim {}", statusToken.trim().equals(statusToken));
         statusToken = statusToken.trim();
         cleanupToken = cleanupToken.trim();
+        LOGGER.debug("Status match after trim {}", statusToken.trim().equals(statusToken));
+
     }
 
     @POST
@@ -101,6 +104,7 @@ public class StatusResource {
         
         if(!cleanupToken.equals(secretTokenHeader) || cleanupToken.equals("OFF")) {
             LOGGER.error("Invalid cleanup token used");
+
             return Response.status(Status.UNAUTHORIZED).build();
         }
         
