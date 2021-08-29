@@ -57,23 +57,23 @@ public class RefreshResource {
         boolean didPickSomething = false;
 
         if (refreshActivity) {
-            eventBus.sendAndForget(EventType.RELOAD_ACTIVITY_EVENT_ADDRESS, EventType.RELOAD_ACTIVITY_EVENT_ADDRESS);
+            eventBus.publish(EventType.RELOAD_ACTIVITY_EVENT_ADDRESS, EventType.RELOAD_ACTIVITY_EVENT_ADDRESS);
             didPickSomething = true;
         }
 
         if (refreshParticipants) {
-            eventBus.sendAndForget(EventType.RELOAD_PARTICIPANTS_EVENT_ADDRESS,
+            eventBus.publish(EventType.RELOAD_PARTICIPANTS_EVENT_ADDRESS,
                     EventType.RELOAD_PARTICIPANTS_EVENT_ADDRESS);
             didPickSomething = true;
         }
 
         if (refreshArtifacts) {
-            eventBus.sendAndForget(EventType.RELOAD_ARTIFACTS_EVENT_ADDRESS, EventType.RELOAD_ARTIFACTS_EVENT_ADDRESS);
+            eventBus.publish(EventType.RELOAD_ARTIFACTS_EVENT_ADDRESS, EventType.RELOAD_ARTIFACTS_EVENT_ADDRESS);
             didPickSomething = true;
         }
 
         if (refreshStatus) {
-            eventBus.sendAndForget(EventType.RELOAD_ENGAGEMENT_STATUS_EVENT_ADDRESS, EventType.RELOAD_ENGAGEMENT_STATUS_EVENT_ADDRESS);
+            eventBus.publish(EventType.RELOAD_ENGAGEMENT_STATUS_EVENT_ADDRESS, EventType.RELOAD_ENGAGEMENT_STATUS_EVENT_ADDRESS);
             didPickSomething = true;
         }
 

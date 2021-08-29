@@ -108,7 +108,7 @@ class ActiveGitSyncServiceTest {
         service.repopulateDbIfEmpty();
 
         Mockito.verify(eventBus,
-                Mockito.times(0)).sendAndForget(Mockito.eq(EventType.LOAD_DATABASE_EVENT_ADDRESS), Mockito.any());
+                Mockito.times(0)).publish(Mockito.eq(EventType.LOAD_DATABASE_EVENT_ADDRESS), Mockito.any());
 
     }
 
@@ -122,7 +122,7 @@ class ActiveGitSyncServiceTest {
 
         service.repopulateDbIfEmpty();
 
-        Mockito.verify(eventBus).sendAndForget(Mockito.eq(EventType.LOAD_DATABASE_EVENT_ADDRESS), Mockito.any());
+        Mockito.verify(eventBus).publish(Mockito.eq(EventType.LOAD_DATABASE_EVENT_ADDRESS), Mockito.any());
 
     }
 
@@ -132,7 +132,7 @@ class ActiveGitSyncServiceTest {
         service.checkForNullUuids();
 
         Mockito.verify(eventBus,
-                Mockito.times(0)).sendAndForget(Mockito.eq(EventType.SET_UUID_EVENT_ADDRESS), Mockito.any());
+                Mockito.times(0)).publish(Mockito.eq(EventType.SET_UUID_EVENT_ADDRESS), Mockito.any());
 
     }
 
@@ -150,7 +150,7 @@ class ActiveGitSyncServiceTest {
         // call again to verify only one event sent
 
         Mockito.verify(eventBus,
-                Mockito.times(1)).sendAndForget(Mockito.eq(EventType.SET_UUID_EVENT_ADDRESS), Mockito.any());
+                Mockito.times(1)).publish(Mockito.eq(EventType.SET_UUID_EVENT_ADDRESS), Mockito.any());
 
     }
 

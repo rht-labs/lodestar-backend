@@ -108,7 +108,7 @@ public class ActiveGitSyncService {
         // sync mongo with git if no engagements found in mongo
         if (active) {
 
-            eventBus.sendAndForget(EventType.LOAD_DATABASE_EVENT_ADDRESS, EventType.LOAD_DATABASE_EVENT_ADDRESS);
+            eventBus.publish(EventType.LOAD_DATABASE_EVENT_ADDRESS, EventType.LOAD_DATABASE_EVENT_ADDRESS);
 
         }
 
@@ -119,7 +119,7 @@ public class ActiveGitSyncService {
 
         if (active && !performedUuidCheck) {
             // check for null uuids only once
-            eventBus.sendAndForget(EventType.SET_UUID_EVENT_ADDRESS, EventType.SET_UUID_EVENT_ADDRESS);
+            eventBus.publish(EventType.SET_UUID_EVENT_ADDRESS, EventType.SET_UUID_EVENT_ADDRESS);
             performedUuidCheck = true;
         }
 

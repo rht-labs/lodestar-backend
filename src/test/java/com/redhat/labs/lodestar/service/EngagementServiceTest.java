@@ -171,7 +171,7 @@ class EngagementServiceTest {
         assertNull(created.getCommitMessage());
 
         Mockito.verify(repository, Mockito.times(1)).persist(e);
-        Mockito.verify(eventBus, Mockito.times(1)).sendAndForget(Mockito.eq(EventType.CREATE_ENGAGEMENT_EVENT_ADDRESS),
+        Mockito.verify(eventBus, Mockito.times(1)).publish(Mockito.eq(EventType.CREATE_ENGAGEMENT_EVENT_ADDRESS),
                 Mockito.any());
 
     }
@@ -310,7 +310,7 @@ class EngagementServiceTest {
         assertNotNull(user.getUuid());
         assertFalse(user.isReset());
 
-        Mockito.verify(eventBus, Mockito.times(1)).sendAndForget(Mockito.eq(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS),
+        Mockito.verify(eventBus, Mockito.times(1)).publish(Mockito.eq(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS),
                 Mockito.any());
 
     }
@@ -344,7 +344,7 @@ class EngagementServiceTest {
         assertEquals("4444", user.getUuid());
         assertFalse(user.isReset());
 
-        Mockito.verify(eventBus, Mockito.times(1)).sendAndForget(Mockito.eq(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS),
+        Mockito.verify(eventBus, Mockito.times(1)).publish(Mockito.eq(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS),
                 Mockito.any());
 
     }
@@ -404,9 +404,9 @@ class EngagementServiceTest {
 
         service.updateStatusAndCommits(hook);
 
-        Mockito.verify(eventBus).sendAndForget(Mockito.eq(EventType.UPDATE_COMMITS_EVENT_ADDRESS),
+        Mockito.verify(eventBus).publish(Mockito.eq(EventType.UPDATE_COMMITS_EVENT_ADDRESS),
                 Mockito.any(Engagement.class));
-        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(Mockito.eq(EventType.UPDATE_STATUS_EVENT_ADDRESS),
+        Mockito.verify(eventBus, Mockito.times(0)).publish(Mockito.eq(EventType.UPDATE_STATUS_EVENT_ADDRESS),
                 Mockito.any(Engagement.class));
 
     }
@@ -425,9 +425,9 @@ class EngagementServiceTest {
 
         service.updateStatusAndCommits(hook);
 
-        Mockito.verify(eventBus).sendAndForget(Mockito.eq(EventType.UPDATE_COMMITS_EVENT_ADDRESS),
+        Mockito.verify(eventBus).publish(Mockito.eq(EventType.UPDATE_COMMITS_EVENT_ADDRESS),
                 Mockito.any(Engagement.class));
-        Mockito.verify(eventBus).sendAndForget(Mockito.eq(EventType.UPDATE_STATUS_EVENT_ADDRESS),
+        Mockito.verify(eventBus).publish(Mockito.eq(EventType.UPDATE_STATUS_EVENT_ADDRESS),
                 Mockito.any(Engagement.class));
 
     }
@@ -441,10 +441,10 @@ class EngagementServiceTest {
         service.commitFilteredMessages = Lists.newArrayList("manual_refresh");
         service.updateStatusAndCommits(hook);
 
-        Mockito.verify(eventBus).sendAndForget(EventType.DELETE_AND_RELOAD_ENGAGEMENT_EVENT_ADDRESS, "1234");
-        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(Mockito.eq(EventType.UPDATE_COMMITS_EVENT_ADDRESS),
+        Mockito.verify(eventBus).publish(EventType.DELETE_AND_RELOAD_ENGAGEMENT_EVENT_ADDRESS, "1234");
+        Mockito.verify(eventBus, Mockito.times(0)).publish(Mockito.eq(EventType.UPDATE_COMMITS_EVENT_ADDRESS),
                 Mockito.any(Engagement.class));
-        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(Mockito.eq(EventType.UPDATE_STATUS_EVENT_ADDRESS),
+        Mockito.verify(eventBus, Mockito.times(0)).publish(Mockito.eq(EventType.UPDATE_STATUS_EVENT_ADDRESS),
                 Mockito.any(Engagement.class));
 
     }
@@ -660,7 +660,7 @@ class EngagementServiceTest {
         service.deleteEngagement("1234");
 
         Mockito.verify(repository).delete(e);
-        Mockito.verify(eventBus).sendAndForget(EventType.DELETE_ENGAGEMENT_EVENT_ADDRESS, e);
+        Mockito.verify(eventBus).publish(EventType.DELETE_ENGAGEMENT_EVENT_ADDRESS, e);
 
     }
 
@@ -733,7 +733,7 @@ class EngagementServiceTest {
         long count = service.setNullUuids();
         assertEquals(2, count);
 
-        Mockito.verify(eventBus, Mockito.times(2)).sendAndForget(Mockito.eq(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS),
+        Mockito.verify(eventBus, Mockito.times(2)).publish(Mockito.eq(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS),
                 Mockito.any());
         Mockito.verify(repository).update(Mockito.anyIterable());
 
@@ -746,9 +746,9 @@ class EngagementServiceTest {
 
         service.syncGitToDatabase(true, null, null);
 
-        Mockito.verify(eventBus).sendAndForget(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS,
+        Mockito.verify(eventBus).publish(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS,
                 EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS);
-        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(EventType.LOAD_DATABASE_EVENT_ADDRESS,
+        Mockito.verify(eventBus, Mockito.times(0)).publish(EventType.LOAD_DATABASE_EVENT_ADDRESS,
                 EventType.LOAD_DATABASE_EVENT_ADDRESS);
 
     }
@@ -758,9 +758,9 @@ class EngagementServiceTest {
 
         service.syncGitToDatabase(false, null, null);
 
-        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS,
+        Mockito.verify(eventBus, Mockito.times(0)).publish(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS,
                 EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS);
-        Mockito.verify(eventBus).sendAndForget(EventType.LOAD_DATABASE_EVENT_ADDRESS,
+        Mockito.verify(eventBus).publish(EventType.LOAD_DATABASE_EVENT_ADDRESS,
                 EventType.LOAD_DATABASE_EVENT_ADDRESS);
 
     }
@@ -770,10 +770,10 @@ class EngagementServiceTest {
 
         service.syncGitToDatabase(false, null, "1234");
 
-        Mockito.verify(eventBus).sendAndForget(EventType.DELETE_AND_RELOAD_ENGAGEMENT_EVENT_ADDRESS, "1234");
-        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS,
+        Mockito.verify(eventBus).publish(EventType.DELETE_AND_RELOAD_ENGAGEMENT_EVENT_ADDRESS, "1234");
+        Mockito.verify(eventBus, Mockito.times(0)).publish(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS,
                 EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS);
-        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(EventType.LOAD_DATABASE_EVENT_ADDRESS,
+        Mockito.verify(eventBus, Mockito.times(0)).publish(EventType.LOAD_DATABASE_EVENT_ADDRESS,
                 EventType.LOAD_DATABASE_EVENT_ADDRESS);
 
     }
@@ -786,11 +786,11 @@ class EngagementServiceTest {
 
         service.syncGitToDatabase(false, "1234", null);
 
-        Mockito.verify(eventBus).sendAndForget(EventType.DELETE_AND_RELOAD_ENGAGEMENT_EVENT_ADDRESS,
+        Mockito.verify(eventBus).publish(EventType.DELETE_AND_RELOAD_ENGAGEMENT_EVENT_ADDRESS,
                 String.valueOf(e.getProjectId()));
-        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS,
+        Mockito.verify(eventBus, Mockito.times(0)).publish(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS,
                 EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS);
-        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(EventType.LOAD_DATABASE_EVENT_ADDRESS,
+        Mockito.verify(eventBus, Mockito.times(0)).publish(EventType.LOAD_DATABASE_EVENT_ADDRESS,
                 EventType.LOAD_DATABASE_EVENT_ADDRESS);
 
     }
@@ -806,11 +806,11 @@ class EngagementServiceTest {
         assertEquals(404, wae.getResponse().getStatus());
         assertEquals("no engagement found with id 1234", wae.getMessage());
 
-        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(EventType.DELETE_AND_RELOAD_ENGAGEMENT_EVENT_ADDRESS,
+        Mockito.verify(eventBus, Mockito.times(0)).publish(EventType.DELETE_AND_RELOAD_ENGAGEMENT_EVENT_ADDRESS,
                 e);
-        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS,
+        Mockito.verify(eventBus, Mockito.times(0)).publish(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS,
                 EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS);
-        Mockito.verify(eventBus, Mockito.times(0)).sendAndForget(EventType.LOAD_DATABASE_EVENT_ADDRESS,
+        Mockito.verify(eventBus, Mockito.times(0)).publish(EventType.LOAD_DATABASE_EVENT_ADDRESS,
                 EventType.LOAD_DATABASE_EVENT_ADDRESS);
 
     }
@@ -848,7 +848,7 @@ class EngagementServiceTest {
         assertNull(updated.getLaunch().getLaunchedBy());
 
         Mockito.verify(repository).updateEngagement(Mockito.any(), Mockito.any());
-        Mockito.verify(eventBus).sendAndForget(Mockito.eq(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS), Mockito.any());
+        Mockito.verify(eventBus).publish(Mockito.eq(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS), Mockito.any());
 
     }
 
@@ -878,7 +878,7 @@ class EngagementServiceTest {
         assertNull(updated.getLaunch());
         
         Mockito.verify(repository, Mockito.times(2)).updateEngagement(Mockito.any(), Mockito.any());
-        Mockito.verify(eventBus, Mockito.times(2)).sendAndForget(Mockito.eq(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS), Mockito.any());
+        Mockito.verify(eventBus, Mockito.times(2)).publish(Mockito.eq(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS), Mockito.any());
 
     }
 
@@ -904,7 +904,7 @@ class EngagementServiceTest {
         assertEquals("test", updated.getLaunch().getLaunchedBy());
         
         Mockito.verify(repository, Mockito.times(1)).updateEngagement(Mockito.any(), Mockito.any());
-        Mockito.verify(eventBus, Mockito.times(1)).sendAndForget(Mockito.eq(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS), Mockito.any());
+        Mockito.verify(eventBus, Mockito.times(1)).publish(Mockito.eq(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS), Mockito.any());
 
     }
 

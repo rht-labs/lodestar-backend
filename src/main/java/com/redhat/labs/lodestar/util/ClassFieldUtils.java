@@ -4,15 +4,11 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import javax.ws.rs.WebApplicationException;
-
-import org.apache.commons.lang3.reflect.FieldUtils;
 
 public class ClassFieldUtils {
 
@@ -53,7 +49,7 @@ public class ClassFieldUtils {
 
     public static String classFieldNamesAsCommaSeparatedString(Class<?> clazz, Optional<String> prefix) {
 
-        Field[] fields = FieldUtils.getAllFields(clazz);
+        Field[] fields = getAllFields(clazz);
         List<String> names = Stream.of(fields).map(f -> ClassFieldUtils.getNestedFieldName(f.getName(), prefix))
                 .collect(Collectors.toList());
 
@@ -144,6 +140,24 @@ public class ClassFieldUtils {
     static String getNestedFieldName(String fieldName, Optional<String> prefix) {
         return prefix.isPresent() ? new StringBuilder(prefix.get()).append(".").append(fieldName).toString()
                 : fieldName;
+    }
+
+    //copied from apache commons lang while we figure out how to replace this in its entirety
+    private static List<Field> getAllFieldsList(final Class<?> cls) {
+
+        final List<Field> allFields = new ArrayList<>();
+        Class<?> currentClass = cls;
+        while (currentClass != null) {
+            final Field[] declaredFields = currentClass.getDeclaredFields();
+            Collections.addAll(allFields, declaredFields);
+            currentClass = currentClass.getSuperclass();
+        }
+        return allFields;
+    }
+
+    private static Field[] getAllFields(final Class<?> cls) {
+        final List<Field> allFieldsList = getAllFieldsList(cls);
+        return allFieldsList.toArray(new Field[0]);
     }
 
 }

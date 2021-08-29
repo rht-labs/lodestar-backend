@@ -234,7 +234,7 @@ public class EventService {
 
             String address = isCreate ? EventType.RETRY_CREATE_EVENT_ADDRESS : EventType.RETRY_UPDATE_EVENT_ADDRESS;
             event.incrementCurrentRetryCount();
-            eventBus.sendAndForget(address, event);
+            eventBus.publish(address, event);
 
         }
 
@@ -258,7 +258,7 @@ public class EventService {
 
             LOGGER.error("failed to delete engagement with message {}, engagement: {}", e.getMessage(), engagement);
             event.incrementCurrentRetryCount();
-            eventBus.sendAndForget(EventType.RETRY_DELETE_EVENT_ADDRESS, event);
+            eventBus.publish(EventType.RETRY_DELETE_EVENT_ADDRESS, event);
 
         }
 
@@ -341,7 +341,7 @@ public class EventService {
         String json = jsonb.toJson(getEngagementsFromResponse(response));
 
         // send engagements for processing
-        eventBus.sendAndForget(EventType.PERSIST_ENGAGEMENT_LIST_EVENT_ADDRESS, json);
+        eventBus.publish(EventType.PERSIST_ENGAGEMENT_LIST_EVENT_ADDRESS, json);
 
         // get total number of pages from response
         Integer totalPages = getNumberOfPages(response);
@@ -353,7 +353,7 @@ public class EventService {
         if (totalPages > 1) {
 
             IntStream.range(2, totalPages + 1)
-                    .forEach(i -> eventBus.sendAndForget(EventType.GET_PAGE_OF_ENGAGEMENTS_EVENT_ADDRESS, i));
+                    .forEach(i -> eventBus.publish(EventType.GET_PAGE_OF_ENGAGEMENTS_EVENT_ADDRESS, i));
 
         }
 
@@ -389,7 +389,7 @@ public class EventService {
 
             if(null != found) {
                 // send event to delete existing engagement from database
-                eventBus.sendAndForget(EventType.DELETE_ENGAGEMENT_FROM_DATABASE_EVENT_ADDRESS, found);
+                eventBus.publish(EventType.DELETE_ENGAGEMENT_FROM_DATABASE_EVENT_ADDRESS, found);
             }
 
         }
@@ -412,7 +412,7 @@ public class EventService {
         }
 
         // send event to insert engagement
-        eventBus.sendAndForget(EventType.PERSIST_ENGAGEMENT_EVENT_ADDRESS, engagement);
+        eventBus.publish(EventType.PERSIST_ENGAGEMENT_EVENT_ADDRESS, engagement);
 
     }
 
@@ -468,7 +468,7 @@ public class EventService {
         String json = jsonb.toJson(engagements);
 
         // send engagements for processing
-        eventBus.sendAndForget(EventType.PERSIST_ENGAGEMENT_LIST_EVENT_ADDRESS, json);
+        eventBus.publish(EventType.PERSIST_ENGAGEMENT_LIST_EVENT_ADDRESS, json);
 
     }
 
@@ -484,7 +484,7 @@ public class EventService {
         // unmarshal
         Engagement[] engagements = jsonb.fromJson(engagementsJson, Engagement[].class);
         // create event for each engagement
-        Arrays.stream(engagements).forEach(e -> eventBus.sendAndForget(EventType.PERSIST_ENGAGEMENT_EVENT_ADDRESS, e));
+        Arrays.stream(engagements).forEach(e -> eventBus.publish(EventType.PERSIST_ENGAGEMENT_EVENT_ADDRESS, e));
 
     }
 
@@ -497,8 +497,8 @@ public class EventService {
     void consumeInsertIfMissingEvent(Engagement engagement) {
 
         if (engagementService.persistEngagementIfNotFound(engagement)) {
-            eventBus.sendAndForget(EventType.UPDATE_STATUS_EVENT_ADDRESS, engagement);
-            eventBus.sendAndForget(EventType.UPDATE_COMMITS_EVENT_ADDRESS, engagement);
+            eventBus.publish(EventType.UPDATE_STATUS_EVENT_ADDRESS, engagement);
+            eventBus.publish(EventType.UPDATE_COMMITS_EVENT_ADDRESS, engagement);
         }
     }
 
