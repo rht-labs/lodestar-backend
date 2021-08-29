@@ -226,7 +226,7 @@ class EventServiceTest extends IntegrationTestHelper {
 
         Mockito.when(engagementService.persistEngagementIfNotFound(Mockito.any())).thenReturn(true);
         Mockito.when(activityClient.getActivityForUuid(Mockito.anyString())).thenReturn(Response.ok().entity(Lists.newArrayList()).build());
-        Mockito.when(gitApiClient.getStatus(Mockito.anyString(), Mockito.anyString())).thenReturn(status);
+        Mockito.when(engagementStatusApiClient.getEngagementStatus(Mockito.anyString())).thenReturn(status);
 
         // send load db event
         eventBus.sendAndForget(EventType.LOAD_DATABASE_EVENT_ADDRESS, EventType.LOAD_DATABASE_EVENT_ADDRESS);
@@ -259,7 +259,7 @@ class EventServiceTest extends IntegrationTestHelper {
 
         Mockito.when(engagementService.persistEngagementIfNotFound(Mockito.any())).thenReturn(true);
         Mockito.when(activityClient.getActivityForUuid(Mockito.anyString())).thenReturn(Response.ok().entity(Lists.newArrayList()).build());
-        Mockito.when(gitApiClient.getStatus(Mockito.anyString(), Mockito.anyString())).thenReturn(status);
+        Mockito.when(engagementStatusApiClient.getEngagementStatus(Mockito.anyString())).thenReturn(status);
 
         // send load db event
         eventBus.sendAndForget(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS, EventType.LOAD_DATABASE_EVENT_ADDRESS);

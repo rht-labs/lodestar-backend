@@ -11,6 +11,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 
+import com.redhat.labs.lodestar.rest.client.EngagementStatusApiClient;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
@@ -55,6 +56,10 @@ public class EventService {
     @Inject
     @RestClient
     ActivityApiClient activityApiClient;
+
+    @Inject
+    @RestClient
+    EngagementStatusApiClient engagementStatusApiClient;
 
     @Inject
     EngagementService engagementService;
@@ -520,14 +525,23 @@ public class EventService {
     @ConsumeEvent(value = EventType.UPDATE_STATUS_EVENT_ADDRESS, blocking = true)
     void consumeUpdateStatusEvent(Engagement engagement) {
 
+        LOGGER.debug("status update {}", engagement.getUuid());
         try {
-            Status status = gitApiClient.getStatus(engagement.getCustomerName(), engagement.getProjectName());
+            engagementStatusApiClient.updateEngagementStatus(engagement.getUuid());
+            Status status = engagementStatusApiClient.getEngagementStatus(engagement.getUuid());
             engagementService.setStatus(engagement.getUuid(), status);
         } catch (WebApplicationException wae) {
             LOGGER.trace("no status found for engagement {}:{}:{}", engagement.getUuid(), engagement.getCustomerName(),
                     engagement.getProjectName());
         }
 
+    }
+
+    @ConsumeEvent(value = EventType.RELOAD_ENGAGEMENT_STATUS_EVENT_ADDRESS, blocking = true)
+    void consumeEngagementStatusReloadEvent(String name) {
+        LOGGER.debug("refresh {}", name);
+        engagementStatusApiClient.refresh();
+        LOGGER.debug("refresh {} completed", name);
     }
     
     @ConsumeEvent(value = EventType.RELOAD_ACTIVITY_EVENT_ADDRESS, blocking = true)
