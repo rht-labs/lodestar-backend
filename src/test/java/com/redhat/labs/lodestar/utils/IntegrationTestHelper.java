@@ -5,16 +5,11 @@ import javax.json.bind.JsonbBuilder;
 import javax.json.bind.JsonbConfig;
 import javax.json.bind.config.PropertyNamingStrategy;
 
+import com.redhat.labs.lodestar.rest.client.*;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import com.redhat.labs.lodestar.repository.ActiveSyncRepository;
 import com.redhat.labs.lodestar.repository.EngagementRepository;
-import com.redhat.labs.lodestar.rest.client.ArtifactApiClient;
-import com.redhat.labs.lodestar.rest.client.ActivityApiClient;
-import com.redhat.labs.lodestar.rest.client.ConfigApiClient;
-import com.redhat.labs.lodestar.rest.client.LodeStarGitApiClient;
-import com.redhat.labs.lodestar.rest.client.LodeStarStatusApiClient;
-import com.redhat.labs.lodestar.rest.client.ParticipantApiClient;
 
 import io.quarkus.test.junit.mockito.InjectMock;
 
@@ -53,6 +48,10 @@ public class IntegrationTestHelper {
     @InjectMock
     @RestClient
     public ParticipantApiClient participantClient;
+
+    @InjectMock
+    @RestClient
+    public EngagementStatusApiClient engagementStatusApiClient;
 
     public static String[] nullEmptyBlankSource() {
         return new String[] { null, "", "   " };

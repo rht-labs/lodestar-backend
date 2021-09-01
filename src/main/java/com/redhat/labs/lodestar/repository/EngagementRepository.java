@@ -19,6 +19,7 @@ import java.util.stream.StreamSupport;
 
 import javax.enterprise.context.ApplicationScoped;
 
+import com.redhat.labs.lodestar.util.ClassFieldUtils;
 import org.bson.conversions.Bson;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -44,7 +45,6 @@ import com.redhat.labs.lodestar.model.pagination.PagedHostingEnvironmentResults;
 import com.redhat.labs.lodestar.model.pagination.PagedScoreResults;
 import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
 import com.redhat.labs.lodestar.model.pagination.PagedUseCaseResults;
-import com.redhat.labs.lodestar.util.ClassFieldUtils;
 
 import io.quarkus.mongodb.panache.PanacheMongoRepository;
 

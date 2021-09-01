@@ -1,8 +1,6 @@
 package com.redhat.labs.lodestar.model.filter;
 
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -44,7 +42,7 @@ public class FilterOptions {
             return includeOptional;
         }
 
-        // get exlude set
+        // get exclude set
         Set<String> excludeSet = getExcludeList().orElse(Set.of());
 
         // filter any includes also in exclude

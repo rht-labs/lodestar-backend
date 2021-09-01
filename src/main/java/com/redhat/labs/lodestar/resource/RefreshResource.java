@@ -1,15 +1,8 @@
 package com.redhat.labs.lodestar.resource;
 
-import javax.enterprise.context.RequestScoped;
-import javax.inject.Inject;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-
+import com.redhat.labs.lodestar.model.event.EventType;
+import com.redhat.labs.lodestar.service.EngagementService;
+import io.vertx.mutiny.core.eventbus.EventBus;
 import org.eclipse.microprofile.metrics.MetricUnits;
 import org.eclipse.microprofile.metrics.annotation.Counted;
 import org.eclipse.microprofile.metrics.annotation.Timed;
@@ -21,15 +14,12 @@ import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement;
 import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 import org.eclipse.microprofile.openapi.annotations.tags.Tag;
-import org.eclipse.microprofile.rest.client.inject.RestClient;
 
-import com.redhat.labs.lodestar.model.event.EventType;
-import com.redhat.labs.lodestar.rest.client.ActivityApiClient;
-import com.redhat.labs.lodestar.service.ArtifactService;
-import com.redhat.labs.lodestar.service.EngagementService;
-import com.redhat.labs.lodestar.service.ParticipantService;
-
-import io.vertx.mutiny.core.eventbus.EventBus;
+import javax.enterprise.context.RequestScoped;
+import javax.inject.Inject;
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 @RequestScoped
 @Path("/engagements/refresh")
@@ -41,16 +31,6 @@ public class RefreshResource {
 
     @Inject
     EngagementService engagementService;
-
-    @Inject
-    ParticipantService participantService;
-
-    @Inject
-    ArtifactService artifactService;
-
-    @Inject
-    @RestClient
-    ActivityApiClient activityClient;
 
     @Inject
     EventBus eventBus;
@@ -71,23 +51,29 @@ public class RefreshResource {
             @Parameter(description = "Refresh artifacts") @QueryParam("artifacts") boolean refreshArtifacts,
             @Parameter(description = "Refresh participants") @QueryParam("participants") boolean refreshParticipants,
             @Parameter(description = "Refresh activity") @QueryParam("activity") boolean refreshActivity,
+            @Parameter(description = "Refresh engagement status") @QueryParam("status") boolean refreshStatus,
             @Parameter(description = "Refresh engagements") @QueryParam("engagements") boolean refreshEngagements) {
 
         boolean didPickSomething = false;
 
         if (refreshActivity) {
-            eventBus.sendAndForget(EventType.RELOAD_ACTIVITY_EVENT_ADDRESS, EventType.RELOAD_ACTIVITY_EVENT_ADDRESS);
+            eventBus.publish(EventType.RELOAD_ACTIVITY_EVENT_ADDRESS, EventType.RELOAD_ACTIVITY_EVENT_ADDRESS);
             didPickSomething = true;
         }
 
         if (refreshParticipants) {
-            eventBus.sendAndForget(EventType.RELOAD_PARTICIPANTS_EVENT_ADDRESS,
+            eventBus.publish(EventType.RELOAD_PARTICIPANTS_EVENT_ADDRESS,
                     EventType.RELOAD_PARTICIPANTS_EVENT_ADDRESS);
             didPickSomething = true;
         }
 
         if (refreshArtifacts) {
-            eventBus.sendAndForget(EventType.RELOAD_ARTIFACTS_EVENT_ADDRESS, EventType.RELOAD_ARTIFACTS_EVENT_ADDRESS);
+            eventBus.publish(EventType.RELOAD_ARTIFACTS_EVENT_ADDRESS, EventType.RELOAD_ARTIFACTS_EVENT_ADDRESS);
+            didPickSomething = true;
+        }
+
+        if (refreshStatus) {
+            eventBus.publish(EventType.RELOAD_ENGAGEMENT_STATUS_EVENT_ADDRESS, EventType.RELOAD_ENGAGEMENT_STATUS_EVENT_ADDRESS);
             didPickSomething = true;
         }
 

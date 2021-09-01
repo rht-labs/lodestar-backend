@@ -48,6 +48,15 @@ class RefreshResourceTest extends IntegrationTestHelper {
         
         Mockito.verify(participantClient, Mockito.timeout(1000)).refreshParticipants();
     }
+
+    @Test
+    void testStatusReload() throws Exception {
+
+        given().queryParam("status", true).when().auth().oauth2(validToken)
+                .put("/engagements/refresh").then().statusCode(202);
+
+        Mockito.verify(engagementStatusApiClient, Mockito.timeout(1000)).refresh();
+    }
     
     @Test
     void testParticipantReloadFail() throws Exception {

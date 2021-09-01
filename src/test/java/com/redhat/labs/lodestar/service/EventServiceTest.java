@@ -43,7 +43,7 @@ class EventServiceTest extends IntegrationTestHelper {
 
         Engagement e = Engagement.builder().uuid("1234").customerName("c1").projectName("p1")
                 .lastUpdateByName("someone").lastUpdateByEmail("someone@example.com").build();
-        eventBus.sendAndForget(EventType.CREATE_ENGAGEMENT_EVENT_ADDRESS, e);
+        eventBus.publish(EventType.CREATE_ENGAGEMENT_EVENT_ADDRESS, e);
 
         Mockito.verify(gitApiClient, Mockito.timeout(1000).times(1)).createOrUpdateEngagement(e, "someone",
                 "someone@example.com");
@@ -61,7 +61,7 @@ class EventServiceTest extends IntegrationTestHelper {
 
         Engagement e = Engagement.builder().uuid("1234").customerName("c1").projectName("p1")
                 .lastUpdateByName("someone").lastUpdateByEmail("someone@example.com").build();
-        eventBus.sendAndForget(EventType.CREATE_ENGAGEMENT_EVENT_ADDRESS, e);
+        eventBus.publish(EventType.CREATE_ENGAGEMENT_EVENT_ADDRESS, e);
 
         Mockito.verify(gitApiClient, Mockito.timeout(2000).times(2)).createOrUpdateEngagement(e, "someone",
                 "someone@example.com");
@@ -77,7 +77,7 @@ class EventServiceTest extends IntegrationTestHelper {
 
         Engagement e = Engagement.builder().uuid("1234").customerName("c1").projectName("p1")
                 .lastUpdateByName("someone").lastUpdateByEmail("someone@example.com").build();
-        eventBus.sendAndForget(EventType.CREATE_ENGAGEMENT_EVENT_ADDRESS, e);
+        eventBus.publish(EventType.CREATE_ENGAGEMENT_EVENT_ADDRESS, e);
 
         Mockito.verify(gitApiClient, Mockito.timeout(2000).times(2)).createOrUpdateEngagement(e, "someone",
                 "someone@example.com");
@@ -93,7 +93,7 @@ class EventServiceTest extends IntegrationTestHelper {
 
         Engagement e = Engagement.builder().uuid("1234").customerName("c1").projectName("p1")
                 .lastUpdateByName("someone").lastUpdateByEmail("someone@example.com").build();
-        eventBus.sendAndForget(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, e);
+        eventBus.publish(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, e);
 
         Mockito.verify(gitApiClient, Mockito.timeout(1000).times(1)).createOrUpdateEngagement(e, "someone",
                 "someone@example.com");
@@ -113,7 +113,7 @@ class EventServiceTest extends IntegrationTestHelper {
                 .thenThrow(new WebApplicationException(500)).thenReturn(created);
         Mockito.when(engagementService.getByUuid(Mockito.anyString(), Mockito.any())).thenReturn(e);
 
-        eventBus.sendAndForget(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, e);
+        eventBus.publish(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, e);
 
         Mockito.verify(gitApiClient, Mockito.timeout(5000).times(2)).createOrUpdateEngagement(e, "someone",
                 "someone@example.com");
@@ -134,7 +134,7 @@ class EventServiceTest extends IntegrationTestHelper {
                 .thenThrow(new WebApplicationException(500)).thenReturn(created);
         Mockito.when(engagementService.getByUuid(Mockito.anyString(), Mockito.any())).thenReturn(updated);
 
-        eventBus.sendAndForget(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, e);
+        eventBus.publish(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, e);
 
         Mockito.verify(gitApiClient, Mockito.timeout(1000).times(1)).createOrUpdateEngagement(e, "someone",
                 "someone@example.com");
@@ -155,7 +155,7 @@ class EventServiceTest extends IntegrationTestHelper {
         Mockito.when(engagementService.getByUuid(Mockito.anyString(), Mockito.any()))
                 .thenThrow(new WebApplicationException(404));
 
-        eventBus.sendAndForget(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, e);
+        eventBus.publish(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, e);
 
         Mockito.verify(gitApiClient, Mockito.timeout(1000).times(1)).createOrUpdateEngagement(e, "someone",
                 "someone@example.com");
@@ -170,7 +170,7 @@ class EventServiceTest extends IntegrationTestHelper {
 
         Engagement e = Engagement.builder().uuid("1234").customerName("c1").projectName("p1")
                 .lastUpdateByName("someone").lastUpdateByEmail("someone@example.com").build();
-        eventBus.sendAndForget(EventType.CREATE_ENGAGEMENT_EVENT_ADDRESS, e);
+        eventBus.publish(EventType.CREATE_ENGAGEMENT_EVENT_ADDRESS, e);
 
         Mockito.verify(gitApiClient, Mockito.timeout(2000).times(2)).createOrUpdateEngagement(e, "someone",
                 "someone@example.com");
@@ -183,7 +183,7 @@ class EventServiceTest extends IntegrationTestHelper {
 
         Engagement e = Engagement.builder().uuid("1234").customerName("c1").projectName("p1")
                 .lastUpdateByName("someone").lastUpdateByEmail("someone@example.com").build();
-        eventBus.sendAndForget(EventType.DELETE_ENGAGEMENT_EVENT_ADDRESS, e);
+        eventBus.publish(EventType.DELETE_ENGAGEMENT_EVENT_ADDRESS, e);
 
         Mockito.verify(gitApiClient, Mockito.timeout(1000).times(1)).deleteEngagement("c1", "p1");
 
@@ -197,7 +197,7 @@ class EventServiceTest extends IntegrationTestHelper {
 
         Mockito.doThrow(new WebApplicationException(500)).when(gitApiClient).deleteEngagement("c1", "p1");
 
-        eventBus.sendAndForget(EventType.DELETE_ENGAGEMENT_EVENT_ADDRESS, e);
+        eventBus.publish(EventType.DELETE_ENGAGEMENT_EVENT_ADDRESS, e);
 
         Mockito.verify(gitApiClient, Mockito.timeout(2000).times(2)).deleteEngagement("c1", "p1");
 
@@ -226,10 +226,10 @@ class EventServiceTest extends IntegrationTestHelper {
 
         Mockito.when(engagementService.persistEngagementIfNotFound(Mockito.any())).thenReturn(true);
         Mockito.when(activityClient.getActivityForUuid(Mockito.anyString())).thenReturn(Response.ok().entity(Lists.newArrayList()).build());
-        Mockito.when(gitApiClient.getStatus(Mockito.anyString(), Mockito.anyString())).thenReturn(status);
+        Mockito.when(engagementStatusApiClient.getEngagementStatus(Mockito.anyString())).thenReturn(status);
 
         // send load db event
-        eventBus.sendAndForget(EventType.LOAD_DATABASE_EVENT_ADDRESS, EventType.LOAD_DATABASE_EVENT_ADDRESS);
+        eventBus.publish(EventType.LOAD_DATABASE_EVENT_ADDRESS, EventType.LOAD_DATABASE_EVENT_ADDRESS);
 
         Mockito.verify(engagementService, Mockito.timeout(1000).times(2)).setCommits(Mockito.anyString(), Mockito.anyList());
         Mockito.verify(engagementService, Mockito.timeout(1000).times(2)).setStatus(Mockito.anyString(), Mockito.any(Status.class));
@@ -259,10 +259,10 @@ class EventServiceTest extends IntegrationTestHelper {
 
         Mockito.when(engagementService.persistEngagementIfNotFound(Mockito.any())).thenReturn(true);
         Mockito.when(activityClient.getActivityForUuid(Mockito.anyString())).thenReturn(Response.ok().entity(Lists.newArrayList()).build());
-        Mockito.when(gitApiClient.getStatus(Mockito.anyString(), Mockito.anyString())).thenReturn(status);
+        Mockito.when(engagementStatusApiClient.getEngagementStatus(Mockito.anyString())).thenReturn(status);
 
         // send load db event
-        eventBus.sendAndForget(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS, EventType.LOAD_DATABASE_EVENT_ADDRESS);
+        eventBus.publish(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS, EventType.LOAD_DATABASE_EVENT_ADDRESS);
 
         Mockito.verify(engagementService, Mockito.timeout(1000)).deleteAll();
         Mockito.verify(engagementService, Mockito.timeout(1000).times(2)).setCommits(Mockito.anyString(), Mockito.anyList());

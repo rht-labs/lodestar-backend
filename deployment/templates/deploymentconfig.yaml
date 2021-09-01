@@ -35,7 +35,7 @@ spec:
           value: {{ .Values.imageTag }}
         readinessProbe:
           httpGet:
-            path: /health/ready
+            path: /q/health/ready
             port: 8080
             scheme: HTTP
           timeoutSeconds: 1
@@ -44,7 +44,7 @@ spec:
           failureThreshold: 3
         livenessProbe:
           httpGet:
-            path: /health/live
+            path: /q/health/live
             port: 8080
             scheme: HTTP
           timeoutSeconds: 1

@@ -118,7 +118,7 @@ public class EngagementService {
         repository.persist(engagement);
 
         // send create engagement event after save to database
-        eventBus.sendAndForget(EventType.CREATE_ENGAGEMENT_EVENT_ADDRESS, copy);
+        eventBus.publish(EventType.CREATE_ENGAGEMENT_EVENT_ADDRESS, copy);
 
         return engagement;
 
@@ -228,16 +228,16 @@ public class EngagementService {
                         HttpStatus.SC_CONFLICT));
 
         // send update engagement event once saved
-        eventBus.sendAndForget(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, copy);
+        eventBus.publish(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, copy);
         
         String message = String.format("%s,%s,%s", engagement.getUuid(), engagement.getLastUpdateByEmail(), engagement.getLastUpdateByName());
 
         if(v2Enabled && commitMessageContains(copy, "engagement_users")) {
-            eventBus.sendAndForget(EventType.UPDATE_PARTICIPANTS_EVENT_ADDESS, message);
+            eventBus.publish(EventType.UPDATE_PARTICIPANTS_EVENT_ADDESS, message);
         }
         
         if(v2Enabled && commitMessageContains(copy, "artifacts")) {
-            eventBus.sendAndForget(EventType.UPDATE_ARTIFACTS_EVENT_ADDRESS, message);
+            eventBus.publish(EventType.UPDATE_ARTIFACTS_EVENT_ADDRESS, message);
         }
 
         return updated;
@@ -630,11 +630,11 @@ public class EngagementService {
 
         // send update status event
         if (hook.didFileChange(statusFile)) {
-            eventBus.sendAndForget(EventType.UPDATE_STATUS_EVENT_ADDRESS, persisted);
+            eventBus.publish(EventType.UPDATE_STATUS_EVENT_ADDRESS, persisted);
         }
 
         // send update commits event
-        eventBus.sendAndForget(EventType.UPDATE_COMMITS_EVENT_ADDRESS, persisted);
+        eventBus.publish(EventType.UPDATE_COMMITS_EVENT_ADDRESS, persisted);
 
     }
 
@@ -806,7 +806,7 @@ public class EngagementService {
         repository.delete(engagement);
 
         // send delete event
-        eventBus.sendAndForget(EventType.DELETE_ENGAGEMENT_EVENT_ADDRESS, engagement);
+        eventBus.publish(EventType.DELETE_ENGAGEMENT_EVENT_ADDRESS, engagement);
 
     }
 
@@ -873,7 +873,7 @@ public class EngagementService {
         }).collect(Collectors.toList());
 
         // send updates to git api
-        updated.stream().forEach(e -> eventBus.sendAndForget(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, e));
+        updated.stream().forEach(e -> eventBus.publish(EventType.UPDATE_ENGAGEMENT_EVENT_ADDRESS, e));
 
         long count = updated.size();
 
@@ -1037,22 +1037,22 @@ public class EngagementService {
             Engagement engagement = getByUuid(uuid, new FilterOptions());
 
             // send event for processing
-            eventBus.sendAndForget(EventType.DELETE_AND_RELOAD_ENGAGEMENT_EVENT_ADDRESS,
+            eventBus.publish(EventType.DELETE_AND_RELOAD_ENGAGEMENT_EVENT_ADDRESS,
                     String.valueOf(engagement.getProjectId()));
 
         } else if (null != projectId) {
 
             // send event for processing
-            eventBus.sendAndForget(EventType.DELETE_AND_RELOAD_ENGAGEMENT_EVENT_ADDRESS, projectId);
+            eventBus.publish(EventType.DELETE_AND_RELOAD_ENGAGEMENT_EVENT_ADDRESS, projectId);
 
         } else if (purgeFirst) {
 
-            eventBus.sendAndForget(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS,
+            eventBus.publish(EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS,
                     EventType.DELETE_AND_RELOAD_DATABASE_EVENT_ADDRESS);
 
         } else {
 
-            eventBus.sendAndForget(EventType.LOAD_DATABASE_EVENT_ADDRESS, EventType.LOAD_DATABASE_EVENT_ADDRESS);
+            eventBus.publish(EventType.LOAD_DATABASE_EVENT_ADDRESS, EventType.LOAD_DATABASE_EVENT_ADDRESS);
 
         }
 

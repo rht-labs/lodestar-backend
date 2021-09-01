@@ -11,6 +11,7 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 
+import com.redhat.labs.lodestar.rest.client.EngagementStatusApiClient;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.slf4j.Logger;
@@ -55,6 +56,10 @@ public class EventService {
     @Inject
     @RestClient
     ActivityApiClient activityApiClient;
+
+    @Inject
+    @RestClient
+    EngagementStatusApiClient engagementStatusApiClient;
 
     @Inject
     EngagementService engagementService;
@@ -229,7 +234,7 @@ public class EventService {
 
             String address = isCreate ? EventType.RETRY_CREATE_EVENT_ADDRESS : EventType.RETRY_UPDATE_EVENT_ADDRESS;
             event.incrementCurrentRetryCount();
-            eventBus.sendAndForget(address, event);
+            eventBus.publish(address, event);
 
         }
 
@@ -253,7 +258,7 @@ public class EventService {
 
             LOGGER.error("failed to delete engagement with message {}, engagement: {}", e.getMessage(), engagement);
             event.incrementCurrentRetryCount();
-            eventBus.sendAndForget(EventType.RETRY_DELETE_EVENT_ADDRESS, event);
+            eventBus.publish(EventType.RETRY_DELETE_EVENT_ADDRESS, event);
 
         }
 
@@ -336,7 +341,7 @@ public class EventService {
         String json = jsonb.toJson(getEngagementsFromResponse(response));
 
         // send engagements for processing
-        eventBus.sendAndForget(EventType.PERSIST_ENGAGEMENT_LIST_EVENT_ADDRESS, json);
+        eventBus.publish(EventType.PERSIST_ENGAGEMENT_LIST_EVENT_ADDRESS, json);
 
         // get total number of pages from response
         Integer totalPages = getNumberOfPages(response);
@@ -348,7 +353,7 @@ public class EventService {
         if (totalPages > 1) {
 
             IntStream.range(2, totalPages + 1)
-                    .forEach(i -> eventBus.sendAndForget(EventType.GET_PAGE_OF_ENGAGEMENTS_EVENT_ADDRESS, i));
+                    .forEach(i -> eventBus.publish(EventType.GET_PAGE_OF_ENGAGEMENTS_EVENT_ADDRESS, i));
 
         }
 
@@ -384,7 +389,7 @@ public class EventService {
 
             if(null != found) {
                 // send event to delete existing engagement from database
-                eventBus.sendAndForget(EventType.DELETE_ENGAGEMENT_FROM_DATABASE_EVENT_ADDRESS, found);
+                eventBus.publish(EventType.DELETE_ENGAGEMENT_FROM_DATABASE_EVENT_ADDRESS, found);
             }
 
         }
@@ -407,7 +412,7 @@ public class EventService {
         }
 
         // send event to insert engagement
-        eventBus.sendAndForget(EventType.PERSIST_ENGAGEMENT_EVENT_ADDRESS, engagement);
+        eventBus.publish(EventType.PERSIST_ENGAGEMENT_EVENT_ADDRESS, engagement);
 
     }
 
@@ -463,7 +468,7 @@ public class EventService {
         String json = jsonb.toJson(engagements);
 
         // send engagements for processing
-        eventBus.sendAndForget(EventType.PERSIST_ENGAGEMENT_LIST_EVENT_ADDRESS, json);
+        eventBus.publish(EventType.PERSIST_ENGAGEMENT_LIST_EVENT_ADDRESS, json);
 
     }
 
@@ -479,7 +484,7 @@ public class EventService {
         // unmarshal
         Engagement[] engagements = jsonb.fromJson(engagementsJson, Engagement[].class);
         // create event for each engagement
-        Arrays.stream(engagements).forEach(e -> eventBus.sendAndForget(EventType.PERSIST_ENGAGEMENT_EVENT_ADDRESS, e));
+        Arrays.stream(engagements).forEach(e -> eventBus.publish(EventType.PERSIST_ENGAGEMENT_EVENT_ADDRESS, e));
 
     }
 
@@ -492,8 +497,8 @@ public class EventService {
     void consumeInsertIfMissingEvent(Engagement engagement) {
 
         if (engagementService.persistEngagementIfNotFound(engagement)) {
-            eventBus.sendAndForget(EventType.UPDATE_STATUS_EVENT_ADDRESS, engagement);
-            eventBus.sendAndForget(EventType.UPDATE_COMMITS_EVENT_ADDRESS, engagement);
+            eventBus.publish(EventType.UPDATE_STATUS_EVENT_ADDRESS, engagement);
+            eventBus.publish(EventType.UPDATE_COMMITS_EVENT_ADDRESS, engagement);
         }
     }
 
@@ -520,14 +525,23 @@ public class EventService {
     @ConsumeEvent(value = EventType.UPDATE_STATUS_EVENT_ADDRESS, blocking = true)
     void consumeUpdateStatusEvent(Engagement engagement) {
 
+        LOGGER.debug("status update {}", engagement.getUuid());
         try {
-            Status status = gitApiClient.getStatus(engagement.getCustomerName(), engagement.getProjectName());
+            engagementStatusApiClient.updateEngagementStatus(engagement.getUuid());
+            Status status = engagementStatusApiClient.getEngagementStatus(engagement.getUuid());
             engagementService.setStatus(engagement.getUuid(), status);
         } catch (WebApplicationException wae) {
             LOGGER.trace("no status found for engagement {}:{}:{}", engagement.getUuid(), engagement.getCustomerName(),
                     engagement.getProjectName());
         }
 
+    }
+
+    @ConsumeEvent(value = EventType.RELOAD_ENGAGEMENT_STATUS_EVENT_ADDRESS, blocking = true)
+    void consumeEngagementStatusReloadEvent(String name) {
+        LOGGER.debug("refresh {}", name);
+        engagementStatusApiClient.refresh();
+        LOGGER.debug("refresh {} completed", name);
     }
     
     @ConsumeEvent(value = EventType.RELOAD_ACTIVITY_EVENT_ADDRESS, blocking = true)
