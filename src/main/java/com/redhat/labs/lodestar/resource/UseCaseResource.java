@@ -10,14 +10,8 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import com.redhat.labs.lodestar.model.*;
-import org.eclipse.microprofile.jwt.JsonWebToken;
-import org.eclipse.microprofile.metrics.MetricUnits;
-import org.eclipse.microprofile.metrics.annotation.Counted;
-import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SecuritySchemeType;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
@@ -26,7 +20,6 @@ import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement
 import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
-import com.redhat.labs.lodestar.model.pagination.PagedUseCaseResults;
 import com.redhat.labs.lodestar.service.EngagementService;
 
 @RequestScoped
@@ -37,14 +30,11 @@ import com.redhat.labs.lodestar.service.EngagementService;
 public class UseCaseResource {
 
     @Inject
-    JsonWebToken jwt;
-
-    @Inject
     EngagementService engagementService;
 
     @GET
     @Path("/usecases")
-    @SecurityRequirement(name = "jwt", scopes = {})
+    @SecurityRequirement(name = "jwt")
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "use cases have been returned.") })
     @Operation(summary = "Returns engagement use cases")

@@ -10,8 +10,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.eclipse.microprofile.metrics.annotation.Counted;
-import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 
 import com.redhat.labs.lodestar.model.status.VersionManifest;
@@ -36,8 +34,6 @@ public class VersionResource {
     @GET
     @PermitAll
     @Path("/version")
-    @Timed(name = "versionResourceTimer")
-    @Counted(name = "versionResourceCounter")
     @Operation(summary = "Returns the git commit/tag data for the LodeStar Backend.")
     public Response getVersion() {
             return Response.ok(versionService.getBackendVersion()).build();
@@ -46,8 +42,6 @@ public class VersionResource {
     @GET
     @PermitAll
     @Path("/version/manifest")
-    @Timed(name = "versionManifestResourceTimer")
-    @Counted(name = "versionManifestResourceCounter")
     @Operation(summary = "Returns the Version Manifest from LodeStar Status")
     public VersionManifest getStatusVersionManifest() {
         return versionService.getVersionManifest();

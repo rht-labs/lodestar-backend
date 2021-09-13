@@ -18,9 +18,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.jwt.JsonWebToken;
-import org.eclipse.microprofile.metrics.MetricUnits;
-import org.eclipse.microprofile.metrics.annotation.Counted;
-import org.eclipse.microprofile.metrics.annotation.Timed;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SecuritySchemeType;
 import org.eclipse.microprofile.openapi.annotations.parameters.Parameter;
@@ -54,12 +51,10 @@ public class ParticipantResource {
     JWTUtils jwtUtils;
 
     @GET
-    @SecurityRequirement(name = "jwt", scopes = {})
+    @SecurityRequirement(name = "jwt")
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "Participants have been returned.") })
     @Operation(summary = "Returns participant list for an engagement")
-    @Counted(name = "get-participants-counted")
-    @Timed(name = "get-participants-timer", unit = MetricUnits.MILLISECONDS)
     public Response getParticipants(@QueryParam("engagementUuids") Set<String> engagementUuids,
             @Parameter(description = "0 based index.") @DefaultValue(DEFAULT_PAGE) @QueryParam("page") int page,
             @DefaultValue(DEFAULT_PAGE_SIZE) @QueryParam("pageSize") int pageSize) {
@@ -77,25 +72,21 @@ public class ParticipantResource {
 
     @GET
     @Path("/engagementUuid/{eUuid}")
-    @SecurityRequirement(name = "jwt", scopes = {})
+    @SecurityRequirement(name = "jwt")
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "Participants have been returned for uuid.") })
     @Operation(summary = "Returns participant list for an engagement")
-    @Counted(name = "get-participants-by-engagement-counted")
-    @Timed(name = "get-participants-by-engagement-timer", unit = MetricUnits.MILLISECONDS)
-    public Response getParticipantsForEnagementUuid(@PathParam(value = "eUuid") String engagementUuid) {
+    public Response getParticipantsForEngagementUuid(@PathParam(value = "eUuid") String engagementUuid) {
         List<EngagementUser> participants = participantService.getParticipantsForEngagement(engagementUuid);
         return Response.ok(participants).build();
     }
 
     @PUT
     @Path("/engagementUuid/{eUuid}")
-    @SecurityRequirement(name = "jwt", scopes = {})
+    @SecurityRequirement(name = "jwt")
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "Participants have been returned for uuid.") })
     @Operation(summary = "Returns participant list for an engagement")
-    @Counted(name = "get-participants-by-engagement-counted")
-    @Timed(name = "get-participants-by-engagement-timer", unit = MetricUnits.MILLISECONDS)
     public Response getParticipantsForEngagementUuid(@PathParam(value = "eUuid") String engagementUuid,
             Set<EngagementUser> participants) {
 
@@ -110,12 +101,10 @@ public class ParticipantResource {
 
     @GET
     @Path("/enabled")
-    @SecurityRequirement(name = "jwt", scopes = {})
+    @SecurityRequirement(name = "jwt")
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "Enabled participants have been returned as a map") })
     @Operation(summary = "Returns participant list for an engagement")
-    @Counted(name = "get-enabled-participants-counted")
-    @Timed(name = "get-enabled-participants-timer", unit = MetricUnits.MILLISECONDS)
     public Response getEnabledParticipants(@QueryParam(value = "region") List<String> region) {
         Map<String, Long> participants = participantService.getEnabledParticipants(region);
         return Response.ok(participants).build();
@@ -123,12 +112,10 @@ public class ParticipantResource {
     
     @GET
     @Path("/enabled/breakdown")
-    @SecurityRequirement(name = "jwt", scopes = {})
+    @SecurityRequirement(name = "jwt")
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "Enabled participants have been returned as a map") })
     @Operation(summary = "Returns participant list for an engagement")
-    @Counted(name = "get-enabled-participants-all-regions-counted")
-    @Timed(name = "get-enabled-participants-regions-timer", unit = MetricUnits.MILLISECONDS)
     public Response getEnabledParticipantsAllRegions() {
         Map<String, Map<String, Long>> participants = participantService.getEnabledParticipantsAllRegions();
         return Response.ok(participants).build();
