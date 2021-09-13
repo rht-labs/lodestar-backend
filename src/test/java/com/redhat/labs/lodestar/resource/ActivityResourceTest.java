@@ -5,36 +5,40 @@ import static org.hamcrest.Matchers.equalTo;
 import static org.mockito.Mockito.timeout;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.ws.rs.core.Response;
 
+import com.redhat.labs.lodestar.rest.client.ActivityApiClient;
+import io.quarkus.test.junit.mockito.InjectMock;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import com.redhat.labs.lodestar.model.Commit;
-import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 import com.redhat.labs.lodestar.utils.TokenUtils;
 
 import io.quarkus.test.junit.QuarkusTest;
 
 @QuarkusTest
 @Tag("nested")
-class ActivityResourceTest extends IntegrationTestHelper {
+class ActivityResourceTest {
 
     static String validToken;
 
+    @InjectMock
+    @RestClient
+    public ActivityApiClient activityClient;
+
     @BeforeAll
-    static void setUp() throws Exception {
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        validToken = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+    static void setUp()  {
+        validToken = TokenUtils.generateTokenString("/JwtClaimsWriter.json");
     }
     
     @Test
-    void testFetchAllActivityPaged() throws Exception {
+    void testFetchAllActivityPaged() {
         given().when().auth().oauth2(validToken).get("/engagements/activity").then().statusCode(400);
         
         List<Commit> activity = Collections.singletonList(Commit.builder().id("a1").build());
@@ -46,9 +50,9 @@ class ActivityResourceTest extends IntegrationTestHelper {
     }
 
     @Test
-    void testFetchActivityByUuid() throws Exception {
+    void testFetchActivityByUuid() {
         List<Commit> activity = Collections.singletonList(Commit.builder().id("a1").build());
-        Mockito.when(activityClient.getActivityForUuid("1")).thenReturn(Response.ok(activity).build());
+        Mockito.when(activityClient.getActivityForUuid("1")).thenReturn(activity);
 
         given().when().auth().oauth2(validToken).get("/engagements/activity/uuid/1").then().statusCode(200).body("[0].id",
                 equalTo("a1"));
@@ -60,7 +64,7 @@ class ActivityResourceTest extends IntegrationTestHelper {
     }
     
     @Test
-    void testFetchActivityByUuidAndPage() throws Exception {
+    void testFetchActivityByUuidAndPage() {
         List<Commit> activity = Collections.singletonList(Commit.builder().id("a1").build());
         Mockito.when(activityClient.getPaginatedActivityForUuid("1", 0, 1)).thenReturn(Response.ok(activity).build());
 
@@ -71,7 +75,7 @@ class ActivityResourceTest extends IntegrationTestHelper {
     }
 
     @Test
-    void testFetchActivityByUuidBadRequest() throws Exception {
+    void testFetchActivityByUuidBadRequest() {
 
         //bad page
         given().queryParam("page", "-1").queryParam("pageSize", "1").when().auth().oauth2(validToken)

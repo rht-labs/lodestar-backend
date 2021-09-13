@@ -5,8 +5,8 @@ import java.util.Optional;
 
 import javax.inject.Singleton;
 
+import com.redhat.labs.lodestar.model.Author;
 import org.eclipse.microprofile.jwt.JsonWebToken;
-
 
 @Singleton
 public class JWTUtils {
@@ -14,9 +14,12 @@ public class JWTUtils {
     private static final String NAME_CLAIM = "name";
     private static final String PREFERRED_USERNAME_CLAIM = "preferred_username";
     private static final String USER_EMAIL_CLAIM = "email";
-    
-    public static final String DEFAULT_USERNAME = "lodestar-user";
+
     public static final String DEFAULT_EMAIL = "lodestar-email";
+
+    public Author getAuthorFromToken(JsonWebToken jwt) {
+        return Author.builder().name(getUsernameFromToken(jwt)).email(getUserEmailFromToken(jwt)).build();
+    }
     
     public String getUsernameFromToken(JsonWebToken jwt) {
 

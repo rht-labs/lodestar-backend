@@ -1,35 +1,52 @@
 package com.redhat.labs.lodestar.resource;
 
-import static io.restassured.RestAssured.given;
-
-import java.util.HashMap;
-
-import javax.ws.rs.core.Response;
-
+import com.redhat.labs.lodestar.rest.client.ActivityApiClient;
+import com.redhat.labs.lodestar.rest.client.ArtifactApiClient;
+import com.redhat.labs.lodestar.rest.client.EngagementStatusApiClient;
+import com.redhat.labs.lodestar.rest.client.ParticipantApiClient;
+import com.redhat.labs.lodestar.utils.TokenUtils;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.mockito.InjectMock;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
-import com.redhat.labs.lodestar.utils.TokenUtils;
+import javax.ws.rs.core.Response;
+import java.util.HashMap;
 
-import io.quarkus.test.junit.QuarkusTest;
+import static io.restassured.RestAssured.given;
 
 @QuarkusTest
 @Tag("nested")
-class RefreshResourceTest extends IntegrationTestHelper {
+class RefreshResourceTest {
+
+    @InjectMock
+    @RestClient
+    public ActivityApiClient activityClient;
+
+    @InjectMock
+    @RestClient
+    public ArtifactApiClient artifactClient;
+
+    @InjectMock
+    @RestClient
+    public ParticipantApiClient participantClient;
+
+    @InjectMock
+    @RestClient
+    public EngagementStatusApiClient engagementStatusApiClient;
     
     static String validToken;
 
     @BeforeAll
-    static void setUp() throws Exception {
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        validToken = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+    static void setUp() {
+        validToken = TokenUtils.generateTokenString("/JwtClaimsWriter.json");
     }
 
     @Test
-    void testActivityReload() throws Exception {
+    void testActivityReload() {
 
         given().when().auth().oauth2(validToken)
                 .put("/engagements/refresh").then().statusCode(400);
@@ -41,7 +58,7 @@ class RefreshResourceTest extends IntegrationTestHelper {
     }
     
     @Test
-    void testParticipantReload() throws Exception {
+    void testParticipantReload() {
 
         given().queryParam("participants", true).when().auth().oauth2(validToken)
         .put("/engagements/refresh").then().statusCode(202);
@@ -50,7 +67,7 @@ class RefreshResourceTest extends IntegrationTestHelper {
     }
 
     @Test
-    void testStatusReload() throws Exception {
+    void testStatusReload() {
 
         given().queryParam("status", true).when().auth().oauth2(validToken)
                 .put("/engagements/refresh").then().statusCode(202);
@@ -59,7 +76,7 @@ class RefreshResourceTest extends IntegrationTestHelper {
     }
     
     @Test
-    void testParticipantReloadFail() throws Exception {
+    void testParticipantReloadFail() {
         
         Mockito.when(participantClient.refreshParticipants()).thenReturn(Response.serverError().build());
 
@@ -70,7 +87,7 @@ class RefreshResourceTest extends IntegrationTestHelper {
     }
     
     @Test
-    void testArtifactsReload() throws Exception {
+    void testArtifactsReload() {
 
         given().queryParam("artifacts", true).when().auth().oauth2(validToken)
         .put("/engagements/refresh").then().statusCode(202);

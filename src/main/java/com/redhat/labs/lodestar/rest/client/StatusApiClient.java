@@ -12,7 +12,7 @@ import com.redhat.labs.lodestar.model.status.VersionManifest;
 
 @ApplicationScoped
 @RegisterRestClient(configKey = "lodestar.status.api")
-public interface LodeStarStatusApiClient {
+public interface StatusApiClient {
 
     @GET
     @Produces("application/json")

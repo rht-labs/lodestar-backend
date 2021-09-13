@@ -12,6 +12,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.redhat.labs.lodestar.model.*;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
@@ -24,6 +25,8 @@ import org.slf4j.LoggerFactory;
 import com.redhat.labs.lodestar.rest.client.ActivityApiClient;
 
 import io.vertx.mutiny.core.eventbus.EventBus;
+
+import java.util.*;
 
 @RequestScoped
 @Path("engagements/activity")
@@ -65,7 +68,8 @@ public class ActivityResource {
         LOGGER.trace("uuid {}", uuid);
         
         if(page == null || pageSize == null) {
-            return activityClient.getActivityForUuid(uuid);
+            List<Commit> activity = activityClient.getActivityForUuid(uuid);
+            return Response.ok(activity).header("x-total-activity", activity.size()).build();
         } else if(page < 0 || pageSize < 1) {
             return Response.status(Status.BAD_REQUEST).entity("{ \"error\": \"Invalid pagination\"}").build();
         } 

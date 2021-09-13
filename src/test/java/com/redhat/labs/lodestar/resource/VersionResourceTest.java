@@ -1,23 +1,36 @@
 package com.redhat.labs.lodestar.resource;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.hamcrest.CoreMatchers.is;
-
+import com.redhat.labs.lodestar.model.status.VersionManifest;
+import com.redhat.labs.lodestar.rest.client.StatusApiClient;
+import com.redhat.labs.lodestar.utils.ResourceLoader;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.mockito.InjectMock;
+import io.restassured.http.ContentType;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import com.redhat.labs.lodestar.model.status.VersionManifest;
-import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
-import com.redhat.labs.lodestar.utils.ResourceLoader;
+import javax.json.bind.Jsonb;
+import javax.json.bind.JsonbBuilder;
+import javax.json.bind.JsonbConfig;
+import javax.json.bind.config.PropertyNamingStrategy;
 
-import io.quarkus.test.junit.QuarkusTest;
-import io.restassured.http.ContentType;
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.hamcrest.CoreMatchers.is;
 
 @QuarkusTest
 @Tag("nested")
-class VersionResourceTest extends IntegrationTestHelper {
+class VersionResourceTest {
+
+    JsonbConfig config = new JsonbConfig().withFormatting(true)
+            .withPropertyNamingStrategy(PropertyNamingStrategy.LOWER_CASE_WITH_UNDERSCORES);
+    Jsonb quarkusJsonb = JsonbBuilder.create(config);
+
+    @InjectMock
+    @RestClient
+    StatusApiClient statusApiClient;
 
     @Test
     void testValidResourceVersion() {

@@ -3,32 +3,31 @@ package com.redhat.labs.lodestar.resource;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
 
-import java.util.HashMap;
-
 import javax.ws.rs.core.Response;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import com.redhat.labs.lodestar.rest.client.ConfigApiClient;
+import io.quarkus.test.junit.mockito.InjectMock;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 import com.redhat.labs.lodestar.utils.TokenUtils;
 
 import io.quarkus.test.junit.QuarkusTest;
 
 @QuarkusTest
 @Tag("nested")
-class ConfigResourceTest extends IntegrationTestHelper {
+class ConfigResourceTest {
 
-    @ConfigProperty(name = "configFileCacheKey", defaultValue = "schema/config.yml")
-    String configFileCacheKey;
+    @InjectMock
+    @RestClient
+    public ConfigApiClient configApiClient;
 
     @Test
-    void testGetConfigTokenHasWrongRole() throws Exception {
+    void testGetConfigTokenHasWrongRole()  {
 
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsUnknown.json", timeClaims);
+        String token = TokenUtils.generateTokenString("/JwtClaimsUnknown.json");
 
         given()
             .when()
@@ -41,12 +40,11 @@ class ConfigResourceTest extends IntegrationTestHelper {
     }
 
     @Test
-    void testGetConfigWithoutType() throws Exception {
+    void testGetConfigWithoutType() {
 
         String body = "{ \"content\": \"content\", \"encoding\": \"base64\", \"file_path\": \"myfile.yaml\" }";
 
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsReader.json", timeClaims);
+        String token = TokenUtils.generateTokenString("/JwtClaimsReader.json");
 
         Mockito.when(configApiClient.getRuntimeConfig(null)).thenReturn(Response.ok(body).build());
 
@@ -64,12 +62,11 @@ class ConfigResourceTest extends IntegrationTestHelper {
     }
 
     @Test
-    void testGetConfigWithType() throws Exception {
+    void testGetConfigWithType() {
 
         String body = "{ \"hello\" : \"world\" }";
 
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsReader.json", timeClaims);
+        String token = TokenUtils.generateTokenString("/JwtClaimsReader.json");
 
         Mockito.when(configApiClient.getRuntimeConfig("one")).thenReturn(Response.ok(body).build());
 

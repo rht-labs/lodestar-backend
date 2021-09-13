@@ -30,10 +30,10 @@ class ArtifactServiceTest {
         
         artifacts = Collections.emptyList();
         Engagement engagement = Engagement.builder().artifacts(artifacts).build();
-        Mockito.when(engagementService.getByUuid(Mockito.eq("uuid1"), Mockito.any(FilterOptions.class))).thenReturn(engagement);
-        Mockito.when(engagementService.getByUuid(Mockito.eq("uuid2"), Mockito.any(FilterOptions.class))).thenThrow(new RuntimeException("test"));
-        Mockito.when(engagementService.getByUuid(Mockito.eq("uuid3"), Mockito.any(FilterOptions.class))).thenThrow(new WebApplicationException("test", 500));
-        Mockito.when(artifactClient.updateArtifacts("uuid1", artifacts, "Mitch", "mitch@mitch.com")).thenReturn(Response.ok().build());
+        Mockito.when(engagementService.getByUuid(Mockito.eq("uuid1"))).thenReturn(engagement);
+        Mockito.when(engagementService.getByUuid(Mockito.eq("uuid2"))).thenThrow(new RuntimeException("test"));
+        Mockito.when(engagementService.getByUuid(Mockito.eq("uuid3"))).thenThrow(new WebApplicationException("test", 500));
+        Mockito.when(artifactClient.updateArtifacts("uuid1", "ma", artifacts, "Mitch", "mitch@mitch.com")).thenReturn(Response.ok().build());
 
         artifactService = new ArtifactService();
         artifactService.artifactRestClient = artifactClient;
@@ -42,26 +42,35 @@ class ArtifactServiceTest {
     
     @Test
     void testSendUpdate() {
-        String uuidNameEmail = "uuid1,Mitch,mitch@mitch.com"; 
-        artifactService.sendUpdate(uuidNameEmail);
+        String uuid = "uuid1";
+        String name = "Mitch";
+        String email = "mitch@mitch.com";
+        Engagement e = Engagement.builder().region("na").uuid(uuid).artifacts(Collections.emptyList()).build();
+        artifactService.updateAndReload(e, name, email);
         
-        Mockito.verify(artifactClient).updateArtifacts("uuid1", artifacts, "Mitch", "mitch@mitch.com");
+        Mockito.verify(artifactClient).updateArtifacts("uuid1", "na", artifacts, "mitch@mitch.com", "Mitch");
     }
     
     @Test
     void testSendUpdateRuntimeError() {
+
+        String uuid = "uuid2";
+        String name = "Mitch";
+        String email = "mitch@mitch.com";
+        Engagement e = Engagement.builder().region("na").uuid(uuid).artifacts(Collections.emptyList()).build();
+        artifactService.updateAndReload(e, name, email);
         
-        String uuidNameEmail = "uuid2,Mitch,mitch@mitch.com"; 
-        artifactService.sendUpdate(uuidNameEmail);
-        
-        Mockito.verify(artifactClient, Mockito.never()).updateArtifacts("uuid2", artifacts, "Mitch", "mitch@mitch.com");
+        Mockito.verify(artifactClient, Mockito.never()).updateArtifacts("uuid2", "na", artifacts, "Mitch", "mitch@mitch.com");
     }
      
     @Test
     void testSendUpdateWebError() {
-        String uuidNameEmail = "uuid3,Mitch,mitch@mitch.com"; 
-        artifactService.sendUpdate(uuidNameEmail);
+        String uuid = "uuid3";
+        String name = "Mitch";
+        String email = "mitch@mitch.com";
+        Engagement e = Engagement.builder().region("na").uuid(uuid).artifacts(Collections.emptyList()).build();
+        artifactService.updateAndReload(e, name, email);
         
-        Mockito.verify(artifactClient, Mockito.never()).updateArtifacts("uuid3", artifacts, "Mitch", "mitch@mitch.com");
+        Mockito.verify(artifactClient, Mockito.never()).updateArtifacts("uuid3", "na", artifacts, "Mitch", "mitch@mitch.com");
     }
 }

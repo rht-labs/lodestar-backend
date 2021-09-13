@@ -78,7 +78,8 @@ public class RefreshResource {
         }
 
         if (refreshEngagements) {
-            engagementService.syncGitToDatabase(Boolean.TRUE.equals(purgeFirst), uuid, projectId);
+            //TODO
+            //engagementService.syncGitToDatabase(Boolean.TRUE.equals(purgeFirst), uuid, projectId);
             didPickSomething = true;
         }
 

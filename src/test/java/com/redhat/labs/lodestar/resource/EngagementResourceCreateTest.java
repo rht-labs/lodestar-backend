@@ -1,41 +1,48 @@
 package com.redhat.labs.lodestar.resource;
 
-import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Optional;
-
-import javax.ws.rs.core.Response;
-
+import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
+import com.redhat.labs.lodestar.utils.TokenUtils;
+import io.quarkus.test.junit.QuarkusTest;
+import io.restassured.http.ContentType;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 
-import com.redhat.labs.lodestar.model.Engagement;
-import com.redhat.labs.lodestar.model.HostingEnvironment;
-import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
-import com.redhat.labs.lodestar.utils.MockUtils;
-import com.redhat.labs.lodestar.utils.TokenUtils;
+import javax.ws.rs.WebApplicationException;
 
-import io.quarkus.test.junit.QuarkusTest;
-import io.restassured.http.ContentType;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
+import static org.mockito.Mockito.times;
 
 @QuarkusTest
 @Tag("nested")
 class EngagementResourceCreateTest extends IntegrationTestHelper {
 
+    static String validToken =  TokenUtils.generateTokenString("/JwtClaimsWriter.json");
+
+    @BeforeEach
+    void setUp() {
+        Map<String, List<String>> rbac = Collections.singletonMap("Residency", Collections.singletonList("writer"));
+        Mockito.when(configApiClient.getPermission()).thenReturn(rbac);
+    }
+
     @Test
-    void testPostEngagementWithWrongRole() throws Exception {
+    void testPostEngagementWithWrongRole() {
 
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsReader.json", timeClaims);
+        String token = TokenUtils.generateTokenString("/JwtClaimsReader.json");
 
-        String body = quarkusJsonb.toJson(MockUtils.mockEngagement());
+        Engagement engagement = Engagement.builder().customerName("Customer").projectName("Project").build();
+
+        String body = quarkusJsonb.toJson(engagement);
 
         given()
             .when()
@@ -47,44 +54,40 @@ class EngagementResourceCreateTest extends IntegrationTestHelper {
             .then()
                 .statusCode(403);
 
-        Mockito.verify(eRepository, Mockito.times(0)).persist(Mockito.any(Engagement.class));
-        Mockito.verify(gitApiClient, Mockito.times(0)).createOrUpdateEngagement(Mockito.any(), Mockito.anyString(), Mockito.anyString());
-
+        Mockito.verify(engagementApiClient, times(0)).createEngagement(Mockito.any(Engagement.class));
     }
     
     @Test
-    void testPostEngagementWithNoGroup() throws Exception {
+    void testPostEngagementWithNoGroup() {
 
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
-
-        Engagement engagement = MockUtils.mockMinimumEngagement("c1", "e1", "9090");
+        Engagement engagement = Engagement.builder().customerName("Customer").projectName("Project").uuid("9090").type("DO500")
+                .build();
  
         String body = quarkusJsonb.toJson(engagement);
 
         // POST engagement
-        given().when().auth().oauth2(token).body(body).contentType(ContentType.JSON).post("/engagements").then()
+        given().when().auth().oauth2(validToken).body(body).contentType(ContentType.JSON).post("/engagements").then()
                 .statusCode(403);
+
+        Mockito.verify(engagementApiClient, times(0)).createEngagement(Mockito.any(Engagement.class));
     }
 
     @Test
-    void testPostEngagementWithAuthAndRoleSuccess() throws Exception {
-        
-        MockUtils.mockRbac(configApiClient);
+    void testPostEngagementSuccess() {
 
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
-
-        Engagement engagement = MockUtils.mockMinimumEngagement("c1", "e1", "9090");
-        Mockito.when(gitApiClient.createOrUpdateEngagement(Mockito.any(), Mockito.anyString(), Mockito.anyString())).thenReturn(Response.ok(engagement).header("Location", "some/path/to/id/1234").build());
+        Engagement engagement = Engagement.builder().customerName("Customer").projectName("Project").type("Residency")
+                .build();
 
         String body = quarkusJsonb.toJson(engagement);
+
+        engagement.setUuid("new-uuid");
+        Mockito.when(engagementApiClient.createEngagement(Mockito.any(Engagement.class))).thenReturn(engagement);
 
         // POST engagement
         given()
             .when()
                 .auth()
-                .oauth2(token)
+                .oauth2(validToken)
                 .body(body)
                 .contentType(ContentType.JSON)
                 .post("/engagements")
@@ -93,120 +96,78 @@ class EngagementResourceCreateTest extends IntegrationTestHelper {
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
                 .body("public_reference", equalTo(engagement.getPublicReference()))
+                .body("uuid", equalTo("new-uuid"))
                 .body("project_id", nullValue());
 
-        Mockito.verify(eRepository).persist(Mockito.any(Engagement.class));
-        Mockito.verify(gitApiClient).createOrUpdateEngagement(Mockito.any(), Mockito.anyString(), Mockito.anyString());
-
+        Mockito.verify(engagementApiClient).createEngagement(Mockito.any(Engagement.class));
     }
 
     @ParameterizedTest
     @MethodSource("nullEmptyBlankSource")
-    void testPostEngagementWithAuthAndRoleInvalidCustomerName(String input) throws Exception {
+    void testPostEngagementInvalidCustomerName(String input) {
 
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
-
-        Engagement engagement = MockUtils.mockMinimumEngagement(input, "p1", null);
+        Engagement engagement = Engagement.builder().customerName(input).projectName("Project").type("Residency")
+                .build();
         String body = quarkusJsonb.toJson(engagement);
 
         // POST engagement
         given()
             .when()
                 .auth()
-                .oauth2(token)
+                .oauth2(validToken)
                 .body(body)
                 .contentType(ContentType.JSON)
                 .post("/engagements")
             .then()
                 .statusCode(400);
 
-        Mockito.verify(eRepository, Mockito.times(0)).persist(Mockito.any(Engagement.class));
-        Mockito.verify(gitApiClient, Mockito.times(0)).createOrUpdateEngagement(Mockito.any(), Mockito.anyString(), Mockito.anyString());
+        Mockito.verify(engagementApiClient, times(0)).createEngagement(Mockito.any(Engagement.class));
 
     }
 
     @ParameterizedTest
     @MethodSource("nullEmptyBlankSource")
-    void testPostEngagementWithAuthAndRoleInvalidProjectName(String input) throws Exception {
+    void testPostEngagementInvalidProjectName(String input) {
 
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
-
-        Engagement engagement = MockUtils.mockMinimumEngagement("c1", input, null);
+        Engagement engagement = Engagement.builder().customerName("Customer").projectName(input).type("Residency")
+                .build();
         String body = quarkusJsonb.toJson(engagement);
 
         // POST engagement
         given()
             .when()
                 .auth()
-                .oauth2(token)
+                .oauth2(validToken)
                 .body(body)
                 .contentType(ContentType.JSON)
                 .post("/engagements")
             .then()
                 .statusCode(400);
 
-        Mockito.verify(eRepository, Mockito.times(0)).persist(Mockito.any(Engagement.class));
-        Mockito.verify(gitApiClient, Mockito.times(0)).createOrUpdateEngagement(Mockito.any(), Mockito.anyString(), Mockito.anyString());
+        Mockito.verify(engagementApiClient, times(0)).createEngagement(Mockito.any(Engagement.class));
 
     }
 
     @Test
-    void testPostEngagementWithAuthAndRoleEngagemenntAlreadyExists() throws Exception {
-        
-        MockUtils.mockRbac(configApiClient);
+    void testPostEngagementAlreadyExists() {
 
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+        Engagement engagement = Engagement.builder().customerName("Customer").projectName("Project").type("Residency")
+                .build();
 
-        Engagement engagement = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
-        engagement.setType("Residency");
-        Mockito.when(eRepository.findByUuid("1234")).thenReturn(Optional.of(engagement));
+        Mockito.when(engagementApiClient.createEngagement(Mockito.any(Engagement.class))).thenThrow(
+                new WebApplicationException(409));
+
         String body = quarkusJsonb.toJson(engagement);
 
         // POST
         given()
             .when()
                 .auth()
-                .oauth2(token)
+                .oauth2(validToken)
                 .body(body)
                 .contentType(ContentType.JSON)
                 .post("/engagements")
             .then()
                 .statusCode(409);
-
-        Mockito.verify(eRepository, Mockito.times(0)).persist(Mockito.any(Engagement.class));
-        Mockito.verify(gitApiClient, Mockito.times(0)).createOrUpdateEngagement(Mockito.any(), Mockito.anyString(), Mockito.anyString());
-
     }
-
-    @Test
-    void testEngagementWithSubdomainAlreadyExists() throws Exception {
-    	
-    	MockUtils.mockRbac(configApiClient);
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
-
-        Engagement engagement = MockUtils.mockMinimumEngagement("c1", "e2", "1234");
-        HostingEnvironment env = HostingEnvironment.builder().environmentName("e1").ocpSubDomain("aSuperRandomSubdomain").build();
-        engagement.setHostingEnvironments(Arrays.asList(env));
-
-        Engagement engagement2 = MockUtils.mockMinimumEngagement("c2", "e1", "5432");
-        engagement2.setProjectName("anotherRandomName");
-        HostingEnvironment env2 = HostingEnvironment.builder().environmentName("e2").ocpSubDomain("aSuperRandomSubdomain").build();
-        engagement2.setHostingEnvironments(Arrays.asList(env2));
-        engagement2.setType("Residency");
-
-        Mockito.when(eRepository.findByUuid("5432")).thenReturn(Optional.empty());
-        Mockito.when(eRepository.findBySubdomain("aSuperRandomSubdomain")).thenReturn(Optional.of(engagement));
-
-        String body = quarkusJsonb.toJson(engagement2);
-
-        given().when().auth().oauth2(token).body(body).contentType(ContentType.JSON).post("/engagements").then()
-                .statusCode(409);
-
-    }
-  
 }

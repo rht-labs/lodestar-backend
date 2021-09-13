@@ -13,11 +13,11 @@ import javax.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.annotation.RegisterProvider;
 import org.eclipse.microprofile.rest.client.inject.RegisterRestClient;
 
-import com.redhat.labs.lodestar.exception.mapper.LodeStarGitLabAPIServiceResponseMapper;
+import com.redhat.labs.lodestar.exception.mapper.ServiceResponseMapper;
 
 @ApplicationScoped
 @RegisterRestClient(configKey = "lodestar.config.api")
-@RegisterProvider(value = LodeStarGitLabAPIServiceResponseMapper.class, priority = 50)
+@RegisterProvider(value = ServiceResponseMapper.class, priority = 50)
 @Path("/api/v1/configs/runtime")
 public interface ConfigApiClient {
 

@@ -1,78 +1,83 @@
 package com.redhat.labs.lodestar.resource;
 
-import static io.restassured.RestAssured.given;
-
-import java.util.HashMap;
-import java.util.Optional;
-
+import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.model.Launch;
+import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
+import com.redhat.labs.lodestar.utils.TokenUtils;
+import io.quarkus.test.junit.QuarkusTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import com.redhat.labs.lodestar.model.Engagement;
-import com.redhat.labs.lodestar.model.Launch;
-import com.redhat.labs.lodestar.model.filter.FilterOptions;
-import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
-import com.redhat.labs.lodestar.utils.MockUtils;
-import com.redhat.labs.lodestar.utils.TokenUtils;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 
-import io.quarkus.test.junit.QuarkusTest;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
+import static io.restassured.RestAssured.given;
 
 @QuarkusTest
 @Tag("nested")
 class EngagementResourceDeleteTest extends IntegrationTestHelper {
 
-    @Test
-    void testDeleteEngagementNotFound() throws Exception {
-        
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+    static String validToken = TokenUtils.generateTokenString("/JwtClaimsWriter.json");
 
-        Mockito.when(eRepository.findByUuid("1234", new FilterOptions())).thenReturn(Optional.empty());
+    @BeforeEach
+    void setUp() {
+        Map<String, List<String>> rbac = Collections.singletonMap("Residency", Collections.singletonList("writer"));
+        Mockito.when(configApiClient.getPermission()).thenReturn(rbac);
+    }
+
+    @Test
+    void testDeleteEngagementNotFound() {
+
+        Mockito.when(engagementApiClient.getEngagement("1234")).thenThrow(new WebApplicationException(404));
+        Mockito.when(engagementApiClient.deleteEngagement("1234")).thenReturn(Response.status(204).build());
 
         // DELETE
         given()
         .when()
             .auth()
-            .oauth2(token)
+            .oauth2(validToken)
             .delete("/engagements/1234")
         .then()
             .statusCode(404);
         
     }
-    
-    @Test
-    void testDeleteNoAuth() throws Exception {
-        
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
 
-        Engagement e = MockUtils.mockMinimumEngagement("c1", "e1", "1234");
-        e.setLaunch(Launch.builder().build());
-        Mockito.when(eRepository.findByUuid("1234", new FilterOptions())).thenReturn(Optional.of(e));
+    @Test
+    void testDeleteEngagementNotAllowedEngagementType() {
+
+        Mockito.when(engagementApiClient.getEngagement("1234")).thenReturn(
+                Engagement.builder().uuid("1234").type("DO500").launch(Launch.builder().build()).build());
+        Mockito.when(engagementApiClient.deleteEngagement("1234")).thenReturn(Response.status(202).build());
 
         // DELETE
-        given().when().auth().oauth2(token).delete("/engagements/1234").then().statusCode(403);
-        
+        given()
+                .when()
+                .auth()
+                .oauth2(validToken)
+                .delete("/engagements/1234")
+                .then()
+                .statusCode(403);
+
     }
 
     @Test
-    void testDeleteEngagementAlreadyLaunched() throws Exception {
-        
-        MockUtils.mockRbac(configApiClient);
-        
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+    void testDeleteEngagementAlreadyLaunched() {
 
-        Engagement e = MockUtils.mockMinimumEngagement("c1", "e1", "1234");
-        e.setLaunch(Launch.builder().build());
-        Mockito.when(eRepository.findByUuid("1234",new FilterOptions())).thenReturn(Optional.of(e));
+        Mockito.when(engagementApiClient.getEngagement("1234")).thenReturn(
+                Engagement.builder().uuid("1234").type("Residency").launch(Launch.builder().build()).build());
+        Mockito.when(engagementApiClient.deleteEngagement("1234")).thenThrow(new WebApplicationException((400)));
 
         // DELETE
         given()
         .when()
             .auth()
-            .oauth2(token)
+            .oauth2(validToken)
             .delete("/engagements/1234")
         .then()
             .statusCode(400);
@@ -80,21 +85,16 @@ class EngagementResourceDeleteTest extends IntegrationTestHelper {
     }
     
     @Test
-    void testDeleteEngagementSuccess() throws Exception {
-        
-        MockUtils.mockRbac(configApiClient);
-        
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+    void testDeleteEngagementSuccess() {
 
-        Engagement e = MockUtils.mockMinimumEngagement("c1", "e1", "1234");
-        Mockito.when(eRepository.findByUuid("1234", new FilterOptions())).thenReturn(Optional.of(e));
+        Mockito.when(engagementApiClient.getEngagement("1234")).thenReturn(
+                Engagement.builder().uuid("1234").type("Residency").build());
 
         // DELETE
         given()
         .when()
             .auth()
-            .oauth2(token)
+            .oauth2(validToken)
             .delete("/engagements/1234")
         .then()
             .statusCode(202);

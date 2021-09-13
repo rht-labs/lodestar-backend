@@ -1,6 +1,6 @@
 package com.redhat.labs.lodestar.rest.client;
 
-import com.redhat.labs.lodestar.exception.mapper.LodeStarGitLabAPIServiceResponseMapper;
+import com.redhat.labs.lodestar.exception.mapper.ServiceResponseMapper;
 import com.redhat.labs.lodestar.model.Status;
 import org.eclipse.microprofile.rest.client.annotation.ClientHeaderParam;
 import org.eclipse.microprofile.rest.client.annotation.RegisterProvider;
@@ -12,7 +12,7 @@ import javax.ws.rs.core.Response;
 
 @ApplicationScoped
 @RegisterRestClient(configKey = "lodestar.engagement.status.api")
-@RegisterProvider(value = LodeStarGitLabAPIServiceResponseMapper.class, priority = 50)
+@RegisterProvider(value = ServiceResponseMapper.class, priority = 50)
 @Produces("application/json")
 @Consumes("application/json")
 @ClientHeaderParam(name = "version", value = "v1")

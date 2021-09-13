@@ -10,6 +10,7 @@ import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.microprofile.jwt.Claims;
@@ -24,6 +25,14 @@ public class TokenUtils {
 
     private TokenUtils() {
         // no-op: utility class
+    }
+
+    public static String generateTokenString(String jsonResName) {
+        try {
+            return generateTokenString(jsonResName, new HashMap<>());
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
     /**

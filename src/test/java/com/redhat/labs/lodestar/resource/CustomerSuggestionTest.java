@@ -3,60 +3,41 @@ package com.redhat.labs.lodestar.resource;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
 
-import java.util.HashMap;
+import javax.ws.rs.core.Response;
 
-import javax.inject.Inject;
-
+import com.redhat.labs.lodestar.rest.client.EngagementApiClient;
+import io.quarkus.test.junit.mockito.InjectMock;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
-import com.google.common.collect.Lists;
-import com.redhat.labs.lodestar.model.Engagement;
-import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
-import com.redhat.labs.lodestar.model.pagination.PagedStringResults;
-import com.redhat.labs.lodestar.service.EngagementService;
-import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
-import com.redhat.labs.lodestar.utils.MockUtils;
 import com.redhat.labs.lodestar.utils.TokenUtils;
 
 import io.quarkus.test.junit.QuarkusTest;
+import org.mockito.Mockito;
+
+import java.util.Collections;
 
 @QuarkusTest
 @Tag("nested")
-class CustomerSuggestionTest extends IntegrationTestHelper {
+class CustomerSuggestionTest {
+
 	private static final String ANSWER = "Red Hat";
 	private static final String SUGGESTION_URL = "/engagements/customers/suggest";
+
+	@InjectMock
+	@RestClient
+	EngagementApiClient engagementApiClient;
 	
-	@Inject
-	EngagementService engagementService;
-	
-	String token;
+	String token;	
 	
 	@BeforeEach
-	void setUp() throws Exception {
-		HashMap<String, Long> timeClaims = new HashMap<>();
-        token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
-		
-		Engagement engagement = MockUtils.mockMinimumEngagement(ANSWER, "p1", "1234");
-		engagement.setCustomerName(ANSWER);
-		
-		PagedStringResults results = PagedStringResults.builder().results(Lists.newArrayList(engagement.getCustomerName())).build();
-		Mockito.when(eRepository.findCustomerSuggestions(Mockito.any(ListFilterOptions.class))).thenReturn(results);
-
+	void setUp() {
+        token = TokenUtils.generateTokenString("/JwtClaimsWriter.json");
 	}
 	
-	@Test void testSuggestionsExactSuccess() throws Exception {
-
-        given()
-        .when()
-            .auth().oauth2(token).queryParam("suggest", ANSWER).get(SUGGESTION_URL)
-        .then()
-            .statusCode(200).body(containsString(ANSWER));
-    }
-	
-	@Test void testSuggestionsNoSuggestionFail() throws Exception {
+	@Test void testSuggestionsNoSuggestionFail() {
 
         given()
         .when()
@@ -64,17 +45,10 @@ class CustomerSuggestionTest extends IntegrationTestHelper {
         .then()
             .statusCode(400);
     }
-
-	@Test void testSuggestionsStartLowerSuccess() throws Exception {
-
-        given()
-        .when()
-            .auth().oauth2(token).queryParam("suggest", "red").get(SUGGESTION_URL)
-        .then()
-            .statusCode(200).body(containsString(ANSWER));
-    }
 	
-	@Test void testSuggestionsStartUpperSuccess() throws Exception {
+	@Test void testSuggestionsHasSuggestion() {
+		Mockito.when(engagementApiClient.suggest("Red")).thenReturn(
+				Response.ok(Collections.singletonList("Red Hat")).build());
 
         given()
         .when()
@@ -82,67 +56,4 @@ class CustomerSuggestionTest extends IntegrationTestHelper {
         .then()
             .statusCode(200).body(containsString(ANSWER));
     }
-	
-	@Test void testSuggestionStartLowerThanUpperSuccess() throws Exception {
-
-        given()
-        .when()
-            .auth().oauth2(token).queryParam("suggest", "rED").get(SUGGESTION_URL)
-        .then()
-            .statusCode(200).body(containsString(ANSWER));
-	}
-	
-	@Test void testSuggestionsEndLowerSuccess() throws Exception {
-		
-        given()
-        .when()
-            .auth().oauth2(token).queryParam("suggest", "hat").get(SUGGESTION_URL)
-        .then()
-            .statusCode(200).body(containsString(ANSWER));
-    }
-	
-	@Test void testSuggestionsEndUpperSuccess() throws Exception {
-
-        given()
-        .when()
-            .auth().oauth2(token).queryParam("suggest", "haT").get(SUGGESTION_URL)
-        .then()
-            .statusCode(200).body(containsString(ANSWER));
-    }
-	
-	@Test void testSuggestionEndLowerThanUpperSuccess() throws Exception {
- 
-        given()
-        .when()
-            .auth().oauth2(token).queryParam("suggest", "hAT").get(SUGGESTION_URL)
-        .then()
-            .statusCode(200).body(containsString(ANSWER));
-	}
-	
-	@Test void testSuggestionsMidLowerSuccess() throws Exception {
-
-        given()
-        .when()
-            .auth().oauth2(token).queryParam("suggest", "ed").get(SUGGESTION_URL)
-        .then()
-            .statusCode(200).body(containsString(ANSWER));
-    }
-	
-	@Test void testSuggestionsMidUpperSuccess() throws Exception {
-
-        given()
-        .when()
-            .auth().oauth2(token).queryParam("suggest", "ED").get(SUGGESTION_URL)
-        .then()
-            .statusCode(200).body(containsString(ANSWER));
-    }
-	
-	@Test void testSuggestionMidLowerThanUpperSuccess() throws Exception {
- 
-        given()
-        .when()
-            .auth().oauth2(token).queryParam("suggest", "eD").get(SUGGESTION_URL)
-        .then()
-            .statusCode(200).body(containsString(ANSWER));
-	}
 }

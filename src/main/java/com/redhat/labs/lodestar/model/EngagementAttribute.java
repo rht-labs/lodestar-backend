@@ -9,6 +9,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import org.javers.core.metamodel.annotation.DiffIgnore;
+import org.javers.core.metamodel.annotation.Id;
 
 @Data
 @ToString
@@ -18,8 +20,11 @@ import lombok.experimental.SuperBuilder;
 public class EngagementAttribute {
 
     private String uuid;
+    @DiffIgnore
     private String created;
+    @DiffIgnore
     private String updated;
+    @DiffIgnore
     private String engagementUuid;
 
     public void generateId() {

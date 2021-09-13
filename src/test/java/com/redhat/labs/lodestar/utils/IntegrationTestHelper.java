@@ -8,9 +8,6 @@ import javax.json.bind.config.PropertyNamingStrategy;
 import com.redhat.labs.lodestar.rest.client.*;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 
-import com.redhat.labs.lodestar.repository.ActiveSyncRepository;
-import com.redhat.labs.lodestar.repository.EngagementRepository;
-
 import io.quarkus.test.junit.mockito.InjectMock;
 
 public class IntegrationTestHelper {
@@ -20,38 +17,16 @@ public class IntegrationTestHelper {
     public Jsonb quarkusJsonb = JsonbBuilder.create(config);
 
     @InjectMock
-    public ActiveSyncRepository acRepository;
-
-    @InjectMock
-    public EngagementRepository eRepository;
-
-    @InjectMock
-    @RestClient
-    public LodeStarGitApiClient gitApiClient;
-
-    @InjectMock
-    @RestClient
-    public LodeStarStatusApiClient statusApiClient;
-
-    @InjectMock
     @RestClient
     public ConfigApiClient configApiClient;
     
     @InjectMock
     @RestClient
-    public ActivityApiClient activityClient;
-    
-    @InjectMock
-    @RestClient
     public ArtifactApiClient artifactClient;
-    
-    @InjectMock
-    @RestClient
-    public ParticipantApiClient participantClient;
 
     @InjectMock
     @RestClient
-    public EngagementStatusApiClient engagementStatusApiClient;
+    public EngagementApiClient engagementApiClient;
 
     public static String[] nullEmptyBlankSource() {
         return new String[] { null, "", "   " };

@@ -8,6 +8,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import org.javers.core.metamodel.annotation.ValueObject;
 
 @Data
 @SuperBuilder
@@ -15,6 +16,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @ToString(callSuper = true)
 @EqualsAndHashCode(callSuper = false)
+@ValueObject
 public class HostingEnvironment extends EngagementAttribute {
 
     @JsonbProperty("environment_name")

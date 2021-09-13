@@ -32,7 +32,7 @@ class ParticipantServiceTest {
         
         users = Collections.singleton(EngagementUser.builder().build());
         Engagement engagement = Engagement.builder().uuid("1").region("na").engagementUsers(users).build();
-        Mockito.when(engagementService.getByUuid(Mockito.eq("1"), Mockito.any(FilterOptions.class))).thenReturn(engagement);
+        Mockito.when(engagementService.getByUuid(Mockito.eq("1"))).thenReturn(engagement);
         
         Mockito.when(participantClient.updateParticipants("1", "na", "b", "c", users)).thenReturn(Response.ok().build());
         Mockito.when(participantClient.updateParticipants("1", "na", "x", "c", users)).thenThrow(new WebApplicationException());

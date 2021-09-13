@@ -41,6 +41,8 @@ public class Commit {
     private String commitDate;
     @JsonbProperty("web_url")
     private String url;
+    @JsonbProperty("engagement_uuid")
+    private String engagementUuid;
     
     
     public boolean didFileChange(List<String> fileName) {

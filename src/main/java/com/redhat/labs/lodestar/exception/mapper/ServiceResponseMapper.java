@@ -7,14 +7,19 @@ import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 
 import org.eclipse.microprofile.rest.client.ext.ResponseExceptionMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Priority(4000)
-public class LodeStarGitLabAPIServiceResponseMapper implements ResponseExceptionMapper<RuntimeException> {
+public class ServiceResponseMapper implements ResponseExceptionMapper<RuntimeException> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ServiceResponseMapper.class);
+
     @Override
     public RuntimeException toThrowable(Response response) {
         int status = response.getStatus();
-
         String msg = getBody(response);
+
+        LOGGER.error("Rest client response error {} {}", status, msg);
 
         return new WebApplicationException(msg, status);
 
@@ -25,7 +30,7 @@ public class LodeStarGitLabAPIServiceResponseMapper implements ResponseException
         if (response.hasEntity()) {
 
             ByteArrayInputStream is = (ByteArrayInputStream) response.getEntity();
-            byte[] bytes = new byte[is.available()];
+            var bytes = new byte[is.available()];
             is.read(bytes, 0, is.available());
             return new String(bytes);
 

@@ -10,6 +10,8 @@
 	<properties>
 		<compiler-plugin.version>3.8.1</compiler-plugin.version>
 		<lombok.version>1.18.20</lombok.version>
+		<wiremock.version>2.31.0</wiremock.version>
+		<javers.core.version>6.2.4</javers.core.version>
 		<maven.compiler.parameters>true</maven.compiler.parameters>
 		<maven.compiler.source>11</maven.compiler.source>
 		<maven.compiler.target>11</maven.compiler.target>
@@ -90,6 +92,11 @@
 			<scope>provided</scope>
 		</dependency>
 		<dependency>
+			<groupId>org.javers</groupId>
+			<artifactId>javers-core</artifactId>
+			<version>${javers.core.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>io.quarkus</groupId>
 			<artifactId>quarkus-junit5</artifactId>
 			<scope>test</scope>
@@ -103,6 +110,12 @@
 			<groupId>io.rest-assured</groupId>
 			<artifactId>rest-assured</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.github.tomakehurst</groupId>
+			<artifactId>wiremock-jre8</artifactId>
+			<scope>test</scope>
+			<version>${wiremock.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.jacoco</groupId>

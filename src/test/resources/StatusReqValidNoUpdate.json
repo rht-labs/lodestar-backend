@@ -6,7 +6,7 @@
         "name_with_namespace": "butter / chomp / sandbox / jello / exists / iac"
     },
     "commits": [{
-        "added": ["engagement.json"],
+        "added": ["engagement/engagement.json"],
         "modified": [],
         "removed": []
     }]

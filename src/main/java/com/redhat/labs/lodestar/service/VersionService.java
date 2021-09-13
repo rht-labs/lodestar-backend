@@ -8,7 +8,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 
 import com.redhat.labs.lodestar.model.status.ApplicationVersion;
 import com.redhat.labs.lodestar.model.status.VersionManifest;
-import com.redhat.labs.lodestar.rest.client.LodeStarStatusApiClient;
+import com.redhat.labs.lodestar.rest.client.StatusApiClient;
 
 @ApplicationScoped
 public class VersionService {
@@ -21,7 +21,7 @@ public class VersionService {
 
     @Inject
     @RestClient
-    LodeStarStatusApiClient statusApiClient;
+    StatusApiClient statusApiClient;
 
     /**
      * Returns the configured {@link ApplicationVersion} containing the git commit and git tag.

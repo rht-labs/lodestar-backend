@@ -16,6 +16,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import com.redhat.labs.lodestar.model.Engagement;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
@@ -28,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import com.redhat.labs.lodestar.model.Hook;
 import com.redhat.labs.lodestar.rest.client.ActivityApiClient;
-import com.redhat.labs.lodestar.rest.client.LodeStarStatusApiClient;
+import com.redhat.labs.lodestar.rest.client.StatusApiClient;
 import com.redhat.labs.lodestar.service.EngagementService;
 
 @RequestScoped
@@ -54,7 +55,7 @@ public class StatusResource {
 
     @Inject
     @RestClient
-    LodeStarStatusApiClient statusClient;
+    StatusApiClient statusClient;
     
     @Inject
     EngagementService engagementService;
@@ -82,10 +83,6 @@ public class StatusResource {
             LOGGER.error("Invalid status token used");
             return Response.status(Status.UNAUTHORIZED).build();
         }
-        
-        if(hook.didFileChange(committedFilesToWatch)) {
-            activityApi.postHook(hook, gitLabToken);
-        }
             
         LOGGER.debug("Hook for {}", hook.getProject().getPathWithNamespace());
         engagementService.updateStatusAndCommits(hook);
@@ -110,7 +107,9 @@ public class StatusResource {
         
         if(hook.wasProjectDeleted()) {
             LOGGER.debug("Remove engagement customer {} proj {}", hook.getCustomerName(), hook.getEngagementName());
-            engagementService.deleteByCustomerAndProjectName(hook.getCustomerName(), hook.getEngagementName());
+            Engagement engagement = engagementService.getByCustomerAndProjectName( hook.getCustomerName(), hook.getEngagementName());
+
+            engagementService.deleteEngagement(engagement.getUuid());
             return Response.status(204).build();
         }
 

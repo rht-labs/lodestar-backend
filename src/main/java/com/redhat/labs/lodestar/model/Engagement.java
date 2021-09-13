@@ -20,6 +20,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+import org.javers.core.metamodel.annotation.DiffIgnore;
 
 @Data
 @Builder(toBuilder = true)
@@ -31,15 +32,14 @@ public class Engagement extends PanacheMongoEntityBase {
     private String uuid;
     // Mongo DB generated ID
     @BsonId
-    @JsonbTransient
+    @JsonbTransient @DiffIgnore
     private ObjectId mongoId;
     @ValidName
     @JsonbProperty("customer_name")
     private String customerName;
     @ValidName
-    @JsonbProperty("project_name")
-    private String projectName;
-    @JsonbProperty("project_id")
+    private String name;
+    @JsonbProperty("project_id") //Should this be sent to the FE?
     private Integer projectId;
     private String description;
     private String location;
@@ -62,6 +62,7 @@ public class Engagement extends PanacheMongoEntityBase {
     @JsonbProperty("customer_contact_email")
     private String customerContactEmail;
     @JsonbProperty("hosting_environments")
+    @DiffIgnore
     private List<HostingEnvironment> hostingEnvironments;
     @JsonbProperty("public_reference")
     private Boolean publicReference;
@@ -69,43 +70,52 @@ public class Engagement extends PanacheMongoEntityBase {
     private String additionalDetails;
     private Launch launch;
     @JsonbProperty("engagement_users")
+    @DiffIgnore
     private Set<EngagementUser> engagementUsers;
 
+    @DiffIgnore
     private Status status;
     //can the user viewing this engagement write to it
     //only set when viewing an individual engagement and not a list
     //also checked before PUT/POST actions
+    @DiffIgnore
     private Boolean writeable;
     
     @Deprecated
     /**
      * Deprecated - delivered in a separate api separately
      */
+    @DiffIgnore
     private List<Commit> commits;
     @JsonbProperty("creation_details")
+    @DiffIgnore
     private CreationDetails creationDetails;
     @JsonbProperty("last_update_by_name")
+    @DiffIgnore
     private String lastUpdateByName;
     @JsonbProperty("last_update_by_email")
+    @DiffIgnore
     private String lastUpdateByEmail;
+    @DiffIgnore
     @JsonbProperty("last_update")
     private String lastUpdate;
 
-    @JsonbProperty("engagement_region")
     private String region;
-    @JsonbProperty("engagement_type")
     private String type;
 
     @JsonbProperty("engagement_categories")
+    @DiffIgnore
     private List<Category> categories;
     @JsonbProperty("use_cases")
     private List<UseCase> useCases;
     @JsonbProperty("timezone")
     private String timezone;
 
+    @DiffIgnore
     private List<Artifact> artifacts;
 
     @JsonbProperty("commit_message")
+    @DiffIgnore
     private String commitMessage;
 
     private List<Score> scores;
@@ -113,6 +123,41 @@ public class Engagement extends PanacheMongoEntityBase {
     @JsonbProperty("billing_codes")
     private List<BillingCodes> billingCodes;
 
+    @JsonbProperty("participant_count")
+    @DiffIgnore
+    private int participantCount;
+
+    //Legacy - front end should switch to region
+    @JsonbProperty("engagement_region")
+    private String engagementRegion;
+
+    //Legacy
+    @JsonbProperty("project_name")
+    private String projectName;
+
+    //Legacy
+    @JsonbProperty("engagement_type")
+    private String engagementType;
+
+    public void setEngagementRegion(String engagementRegion) {
+        this.engagementRegion = engagementRegion;
+        this.region = engagementRegion;
+    }
+
+    public void setProjectName(String projectName) {
+        this.projectName = projectName;
+        this.name = projectName;
+    }
+
+    public void setName(String projectName) {
+        this.projectName = projectName;
+        this.name = projectName;
+    }
+
+    public void setEngagementType(String engagementType) {
+        this.engagementType = engagementType;
+        this.type = engagementType;
+    }
 
     /**
      * The value return here is relative to the time entered. If the time entered was

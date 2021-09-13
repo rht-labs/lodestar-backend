@@ -1,6 +1,6 @@
 package com.redhat.labs.lodestar.resource;
 
-import java.util.Optional;
+import java.util.*;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -16,6 +16,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response.ResponseBuilder;
 
+import com.redhat.labs.lodestar.service.CategoryService;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.metrics.MetricUnits;
 import org.eclipse.microprofile.metrics.annotation.Counted;
@@ -33,7 +34,7 @@ import com.redhat.labs.lodestar.model.pagination.PagedCategoryResults;
 import com.redhat.labs.lodestar.service.EngagementService;
 
 @RequestScoped
-@Path("/engagements")
+@Path("/engagements/categories")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @SecurityScheme(securitySchemeName = "jwt", type = SecuritySchemeType.HTTP, scheme = "bearer", bearerFormat = "JWT")
@@ -44,28 +45,41 @@ public class EngagementCategoryResource {
 
     @Inject
     EngagementService engagementService;
+
+    @Inject
+    CategoryService categoryService;
     
     @GET
-    @Path("/categories")
     @SecurityRequirement(name = "jwt", scopes = {})
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "Customer data has been returned.") })
     @Operation(summary = "Returns customers list")
-    @Counted(name = "engagement-get-all-categories-counted")
-    @Timed(name = "engagement-get-all-categories-timer", unit = MetricUnits.MILLISECONDS)
-    public Response getAllCategories(@Context UriInfo uriInfo,
-            @Parameter(name = "suggest", deprecated = true, required = false, description = "uses suggestion as case insensitive search string") @QueryParam("suggest") Optional<String> suggest,
-            @BeanParam ListFilterOptions filterOptions) {
+    public Response getAllCategories(@Context UriInfo uriInfo, @BeanParam ListFilterOptions filterOptions) {
 
-        if (suggest.isPresent()) {
-            filterOptions.addLikeSearchCriteria("categories.name", suggest.get());
+        List<String> regions = new ArrayList<>();
+        if(filterOptions.getSearch().isPresent()) {
+            //TODO convert legacy -
+            String params[] = filterOptions.getSearch().get().split("&");
+
+            for(int i=0; i< params.length; i++) {
+                String[] keyValues = params[i].split("=");
+
+                if(keyValues[0].equals("engagement_region")) {
+                    String[] regionsArray = keyValues[1].split(",");
+                    regions = Arrays.asList(regionsArray);
+                }
+            }
         }
 
-        PagedCategoryResults page = engagementService.getCategories(filterOptions);
-        ResponseBuilder builder = Response.ok(page.getResults()).links(page.getLinks(uriInfo.getAbsolutePathBuilder()));
-        page.getHeaders().entrySet().stream().forEach(e -> builder.header(e.getKey(), e.getValue()));
-        return builder.build();
-
+        return engagementService.getCategories(regions, filterOptions);
     }
-    
+
+    //TODO page or limit?
+    @GET
+    @Path("suggest")
+    @SecurityRequirement(name = "jwt", scopes = {})
+    public Set<String> getSuggestions(@QueryParam("q") String partial) {
+        return categoryService.getCategorySuggestions(partial);
+    }
+
 }

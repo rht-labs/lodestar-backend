@@ -1,26 +1,52 @@
 package com.redhat.labs.lodestar.resource;
 
+import com.redhat.labs.lodestar.model.Engagement;
+import com.redhat.labs.lodestar.rest.client.ConfigApiClient;
+import com.redhat.labs.lodestar.rest.client.EngagementApiClient;
+import com.redhat.labs.lodestar.utils.TokenUtils;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.mockito.InjectMock;
+import io.restassured.http.ContentType;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.mockito.Mockito;
+
+import javax.json.bind.Jsonb;
+import javax.json.bind.JsonbBuilder;
+import javax.json.bind.JsonbConfig;
+import javax.json.bind.config.PropertyNamingStrategy;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
 
-import java.util.HashMap;
-
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.CsvSource;
-
-import com.redhat.labs.lodestar.model.Engagement;
-import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
-import com.redhat.labs.lodestar.utils.MockUtils;
-import com.redhat.labs.lodestar.utils.TokenUtils;
-
-import io.quarkus.test.junit.QuarkusTest;
-import io.restassured.http.ContentType;
-
 @QuarkusTest
 @Tag("nested")
-class EngagementResourceJwtTest extends IntegrationTestHelper {
+class EngagementResourceJwtTest {
+
+    JsonbConfig config = new JsonbConfig().withFormatting(true)
+            .withPropertyNamingStrategy(PropertyNamingStrategy.LOWER_CASE_WITH_UNDERSCORES);
+    public Jsonb quarkusJsonb = JsonbBuilder.create(config);
+
+    @InjectMock
+    @RestClient
+    public ConfigApiClient configApiClient;
+
+    @InjectMock
+    @RestClient
+    EngagementApiClient engagementApiClient;
+
+    @BeforeEach
+    void setUp() {
+        Map<String, List<String>> rbac = Collections.singletonMap("Residency", Collections.singletonList("writer"));
+        Mockito.when(configApiClient.getPermission()).thenReturn(rbac);
+    }
 
     @ParameterizedTest
     @CsvSource({
@@ -37,12 +63,15 @@ class EngagementResourceJwtTest extends IntegrationTestHelper {
     })
     void testPostEngagementWithAuthAndRoleHasUserClaim(String claimFile, String lastUpdateName, String lastUpdateEmail) throws Exception {
 
-        MockUtils.mockRbac(configApiClient);
-        
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString(claimFile, timeClaims);
+        String token = TokenUtils.generateTokenString(claimFile);
 
-        Engagement engagement = MockUtils.mockMinimumEngagement("c1", "e1", null);
+        Engagement engagement = Engagement.builder().uuid("uuid").customerName("c1").projectName("e1")
+                .type("Residency").build();
+
+        Engagement created = Engagement.builder().uuid("uuid").customerName("c1").projectName("e1")
+                        .lastUpdateByName(lastUpdateName).lastUpdateByEmail(lastUpdateEmail).build();
+
+        Mockito.when(engagementApiClient.createEngagement(Mockito.any(Engagement.class))).thenReturn(created);
 
         String body = quarkusJsonb.toJson(engagement);
 
@@ -56,6 +85,7 @@ class EngagementResourceJwtTest extends IntegrationTestHelper {
                 .post("/engagements")
             .then()
                 .statusCode(201)
+                .body("uuid", equalTo("uuid"))
                 .body("customer_name", equalTo(engagement.getCustomerName()))
                 .body("project_name", equalTo(engagement.getProjectName()))
                 .body("project_id", nullValue())

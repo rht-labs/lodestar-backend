@@ -96,7 +96,7 @@ public class ParticipantResource {
     @Operation(summary = "Returns participant list for an engagement")
     @Counted(name = "get-participants-by-engagement-counted")
     @Timed(name = "get-participants-by-engagement-timer", unit = MetricUnits.MILLISECONDS)
-    public Response getParticipantsForEnagementUuid(@PathParam(value = "eUuid") String engagementUuid,
+    public Response getParticipantsForEngagementUuid(@PathParam(value = "eUuid") String engagementUuid,
             Set<EngagementUser> participants) {
 
         String email = jwtUtils.getUserEmailFromToken(jwt);

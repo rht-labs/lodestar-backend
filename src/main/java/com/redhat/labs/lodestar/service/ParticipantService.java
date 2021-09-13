@@ -62,8 +62,14 @@ public class ParticipantService {
      */
     public Response updateParticipants(String engagementUuid, String authorName, String authorEmail, Set<EngagementUser> participants) {
         
-        Engagement engagement = engagementService.getByUuid(engagementUuid, new FilterOptions());
+        Engagement engagement = engagementService.getByUuid(engagementUuid);
         return participantRestClient.updateParticipants(engagementUuid, engagement.getRegion(), authorName, authorEmail, participants);
+    }
+
+    public List<EngagementUser> updateParticipantsAndReload(String engagementUuid, String authorName, String authorEmail, Set<EngagementUser> participants) {
+
+        updateParticipants(engagementUuid, authorName, authorEmail, participants);
+        return getParticipantsForEngagement(engagementUuid);
     }
     
     /**
@@ -74,7 +80,7 @@ public class ParticipantService {
     public void updateParticipants(String message) {
         String[] uuidNameEmail = message.split(",");
         
-        Engagement engagement = engagementService.getByUuid(uuidNameEmail[0], new FilterOptions());
+        Engagement engagement = engagementService.getByUuid(uuidNameEmail[0]);
         
         try {
             participantRestClient.updateParticipants(engagement.getUuid(), engagement.getRegion(),uuidNameEmail[1], uuidNameEmail[2], engagement.getEngagementUsers());

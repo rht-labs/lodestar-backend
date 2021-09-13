@@ -13,6 +13,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import com.redhat.labs.lodestar.model.*;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.metrics.MetricUnits;
 import org.eclipse.microprofile.metrics.annotation.Counted;
@@ -25,7 +26,7 @@ import org.eclipse.microprofile.openapi.annotations.security.SecurityRequirement
 import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
-import com.redhat.labs.lodestar.model.pagination.PagedHostingEnvironmentResults;
+import com.redhat.labs.lodestar.model.pagination.PagedUseCaseResults;
 import com.redhat.labs.lodestar.service.EngagementService;
 
 @RequestScoped
@@ -33,7 +34,7 @@ import com.redhat.labs.lodestar.service.EngagementService;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @SecurityScheme(securitySchemeName = "jwt", type = SecuritySchemeType.HTTP, scheme = "bearer", bearerFormat = "JWT")
-public class EngagementHostingEnvironmentResource {
+public class UseCaseResource {
 
     @Inject
     JsonWebToken jwt;
@@ -42,19 +43,14 @@ public class EngagementHostingEnvironmentResource {
     EngagementService engagementService;
 
     @GET
-    @Path("/hosting/environments")
+    @Path("/usecases")
     @SecurityRequirement(name = "jwt", scopes = {})
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
-            @APIResponse(responseCode = "200", description = "hosting environments have been returned.") })
-    @Operation(summary = "Returns engagement hosting environments")
-    @Counted(name = "engagement-get-all-environments-counted")
-    @Timed(name = "engagement-get-all-environments-timer", unit = MetricUnits.MILLISECONDS)
-    public Response getHostingEnvironments(@Context UriInfo uriInfo, @BeanParam ListFilterOptions filterOptions) {
+            @APIResponse(responseCode = "200", description = "use cases have been returned.") })
+    @Operation(summary = "Returns engagement use cases")
+    public Response getScores(@Context UriInfo uriInfo, @BeanParam ListFilterOptions filterOptions) {
 
-        PagedHostingEnvironmentResults page = engagementService.getHostingEnvironments(filterOptions);
-        ResponseBuilder builder = Response.ok(page.getResults()).links(page.getLinks(uriInfo.getAbsolutePathBuilder()));
-        page.getHeaders().entrySet().stream().forEach(e -> builder.header(e.getKey(), e.getValue()));
-        return builder.build();
+        return engagementService.getUseCases(filterOptions);
 
     }
 
