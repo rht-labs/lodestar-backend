@@ -5,16 +5,10 @@ import java.util.List;
 import java.util.Set;
 
 import javax.json.bind.annotation.JsonbProperty;
-import javax.json.bind.annotation.JsonbTransient;
-
-import org.bson.codecs.pojo.annotations.BsonId;
-import org.bson.types.ObjectId;
-
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.redhat.labs.lodestar.util.DateFormatter;
 import com.redhat.labs.lodestar.validation.ValidName;
 
-import io.quarkus.mongodb.panache.PanacheMongoEntityBase;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -26,14 +20,10 @@ import org.javers.core.metamodel.annotation.DiffIgnore;
 @Builder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-public class Engagement extends PanacheMongoEntityBase {
+@EqualsAndHashCode
+public class Engagement {
 
     private String uuid;
-    // Mongo DB generated ID
-    @BsonId
-    @JsonbTransient @DiffIgnore
-    private ObjectId mongoId;
     @ValidName
     @JsonbProperty("customer_name")
     private String customerName;
@@ -82,8 +72,8 @@ public class Engagement extends PanacheMongoEntityBase {
     private Boolean writeable;
     
     @Deprecated
-    /**
-     * Deprecated - delivered in a separate api separately
+    /*
+      @deprecated - delivered in a separate api separately
      */
     @DiffIgnore
     private List<Commit> commits;
@@ -170,7 +160,7 @@ public class Engagement extends PanacheMongoEntityBase {
      * states can be UPCOMING, ACTIVE, PAST, UNKNOWN
      * 
      * @param currentDate - A time to compare against. Should be local to the user
-     * @return
+     * @return the current state based on the current date
      */
     public EngagementState getEngagementCurrentState(LocalDateTime currentDate) {
 
@@ -193,7 +183,7 @@ public class Engagement extends PanacheMongoEntityBase {
 
     public enum EngagementState {
         // The state ANY can be in any of the other states
-        UPCOMING, PAST, TERMINATING, ACTIVE, ANY;
+        UPCOMING, PAST, TERMINATING, ACTIVE, ANY
     }
 
 }
