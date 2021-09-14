@@ -78,8 +78,8 @@ public class EngagementService {
 
 
     public void flushCache() { //TODO
-        List<Engagement>  allEngagements = engagementApiClient.getEngagements(0,5000);
-        allEngagements.forEach(e -> getEngagement(e.getUuid()));
+        //List<Engagement>  allEngagements = engagementApiClient.getEngagements(0,5000);
+        //allEngagements.forEach(e -> getEngagement(e.getUuid()));
     }
 
     //TODO cache this - btw - this caching will probably only work in a single pod sitch.
@@ -136,7 +136,7 @@ public class EngagementService {
         String engagementUuid = engagement.getUuid();
 
         //TODO add here a call to validate that the user can update.
-        //This should be from the activity service + verify non shanigans either
+        //This should be from the activity service + verify non shenanigans either
         String currentLastUpdated = engagement.getLastUpdate();
 
         //Will return a 404 with a message saying the uuid is not valid
@@ -261,7 +261,7 @@ public class EngagementService {
     /**
      * //Should prob deprecate this in favor of uuid. On create a uuid is returned
      * 
-     * @param customerName customer namee
+     * @param customerName customer name
      * @param engagementName project name
      * @return engagement an engagement
      */
@@ -296,11 +296,11 @@ public class EngagementService {
             });
             return Response.ok(engagements).build();
         }
-        //TODO not really paging here
 
         int page = listFilterOptions.getPage().orElse(1) - 1;
         pageSize = listFilterOptions.getPerPage().orElse(1000);
-        return Response.status(200).entity(engagementApiClient.getEngagements(page, pageSize)).build();
+
+        return engagementApiClient.getEngagements(page, pageSize);
     }
 
     /**

@@ -10,7 +10,6 @@ import com.redhat.labs.lodestar.utils.TokenUtils;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import io.restassured.http.ContentType;
-import io.restassured.response.Response;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -18,11 +17,11 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
 import java.util.*;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.jupiter.api.Assertions.*;
 
 @QuarkusTest
 @Tag("nested")
@@ -96,20 +95,18 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
     @Test
     void testGetEngagementsSuccessNoEngagements() {
 
-        Mockito.when(engagementApiClient.getEngagements(0, 500)).thenReturn(Collections.emptyList());
+        Mockito.when(engagementApiClient.getEngagements(0, 500)).thenReturn(javax.ws.rs.core.Response.ok(Collections.emptyList()).build());
 
         // GET engagement
-        Response response = 
         given()
             .when()
                 .auth()
                 .oauth2(validToken)
                 .contentType(ContentType.JSON)
-                .get("/engagements");
-
-        assertEquals(200, response.getStatusCode());
-        Engagement[] engagements = response.getBody().as(Engagement[].class);
-        assertEquals(0, engagements.length);
+                .get("/engagements")
+            .then()
+                .statusCode(200)
+                .body("size()", equalTo(0));
 
         Mockito.verify(engagementApiClient).getEngagements(0, 500);
     }
@@ -120,20 +117,18 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         Engagement engagement1 = Engagement.builder().uuid("1234").type("Residency").customerName("Customer").projectName("Project1").build();
         Engagement engagement2 = Engagement.builder().uuid("1235").type("Residency").customerName("Customer").projectName("Project2").build();
 
-        Mockito.when(engagementApiClient.getEngagements(0, 500)).thenReturn(List.of(engagement1, engagement2));
+        Mockito.when(engagementApiClient.getEngagements(0, 500)).thenReturn(Response.ok(List.of(engagement1, engagement2)).build());
 
         // GET engagement
-        Response response = 
         given()
             .when()
                 .auth()
                 .oauth2(validToken)
                 .contentType(ContentType.JSON)
-                .get("/engagements");
-
-        assertEquals(200, response.getStatusCode());
-        Engagement[] engagements = quarkusJsonb.fromJson(response.getBody().asString(), Engagement[].class);
-        assertEquals(2, engagements.length);
+                .get("/engagements")
+            .then()
+                .statusCode(200)
+                .body("size()", equalTo(2));
 
         Mockito.verify(engagementApiClient).getEngagements(0, 500);
     }
@@ -147,18 +142,18 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
     void testGetAllWithExcludeAndInclude() {
 
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json");
+        Mockito.when(engagementApiClient.getEngagements(0, 500)).thenReturn(Response.ok(Collections.emptyList()).build());
 
         // get all
-        Response r =given()
+        given()
             .auth()
             .oauth2(token)
             .queryParam("include", "somevalue")
             .queryParam("exclude", "anothervalue")
             .contentType(ContentType.JSON)
         .when()
-            .get("/engagements");
-
-        assertEquals(200, r.getStatusCode());
+            .get("/engagements")
+        .then().statusCode(200);
 
     }
 
@@ -166,9 +161,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
     void testGetAllWithInclude() {
 
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json");
-
-        PagedEngagementResults results = PagedEngagementResults.builder().results(Lists.newArrayList()).build();
-        Mockito.when(engagementApiClient.getEngagements(0, 5000)).thenReturn(Collections.emptyList());
+        Mockito.when(engagementApiClient.getEngagements(0, 500)).thenReturn(Response.ok(Collections.emptyList()).build());
 
         // get all
         given()

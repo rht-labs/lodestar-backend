@@ -17,7 +17,7 @@ import java.util.*;
 public interface EngagementApiClient {
 
     @GET
-    List<Engagement> getEngagements(@QueryParam("page") int page, @QueryParam("pageSize") int pageSize);
+    Response getEngagements(@QueryParam("page") int page, @QueryParam("pageSize") int pageSize);
 
     //TODO support time shifting
     @GET
