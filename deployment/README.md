@@ -31,15 +31,9 @@ helm template . \
   --values values-dev.yaml \
   --set git.uri=https://github.com/rht-labs/lodestar-backend.git \
   --set git.ref=master \
-  --set lodestarGitlabApiUrl=http://lodestar-git-api:8080 \
   --set jwtPublicKeyLocation=<your-jwt-public-key-location> \
   --set jwtIssuer=https:<your-jwt-issuer> \
   --set jwtEnable=true \
-  --set mongodbServiceName=lodestar-backend-mongodb \
-  --set mongodbUser=<your-mongodb-user> \
-  --set mongodbPassword=<your-mongodb-password> \
-  --set mongodbDatabase=engagements \
-  --set mongodbAdminPassword=<your-mongodb-admin-password> \
 | oc apply -f -
 ```
 
@@ -49,50 +43,32 @@ It accepts the following variables
 |---|---|
 | `git.uri`  | The HTTPS reference to the repo (your fork!) to build  |
 | `git.ref`  | The branch name to build  |
-| `lodestarGitlabApiUrl`  | URL for the route or service to the Git API service  |
 | `jwtVerifyPublicKeyLocation`  | The URL at which your OpenID Connect (SSO) provider exposes its public key  |
 | `jwtIssuer`  | The issuer specified JWT token|
 | `jwtEnable`  | Flag to turn on and off JWT validation  |
-| `mongodbServiceName` | MongoDB service name |
-| `mongodbUser` | Application user for MongoDB |
-| `mongodbPassword` | Application user password for MongoDB |
-| `mongodbDatabase` | Application database name |
-| `mongodbAdminPassword` | Admin password for MongoDB |
+| `token.webhook` | Accepts webhook token |
 
-This will spin up all of the usual resources that this service needs in production, plus a `BuildConfig` configured to build it from source from the Git repository specified. To trigger this build, use `oc start-build lodestar-backend`.
+This will spin up all the usual resources that this service needs in production, plus a `BuildConfig` configured to build it from source from the Git repository specified. To trigger this build, use `oc start-build lodestar-backend`.
 
 # Local Development
 
-### Mongo DB
-
-If you are developing locally you will need to connect to a database. By default it connects to a local instead. You can use the docker setup located in this directory to deploy an instance. It will persist data into a sub-directory named `mongo-volume`. To destroy the database entirely you can shut down the docker instance and remove the sub-directory.
-
-From the root of the repo
-
-```bash
-cd deployment
-docker-compose up
-```
-
-### Local Git API
-
-Clone the Git API repo, follow the local dev steps there and run it on port 8080.
+This service connects to a number of other services acting as a gate keeper via Auth and a coordinator to other services. Ensure you have access to other services
 
 ### Run locally
 
 ```bash
-# required
-export LODESTAR_GITLAB_API_URL=http://localhost:8080
-
 #some options
-# could include not default mongo values here
+export LODESTAR_ENGAGEMENTS_API_URL=http://localhost:8080
 export LODESTAR_BACKEND_GIT_COMMIT=gitSHA
 export LODESTAR_BACKED_GIT_TAG=v34.4
 export JWT_LOGGING=INFO
 export LODESTAR_BACKEND_VERSIONS_PATH=$PWD/version-manifest.yml
 
-echo "LODESTAR GIT API $LODESTAR_GITLAB_API_URL"
 mvn quarkus:dev
 ```
 
-Navigate to http://localhost:8080
+Navigate to http://localhost:8081
+
+### Testing
+
+Running mvn quarkus:test will allow for continuous testing

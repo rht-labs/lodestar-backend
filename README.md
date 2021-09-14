@@ -169,7 +169,7 @@ There are currently 2 scheduled jobs that run on a given active node of the Lode
 
 ### GitLab to Database sync
 
-This job is responsible for inserting into the databse any engagement in GitLab that is not currently in the database.
+This job is responsible for inserting into the database any engagement in GitLab that is not currently in the database.
 
 The job interval can be set using the environment variable `AUTO_REPOP_CRON`, but is defaulted to every 5 minutes.
 
@@ -201,19 +201,9 @@ The following environment variables are available:
 
 | Name | Example Value | Required |
 |------|---------------|----------|
-| JWT_PUBKICKEY_LOCATION | http://[your-cluster-internal-sso-service-name]:8080/auth/realms/[your-realm-id]/protocol/openid-connect/certs | True |
+| JWT_PUBLIC_KEY_LOCATION | http://[your-cluster-internal-sso-service-name]:8080/auth/realms/[your-realm-id]/protocol/openid-connect/certs | True |
 | JWT_ISSUER | http://[your-cluster-internal-sso-service-name] | True |
 | JWT_ENABLE | True | False |
-
-### Mongo DB
-
-| Name | Example Value | Required |
-|------|---------------|----------|
-| MONGODB_USER | monguser | True |
-| MONGODB_PASSWORD | mongopassword | True |
-| DATABASE_SERVICE_NAME | lodestar-mongodb | True |
-| MONGODB_DATABASE | engagements | True |
-
 
 ### Git API
 
@@ -281,6 +271,8 @@ This project runs tests using an embedded Mongo DB and Using the TokenUtils foun
 mvn quarkus:dev
 # run unit tests
 mvn test
+# continuous testing
+mvn quarkus:test
 # build for production
 mvn quarkus:build
 ```
