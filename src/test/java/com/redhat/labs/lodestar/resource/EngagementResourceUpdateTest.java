@@ -55,8 +55,8 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
     @RestClient
     ActivityApiClient activityApiClient;
 
-    String validToken = TokenUtils.generateTokenString("/JwtClaimsWriter.json");
-
+    static String validToken = TokenUtils.generateTokenString("/JwtClaimsWriter.json");
+    static String lastUpdate = "2021-04-08T00:00:00.000Z";
 
     @BeforeEach
     void setUp() {
@@ -96,18 +96,18 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
     void testPutEngagementSuccess() {
 
         Engagement toUpdate = Engagement.builder().uuid("1234").customerName("Customer").projectName("Project").type("Residency")
-                .description("testing").build();
-        toUpdate.setProjectId(1234);
-        toUpdate.setLastUpdate(Instant.now().toString());
+                .description("testing").lastUpdate(lastUpdate).build();
         String body = quarkusJsonb.toJson(toUpdate);
 
         Engagement existing = quarkusJsonb.fromJson(body, Engagement.class);
         existing.setDescription(null);
-        existing.setLastUpdate(Instant.ofEpochSecond(1).toString());
+        existing.setLastUpdate(null);
 
         Mockito.when(engagementApiClient.getEngagement("1234")).thenReturn(existing).thenReturn(toUpdate);
         Mockito.when(engagementApiClient.updateEngagement(Mockito.any(Engagement.class))).thenReturn(Response.ok(toUpdate).build());
         Mockito.when(artifactApiClient.getArtifacts(Mockito.any(ArtifactOptions.class))).thenReturn(Response.ok(Collections.emptyList()).build());
+        Mockito.when(activityApiClient.getLastActivity("1234"))
+                .thenReturn(Response.ok().header("last-update", lastUpdate).build());
 
         given()
             .when()
@@ -120,7 +120,6 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
                 .statusCode(200)
                 .body("customer_name", equalTo(toUpdate.getCustomerName()))
                 .body("project_name", equalTo(toUpdate.getProjectName()))
-                .body("project_id", equalTo(1234))
                 .body("description", equalTo(toUpdate.getDescription()))
                 .body("last_update", equalTo(toUpdate.getLastUpdate()));
 
@@ -190,9 +189,11 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
     void testPutEngagementDoesNotExist() {
 
         Engagement toUpdate = Engagement.builder().uuid("1234").customerName("Customer").projectName("Project")
-                .type("Residency").build();
+                .type("Residency").lastUpdate(lastUpdate).build();
 
         Mockito.when(engagementApiClient.getEngagement("1234")).thenThrow(new WebApplicationException(404));
+        Mockito.when(activityApiClient.getLastActivity("1234"))
+                .thenReturn(Response.ok().header("last-update", lastUpdate).build());
 
         String body = quarkusJsonb.toJson(toUpdate);
 
@@ -206,6 +207,29 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
             .then()
                 .statusCode(404);
 
+    }
+
+    @Test
+    void testPutEngagementOutOfSyncLastUpdate() {
+
+        Engagement toUpdate = Engagement.builder().uuid("1234").customerName("Customer").projectName("Project")
+                .type("Residency").lastUpdate(lastUpdate).build();
+
+        Mockito.when(engagementApiClient.getEngagement("1234")).thenThrow(new WebApplicationException(404));
+        Mockito.when(activityApiClient.getLastActivity("1234"))
+                .thenReturn(Response.ok().header("last-update", Instant.now().toString()).build());
+
+        String body = quarkusJsonb.toJson(toUpdate);
+
+        given()
+                .when()
+                .auth()
+                .oauth2(validToken)
+                .body(body)
+                .contentType(ContentType.JSON)
+                .put("/engagements/1234")
+                .then()
+                .statusCode(409);
     }
 
     @Test
@@ -300,17 +324,19 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
     }
 
     @Test
-    void testPutEngagementWithConflictingHostingEnvironmentSubdomain() {
+    void testPutEngagementWithConflictingSubdomain() {
 
         List<HostingEnvironment> hes = Collections.singletonList(HostingEnvironment.builder().ocpSubDomain("taken").build());
         Engagement toUpdate = Engagement.builder().uuid("1234").customerName("Customer").projectName("Project").name("Project").type("Residency")
-                .hostingEnvironments(hes).build();
+                .hostingEnvironments(hes).lastUpdate(lastUpdate).build();
 
         Mockito.when(engagementApiClient.getEngagement("1234")).thenReturn(toUpdate);
         Mockito.when(hostingEnvironmentApiClient.getHostingEnvironmentsByEngagementUuid("1234")).thenReturn(Collections.emptyList());
         Mockito.when(hostingEnvironmentApiClient.updateHostingEnvironments("1234", hes,"lodestar-email","John Doe"))
                         .thenThrow(new WebApplicationException(409));
         Mockito.when(artifactApiClient.getArtifacts(Mockito.any(ArtifactOptions.class))).thenReturn(Response.ok(Collections.emptyList()).build());
+        Mockito.when(activityApiClient.getLastActivity("1234"))
+                .thenReturn(Response.ok().header("last-update", lastUpdate).build());
 
         String body = quarkusJsonb.toJson(toUpdate);
 

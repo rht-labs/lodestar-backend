@@ -1,6 +1,5 @@
 package com.redhat.labs.lodestar.service;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -60,7 +59,7 @@ public class ArtifactService {
         int currentPage = page+1; // 0 based vs 1 based. Need to rectify at some point
         int totalArtifacts = Integer.parseInt(response.getHeaderString("x-total-artifacts"));
         int totalPages = totalArtifacts / pageSize + 1;
-        List<EngagementArtifact>  artifacts = response.readEntity(new GenericType<List<EngagementArtifact>>(){});
+        List<EngagementArtifact> artifacts = response.readEntity(new GenericType<>(){});
         
         //if(dashboardView) { //enrich data with customer and engagement name
             for(EngagementArtifact artifact : artifacts) {
@@ -85,20 +84,15 @@ public class ArtifactService {
         return artifactRestClient.getTypesCount(regions);
     }
 
-    public List<Artifact> updateAndReload(Engagement engagement, String author, String authorEmail) {
+    public void update(Engagement engagement, String author, String authorEmail) {
         String uuid = engagement.getUuid();
         try {
-            Response response = artifactRestClient.updateArtifacts(uuid, engagement.getRegion(), engagement.getArtifacts(), authorEmail, author);
-            LOGGER.debug("Artifact update response for {} is {}", uuid, response.getStatus());
-
-            return getArtifacts(uuid);
+            artifactRestClient.updateArtifacts(uuid, engagement.getRegion(), engagement.getArtifacts(), authorEmail, author);
         } catch (WebApplicationException wae) {
             LOGGER.error("Failed to update artifacts for engagement {} {}", wae.getResponse().getStatus(), uuid);
         } catch (RuntimeException wae) {
             LOGGER.error("Failed to update artifacts for engagement {}", uuid, wae);
         }
-
-        return Collections.emptyList();
     }
     
     @ConsumeEvent(value = EventType.RELOAD_ARTIFACTS_EVENT_ADDRESS, blocking = true)

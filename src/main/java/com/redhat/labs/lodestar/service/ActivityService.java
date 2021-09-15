@@ -9,6 +9,7 @@ import javax.enterprise.context.*;
 import javax.inject.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+import java.time.Instant;
 import java.util.*;
 
 @ApplicationScoped
@@ -33,11 +34,18 @@ public class ActivityService {
         return activityApiClient.getLastActivity(engagementUuid);
     }
 
+    public Instant getLatestActivity(String engagementUuid) {
+        Response response = getActivityHead(engagementUuid);
+        String lastUpdate = response.getHeaderString("last-update");
+
+        return Instant.parse(lastUpdate);
+    }
+
     /**
      *
      * @param page page number
      * @param pageSize page size
-     * @return A list of commits of the latest activity - 1 per engagement
+     * @return A list of the last activity (commit) for each engagement
      */
     public List<Commit> getLatestActivity(int page, int pageSize) {
         return activityApiClient.getLatestActivity(page, pageSize);

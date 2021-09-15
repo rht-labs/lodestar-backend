@@ -1,12 +1,11 @@
 package com.redhat.labs.lodestar.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
 import javax.json.bind.annotation.JsonbProperty;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.redhat.labs.lodestar.util.DateFormatter;
 import com.redhat.labs.lodestar.validation.ValidName;
 
 import lombok.AllArgsConstructor;
@@ -162,16 +161,16 @@ public class Engagement {
      * @param currentDate - A time to compare against. Should be local to the user
      * @return the current state based on the current date
      */
-    public EngagementState getEngagementCurrentState(LocalDateTime currentDate) {
+    public EngagementState getEngagementCurrentState(Instant currentDate) {
 
         if (launch == null || endDate == null || startDate == null) { // not launched or irregularly launched
             return EngagementState.UPCOMING;
         }
         
-        LocalDateTime endDateLocal = DateFormatter.getInstance().getDateTime(endDate);
+        Instant endDateLocal = Instant.parse(endDate);
         
         if(endDateLocal.isBefore(currentDate)) { //has reached end date
-            if(archiveDate != null && DateFormatter.getInstance().getDateTime(archiveDate).isAfter(currentDate)) { //hasn't reached archive date
+            if(archiveDate != null && Instant.parse(archiveDate).isAfter(currentDate)) { //hasn't reached archive date
                 return EngagementState.TERMINATING;
             }
             return EngagementState.PAST;

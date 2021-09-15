@@ -12,7 +12,6 @@ import org.mockito.Mockito;
 
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.EngagementUser;
-import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.rest.client.ParticipantApiClient;
 
 class ParticipantServiceTest {

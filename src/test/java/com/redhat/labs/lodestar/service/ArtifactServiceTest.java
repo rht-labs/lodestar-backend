@@ -12,7 +12,6 @@ import org.mockito.Mockito;
 
 import com.redhat.labs.lodestar.model.Artifact;
 import com.redhat.labs.lodestar.model.Engagement;
-import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.rest.client.ArtifactApiClient;
 
 class ArtifactServiceTest {
@@ -46,7 +45,7 @@ class ArtifactServiceTest {
         String name = "Mitch";
         String email = "mitch@mitch.com";
         Engagement e = Engagement.builder().region("na").uuid(uuid).artifacts(Collections.emptyList()).build();
-        artifactService.updateAndReload(e, name, email);
+        artifactService.update(e, name, email);
         
         Mockito.verify(artifactClient).updateArtifacts("uuid1", "na", artifacts, "mitch@mitch.com", "Mitch");
     }
@@ -58,7 +57,7 @@ class ArtifactServiceTest {
         String name = "Mitch";
         String email = "mitch@mitch.com";
         Engagement e = Engagement.builder().region("na").uuid(uuid).artifacts(Collections.emptyList()).build();
-        artifactService.updateAndReload(e, name, email);
+        artifactService.update(e, name, email);
         
         Mockito.verify(artifactClient, Mockito.never()).updateArtifacts("uuid2", "na", artifacts, "Mitch", "mitch@mitch.com");
     }
@@ -69,7 +68,7 @@ class ArtifactServiceTest {
         String name = "Mitch";
         String email = "mitch@mitch.com";
         Engagement e = Engagement.builder().region("na").uuid(uuid).artifacts(Collections.emptyList()).build();
-        artifactService.updateAndReload(e, name, email);
+        artifactService.update(e, name, email);
         
         Mockito.verify(artifactClient, Mockito.never()).updateArtifacts("uuid3", "na", artifacts, "Mitch", "mitch@mitch.com");
     }

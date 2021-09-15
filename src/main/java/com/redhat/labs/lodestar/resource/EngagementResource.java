@@ -166,6 +166,11 @@ public class EngagementResource {
 
         Engagement engagement = engagementService.getEngagement(uuid);//.getByUuid(uuid, filterOptions);
 
+        String exclude = filterOptions.getExclude() == null ? "" : filterOptions.getExclude();
+        if(exclude.contains("commits")) {
+            engagement.setCommits(null);
+        }
+
         boolean writer = jwtUtils.isAllowedToWriteEngagement(jwt, configService.getPermission(engagement.getType()));
         engagement.setWriteable(writer);
         
@@ -335,7 +340,7 @@ public class EngagementResource {
 
     }
 
-    //TODO this method should be /launch/{uuid} no body
+    //TODO this method should be /launch/{uuid} with no body
     @PUT
     @Path("/launch")
     @SecurityRequirement(name = "jwt")
