@@ -1,9 +1,7 @@
 package com.redhat.labs.lodestar.resource;
 
-import com.google.common.collect.Lists;
 import com.redhat.labs.lodestar.model.*;
 import com.redhat.labs.lodestar.model.filter.ArtifactOptions;
-import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
 import com.redhat.labs.lodestar.rest.client.*;
 import com.redhat.labs.lodestar.utils.IntegrationTestHelper;
 import com.redhat.labs.lodestar.utils.TokenUtils;
@@ -95,7 +93,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
     @Test
     void testGetEngagementsSuccessNoEngagements() {
 
-        Mockito.when(engagementApiClient.getEngagements(0, 500)).thenReturn(javax.ws.rs.core.Response.ok(Collections.emptyList()).build());
+        Mockito.when(engagementApiClient.getEngagements(0, 500, Collections.emptySet())).thenReturn(javax.ws.rs.core.Response.ok(Collections.emptyList()).build());
 
         // GET engagement
         given()
@@ -108,7 +106,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
                 .statusCode(200)
                 .body("size()", equalTo(0));
 
-        Mockito.verify(engagementApiClient).getEngagements(0, 500);
+        Mockito.verify(engagementApiClient).getEngagements(0, 500, Collections.emptySet());
     }
 
     @Test
@@ -117,7 +115,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         Engagement engagement1 = Engagement.builder().uuid("1234").type("Residency").customerName("Customer").projectName("Project1").build();
         Engagement engagement2 = Engagement.builder().uuid("1235").type("Residency").customerName("Customer").projectName("Project2").build();
 
-        Mockito.when(engagementApiClient.getEngagements(0, 500)).thenReturn(Response.ok(List.of(engagement1, engagement2)).build());
+        Mockito.when(engagementApiClient.getEngagements(0, 500, Collections.emptySet())).thenReturn(Response.ok(List.of(engagement1, engagement2)).build());
 
         // GET engagement
         given()
@@ -130,7 +128,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
                 .statusCode(200)
                 .body("size()", equalTo(2));
 
-        Mockito.verify(engagementApiClient).getEngagements(0, 500);
+        Mockito.verify(engagementApiClient).getEngagements(0, 500, Collections.emptySet());
     }
 
     // TODO Abandoning support for include / exclude in v2.
@@ -142,7 +140,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
     void testGetAllWithExcludeAndInclude() {
 
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json");
-        Mockito.when(engagementApiClient.getEngagements(0, 500)).thenReturn(Response.ok(Collections.emptyList()).build());
+        Mockito.when(engagementApiClient.getEngagements(0, 500, Collections.emptySet())).thenReturn(Response.ok(Collections.emptyList()).build());
 
         // get all
         given()
@@ -161,7 +159,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
     void testGetAllWithInclude() {
 
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json");
-        Mockito.when(engagementApiClient.getEngagements(0, 500)).thenReturn(Response.ok(Collections.emptyList()).build());
+        Mockito.when(engagementApiClient.getEngagements(0, 500, Collections.emptySet())).thenReturn(Response.ok(Collections.emptyList()).build());
 
         // get all
         given()
@@ -242,6 +240,14 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
 
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json");
 
+        Map<String, Long> enabled = new HashMap<>();
+        enabled.put("Red Hat", 1000000000L);
+        enabled.put("Others", 6L);
+        enabled.put("All", 1000000006L);
+
+        Mockito.when(participantApiClient.getEnabledParticipants(Collections.emptyList()))
+                        .thenReturn(enabled);
+
         // GET
         given()
             .when()
@@ -249,7 +255,36 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
                 .oauth2(token)
                 .get("/engagements/users/summary")
             .then()
-                .statusCode(400);
+                .statusCode(200).body("all_users_count", equalTo(1000000006))
+                .body("other_users_count", equalTo(6))
+                .body("rh_users_count", equalTo(1000000000));
+
+    }
+
+    @Test
+    void testGetEngagementUserSummaryRegion() {
+
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json");
+
+        Map<String, Long> enabled = new HashMap<>();
+        enabled.put("Red Hat", 1000000000L);
+        enabled.put("Others", 6L);
+        enabled.put("All", 1000000006L);
+
+        Mockito.when(participantApiClient.getEnabledParticipants(List.of("na")))
+                .thenReturn(enabled);
+
+        // GET
+        given()
+                .queryParam("search", "engagement_region=na")
+        .when()
+                .auth()
+                .oauth2(token)
+                .get("/engagements/users/summary")
+            .then()
+                .statusCode(200).body("all_users_count", equalTo(1000000006))
+                .body("other_users_count", equalTo(6))
+                .body("rh_users_count", equalTo(1000000000));
 
     }
 }

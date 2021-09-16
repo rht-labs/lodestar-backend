@@ -1,8 +1,7 @@
 package com.redhat.labs.lodestar.resource;
 
 import java.time.*;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 import javax.enterprise.context.RequestScoped;
 import javax.inject.Inject;
@@ -26,7 +25,9 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import com.redhat.labs.lodestar.model.EngagementUserSummary;
 import com.redhat.labs.lodestar.service.ActivityService;
+import com.redhat.labs.lodestar.service.ParticipantService;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.enums.SecuritySchemeType;
@@ -74,6 +75,9 @@ public class EngagementResource {
     @Inject
     ConfigService configService;
 
+    @Inject
+    ParticipantService participantService;
+
     /*
      * GET LIST
      */
@@ -88,7 +92,7 @@ public class EngagementResource {
         // create one page with many results for v1
         setDefaultPagingFilterOptions(filterOptions);
 
-        //TODO not implement yet - kinda important
+        // TODO not implement yet - kinda important
         return engagementService.getEngagementsPaged(filterOptions);
     }
     
@@ -219,7 +223,30 @@ public class EngagementResource {
     @APIResponses(value = { @APIResponse(responseCode = "400", description = "Use /engagements/participants/enabled") })
     @Operation(summary = "Use /engagements/participants/enabled")
     public Response getUserSummary(@QueryParam("search") String search) {
-        return Response.status(Response.Status.BAD_REQUEST).entity("Use /engagements/participants/enabled").build();
+        List<String> regions = new ArrayList<>();
+
+        if(search != null) {
+            String[] params = search.split("&");
+
+            for (String param : params) {
+                String[] keyValues = param.split("=");
+
+                if(keyValues.length == 0) {
+                    Response.status(Response.Status.BAD_REQUEST).build();
+                }
+                if (keyValues[0].equals("engagement_region")) {
+                    String[] regionsArray = keyValues[1].split(",");
+                    regions = Arrays.asList(regionsArray);
+                }
+            }
+        }
+
+        //Legacy conversion - when FE is ready remove EngagementUserSummary
+        Map<String, Long> v2 = participantService.getEnabledParticipants(regions);
+        EngagementUserSummary enabled = EngagementUserSummary.builder().allUsersCount(v2.get("All"))
+                .otherUsersCount(v2.get("Others")).rhUsersCount(v2.get("Red Hat")).build();
+
+        return Response.ok(enabled).build();
     }
 
     /*

@@ -22,13 +22,8 @@ import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class EngagementService {
@@ -114,6 +109,7 @@ public class EngagementService {
 
     private Status getStatus(String uuid) {
         try {
+            LOGGER.debug("Getting status for {}", uuid);
             return engagementStatusApiClient.getEngagementStatus(uuid);
         } catch (WebApplicationException wex) {
             if(wex.getResponse().getStatus() == 404) {
@@ -266,7 +262,7 @@ public class EngagementService {
     public void updateStatusAndCommits(Hook hook) {
         LOGGER.debug("Hook for {} {}", hook.getCustomerName(), hook.getEngagementName());
 
-        Engagement engagement = engagementApiClient.getEngagement(hook.getCustomerName(), hook.getEngagementName());
+        Engagement engagement = getByCustomerAndProjectName(hook.getCustomerName(), hook.getEngagementName());
 
         // refresh entire engagement if requested
         if (hook.containsAnyMessage(commitFilteredMessages)) {
@@ -290,14 +286,13 @@ public class EngagementService {
             LOGGER.debug("Engagement update {}", engagement);
             activityService.postHook(hook);
             //TODO should return the uuid from the post as header
-            //TODO ensure response contains latest
-            //TODO invalidate cache
+            //TODO invalidate cache + load new into cache
         }
     }
 
 
     /**
-     * //Should prob deprecate this in favor of uuid. On create a uuid is returned
+     * Needed for webhooks that don't present uuids
      * 
      * @param customerName customer name
      * @param engagementName project name
@@ -326,19 +321,27 @@ public class EngagementService {
         int pageSize = listFilterOptions.getPerPage().orElse(5);
         if(pageSize == 5 && sort.equals("last_update")) {
             List<Commit> activity = activityService.getLatestActivity(0,5);
-            List<Engagement> engagements = new ArrayList<>();
-            activity.forEach(a -> {
-                Engagement e = getEngagement(a.getEngagementUuid());
-                e.setLastUpdate(a.getCommitDate());
-                engagements.add(e);
-            });
+            List<Engagement> engagements = activity.stream().map(a -> getEngagement(a.getEngagementUuid())).collect(Collectors.toList());
             return Response.ok(engagements).build();
         }
 
         int page = listFilterOptions.getPage().orElse(1) - 1;
         pageSize = listFilterOptions.getPerPage().orElse(1000);
 
-        return engagementApiClient.getEngagements(page, pageSize);
+        String search = listFilterOptions.getSearch().orElse("");
+        String[] params = search.split("&");
+
+        Set<String> region = new HashSet<>();
+        for (String param : params) {
+            String[] keyValues = param.split("=");
+
+            if (keyValues[0].equals("engagement_region")) {
+                String[] regionsArray = keyValues[1].split(",");
+                Collections.addAll(region, regionsArray);
+            }
+        }
+
+        return engagementApiClient.getEngagements(page, pageSize, region);
     }
 
     /**
