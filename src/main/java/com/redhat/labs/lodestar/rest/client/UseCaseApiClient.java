@@ -9,6 +9,7 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.util.List;
+import java.util.Set;
 
 @ApplicationScoped
 @RegisterRestClient(configKey = "lodestar.engagements.api")
@@ -17,7 +18,7 @@ import java.util.List;
 public interface UseCaseApiClient {
 
     @GET
-    Response getUseCases(@QueryParam("page") int page, @QueryParam("pageSize") int pageSize);//TODO sort????
+    Response getUseCases(@QueryParam("page") int page, @QueryParam("pageSize") int pageSize, @QueryParam("regions") Set<String> regions);//TODO sort????
 
     @GET
     @Path("{uuid}")

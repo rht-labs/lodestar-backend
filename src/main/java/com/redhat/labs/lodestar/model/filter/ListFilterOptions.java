@@ -1,7 +1,6 @@
 package com.redhat.labs.lodestar.model.filter;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -155,6 +154,27 @@ public class ListFilterOptions extends FilterOptions {
     
     public Integer getNextPage() {
         return this.page == null ? null : this.page + 1;
+    }
+
+    public Set<String> getV2Regions() {
+        Set<String> region = new HashSet<>();
+
+        if(search == null) {
+            return region;
+        }
+
+        String[] params = search.split("&");
+
+        for (String param : params) {
+            String[] keyValues = param.split("=");
+
+            if (keyValues[0].equals("engagement_region")) {
+                String[] regionsArray = keyValues[1].split(",");
+                Collections.addAll(region, regionsArray);
+            }
+        }
+
+        return region;
     }
 
 }

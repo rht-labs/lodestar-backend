@@ -11,7 +11,8 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
-import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
@@ -27,13 +28,13 @@ public class UseCaseResourceTest {
     UseCaseApiClient useCaseApiClient;
 
     @Test
-    void testGetUseCase() throws Exception {
+    void testGetUseCase() {
 
         UseCase useCase = UseCase.builder().title("useCase1").description("use case 1").order(0).build();
-        javax.ws.rs.core.Response response = javax.ws.rs.core.Response.ok(Arrays.asList(useCase))
+        javax.ws.rs.core.Response response = javax.ws.rs.core.Response.ok(List.of(useCase))
                 .header("x-total-use-cases", 1).build();
 
-        Mockito.when(useCaseApiClient.getUseCases(0, 500)).thenReturn(response);
+        Mockito.when(useCaseApiClient.getUseCases(0, 500, Collections.emptySet())).thenReturn(response);
         given()
                 .auth()
                 .oauth2(validToken)

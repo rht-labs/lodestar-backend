@@ -3,10 +3,8 @@ package com.redhat.labs.lodestar.resource;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.Hook;
 import com.redhat.labs.lodestar.model.Status;
-import com.redhat.labs.lodestar.rest.client.ActivityApiClient;
-import com.redhat.labs.lodestar.rest.client.EngagementApiClient;
-import com.redhat.labs.lodestar.rest.client.EngagementStatusApiClient;
-import com.redhat.labs.lodestar.rest.client.StatusApiClient;
+import com.redhat.labs.lodestar.model.filter.ArtifactOptions;
+import com.redhat.labs.lodestar.rest.client.*;
 import com.redhat.labs.lodestar.utils.ResourceLoader;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
@@ -19,6 +17,8 @@ import org.mockito.Mockito;
 
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
+
+import java.util.Collections;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
@@ -43,6 +43,22 @@ class StatusResourceTest {
     @RestClient
     ActivityApiClient activityApiClient;
 
+    @InjectMock
+    @RestClient
+    HostingEnvironmentApiClient hostingEnvironmentApiClient;
+
+    @InjectMock
+    @RestClient
+    ArtifactApiClient artifactApiClient;
+
+    @InjectMock
+    @RestClient
+    ParticipantApiClient participantApiClient;
+
+    @InjectMock
+    @RestClient
+    CategoryApiClient categoryApiClient;
+
     @BeforeEach
     void setUp() {
         String customer = "jello";
@@ -51,6 +67,7 @@ class StatusResourceTest {
         Engagement engagement = Engagement.builder().uuid(uuid1).customerName(customer).projectName(exists).build();
 
         Mockito.when(engagementApiClient.getEngagement(customer, exists)).thenReturn(engagement);
+        Mockito.when(engagementApiClient.getEngagement(uuid1)).thenReturn(engagement);
         Mockito.when(engagementApiClient.getEngagement(customer, "doesnotexist")).thenThrow(
                 new WebApplicationException(404)
         );
@@ -59,6 +76,9 @@ class StatusResourceTest {
         Mockito.when(engagementStatusApiClient.getEngagementStatus(uuid1)).thenReturn(status);
 
         Mockito.when(engagementStatusApiClient.updateEngagementStatus(uuid1)).thenReturn(Response.ok().build());
+
+        Mockito.when(artifactApiClient.getArtifacts(Mockito.any(ArtifactOptions.class)))
+                .thenReturn(javax.ws.rs.core.Response.ok(Collections.emptyList()).build());
     }
 
     @Test
@@ -76,9 +96,10 @@ class StatusResourceTest {
             .statusCode(200);
 
         Mockito.verify(engagementApiClient).getEngagement("jello", "exists");
+        Mockito.verify(engagementApiClient).getEngagement("uuid1");
         Mockito.verify(engagementStatusApiClient).updateEngagementStatus("uuid1");
         Mockito.verify(engagementStatusApiClient).getEngagementStatus("uuid1");
-        Mockito.verify(activityApiClient, Mockito.times(0)).getActivityForUuid("uuid1");
+        Mockito.verify(activityApiClient).getActivityForUuid("uuid1");
     } 
     
     @Test

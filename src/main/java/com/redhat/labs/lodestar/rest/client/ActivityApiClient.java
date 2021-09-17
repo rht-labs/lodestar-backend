@@ -37,7 +37,7 @@ public interface ActivityApiClient {
 
     @GET
     @Path("/latest")
-    List<Commit> getLatestActivity(@QueryParam("page") int page, @QueryParam("pageSize") int pageSize);
+    List<String> getLatestActivity(@QueryParam("page") int page, @QueryParam("pageSize") int pageSize, @QueryParam("regions") Set<String> regions);
     
     @GET
     @Path("/uuid/{engagementUuid}")

@@ -47,8 +47,8 @@ public class ActivityService {
      * @param pageSize page size
      * @return A list of the last activity (commit) for each engagement
      */
-    public List<Commit> getLatestActivity(int page, int pageSize) {
-        return activityApiClient.getLatestActivity(page, pageSize);
+    public List<String> getLatestActivity(int page, int pageSize, Set<String> regions) {
+        return activityApiClient.getLatestActivity(page, pageSize, regions);
     }
 
     public Response getPaginatedActivityForUuid(String engagementUuid, int page, int pageSize) {

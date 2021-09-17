@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
 import java.time.Instant;
 import java.util.*;
@@ -81,6 +82,7 @@ public class EngagementService {
     //TODO cache this - btw - this caching will probably only work in a single pod sitch.
     // could continue to leverage the db or use distribute cache (back to Alpha!)
     public Engagement getEngagement(String uuid) {
+        LOGGER.debug("getting uuid {}", uuid);
         Engagement engagement = engagementApiClient.getEngagement(uuid);
         List<HostingEnvironment> hes = hostingEnvironmentService.getHostingEnvironments(uuid);
         List<Artifact> artifacts = artifactService.getArtifacts(uuid);
@@ -242,7 +244,7 @@ public class EngagementService {
     /**
      * Returns Optional containing {@link Engagement} if found with given subdomain.
      * 
-     * @param subdomain
+     * @param subdomain check this
      * @return
      */
     public Response getBySubdomain(String engagementUuid, String subdomain) {
@@ -264,14 +266,6 @@ public class EngagementService {
 
         Engagement engagement = getByCustomerAndProjectName(hook.getCustomerName(), hook.getEngagementName());
 
-        // refresh entire engagement if requested
-        if (hook.containsAnyMessage(commitFilteredMessages)) {
-            activityService.postHook(hook);
-            getEngagement(engagement.getUuid());
-            LOGGER.debug("hook triggered refresh of engagement for project {}", hook.getProjectId());
-            return;
-        }
-
         // send update status event
         if (hook.didFileChange(statusFile)) {
             LOGGER.debug("Status update {}", hook.getProjectId());
@@ -288,6 +282,14 @@ public class EngagementService {
             //TODO should return the uuid from the post as header
             //TODO invalidate cache + load new into cache
         }
+
+        // refresh entire engagement if requested
+        if (hook.containsAnyMessage(commitFilteredMessages)) {
+            //TODO Need to call a single refresh of engagement in every service
+            LOGGER.debug("hook triggered refresh of engagement for project {}", hook.getProjectId());
+        }
+
+        getEngagement(engagement.getUuid());
     }
 
 
@@ -319,29 +321,20 @@ public class EngagementService {
         // we can just filter on engagement instead of hitting the activity service
         String sort = listFilterOptions.getSortFields().orElse("");
         int pageSize = listFilterOptions.getPerPage().orElse(5);
+
         if(pageSize == 5 && sort.equals("last_update")) {
-            List<Commit> activity = activityService.getLatestActivity(0,5);
-            List<Engagement> engagements = activity.stream().map(a -> getEngagement(a.getEngagementUuid())).collect(Collectors.toList());
+            List<String> activity = activityService.getLatestActivity(0,5, listFilterOptions.getV2Regions());
+            List<Engagement> engagements = activity.stream().map(this::getEngagement).collect(Collectors.toList());
             return Response.ok(engagements).build();
         }
 
         int page = listFilterOptions.getPage().orElse(1) - 1;
         pageSize = listFilterOptions.getPerPage().orElse(1000);
 
-        String search = listFilterOptions.getSearch().orElse("");
-        String[] params = search.split("&");
-
-        Set<String> region = new HashSet<>();
-        for (String param : params) {
-            String[] keyValues = param.split("=");
-
-            if (keyValues[0].equals("engagement_region")) {
-                String[] regionsArray = keyValues[1].split(",");
-                Collections.addAll(region, regionsArray);
-            }
-        }
-
-        return engagementApiClient.getEngagements(page, pageSize, region);
+        Response response = engagementApiClient.getEngagements(page, pageSize, listFilterOptions.getV2Regions());
+        List<Engagement> engagements = response.readEntity(new GenericType<>(){});
+        //engagements.forEach(e ->LOGGER.debug(" {} --- {} ", e.getProjectName(), e.getName() ));
+        return Response.ok(engagements).header("x-total-engagements", response.getHeaderString("x-total-engagements")).build();
     }
 
     /**
@@ -385,7 +378,7 @@ public class EngagementService {
     public Response getUseCases(ListFilterOptions filterOptions) {
         int page = filterOptions.getPage().orElse(1) -1;
         int pageSize = filterOptions.getPerPage().orElse(500);
-        return useCaseApiClient.getUseCases(page, pageSize);
+        return useCaseApiClient.getUseCases(page, pageSize, filterOptions.getV2Regions());
     }
 
     /**
