@@ -66,9 +66,9 @@ class StatusResourceTest {
         String uuid1 = "uuid1";
         Engagement engagement = Engagement.builder().uuid(uuid1).customerName(customer).projectName(exists).build();
 
-        Mockito.when(engagementApiClient.getEngagement(customer, exists)).thenReturn(engagement);
+        Mockito.when(engagementApiClient.getEngagementByProject(8675309)).thenReturn(engagement);
         Mockito.when(engagementApiClient.getEngagement(uuid1)).thenReturn(engagement);
-        Mockito.when(engagementApiClient.getEngagement(customer, "doesnotexist")).thenThrow(
+        Mockito.when(engagementApiClient.getEngagementByProject(999)).thenThrow(
                 new WebApplicationException(404)
         );
 
@@ -95,7 +95,7 @@ class StatusResourceTest {
         .then()
             .statusCode(200);
 
-        Mockito.verify(engagementApiClient).getEngagement("jello", "exists");
+        Mockito.verify(engagementApiClient).getEngagementByProject(8675309);
         Mockito.verify(engagementApiClient).getEngagement("uuid1");
         Mockito.verify(engagementStatusApiClient).updateEngagementStatus("uuid1");
         Mockito.verify(engagementStatusApiClient).getEngagementStatus("uuid1");
@@ -116,7 +116,7 @@ class StatusResourceTest {
         .then()
             .statusCode(200);
 
-        Mockito.verify(engagementApiClient).getEngagement("jello", "exists");
+        Mockito.verify(engagementApiClient).getEngagementByProject(8675309);
         Mockito.verify(activityApiClient).postHook(Mockito.any(Hook.class), Mockito.eq("ttttt"));
 
 //        verify(exactly(1), getRequestedFor(urlEqualTo("/api/activity/uuid/uuid1")));
@@ -147,7 +147,7 @@ class StatusResourceTest {
         .then()
             .statusCode(204);
 
-        Mockito.verify(engagementApiClient).getEngagement("jello", "exists");
+        Mockito.verify(engagementApiClient).getEngagementByProject(8675309);
         Mockito.verify(engagementApiClient).deleteEngagement("uuid1");
     }
     

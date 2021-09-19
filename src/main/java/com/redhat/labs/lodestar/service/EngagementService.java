@@ -264,7 +264,7 @@ public class EngagementService {
     public void updateStatusAndCommits(Hook hook) {
         LOGGER.debug("Hook for {} {}", hook.getCustomerName(), hook.getEngagementName());
 
-        Engagement engagement = getByCustomerAndProjectName(hook.getCustomerName(), hook.getEngagementName());
+        Engagement engagement = engagementApiClient.getEngagementByProject(hook.getProjectId());
 
         // send update status event
         if (hook.didFileChange(statusFile)) {
@@ -294,14 +294,17 @@ public class EngagementService {
 
 
     /**
-     * Needed for webhooks that don't present uuids
-     * 
+     *
      * @param customerName customer name
      * @param engagementName project name
      * @return engagement an engagement
      */
     public Engagement getByCustomerAndProjectName(String customerName, String engagementName) {
         return  engagementApiClient.getEngagement(customerName, engagementName);
+    }
+
+    public Engagement getByProjectId(int projectId) {
+        return  engagementApiClient.getEngagementByProject(projectId);
     }
 
     public Map<EngagementState, Integer> getEngagementCountByStatus(Instant currentTime) {

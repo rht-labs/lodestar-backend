@@ -107,7 +107,7 @@ public class StatusResource {
         
         if(hook.wasProjectDeleted()) {
             LOGGER.debug("Remove engagement customer {} proj {}", hook.getCustomerName(), hook.getEngagementName());
-            Engagement engagement = engagementService.getByCustomerAndProjectName( hook.getCustomerName(), hook.getEngagementName());
+            Engagement engagement = engagementService.getByProjectId(hook.getProjectId());
 
             engagementService.deleteEngagement(engagement.getUuid());
             return Response.status(204).build();

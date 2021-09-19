@@ -37,6 +37,10 @@ public interface EngagementApiClient {
     Response getEngagementHead(@PathParam("uuid") String uuid);
 
     @GET
+    @Path("project/{id}")
+    Engagement getEngagementByProject(@PathParam("id") int projectId);
+
+    @GET
     @Path("customer/{customer}/engagement/{engagement}")
     Engagement getEngagement(@PathParam("customer") String customer, @PathParam("engagement") String engagementName);
 
