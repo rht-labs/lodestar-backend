@@ -1,5 +1,6 @@
 package com.redhat.labs.lodestar.util;
 
+import com.redhat.labs.lodestar.exception.mapper.BackendException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,7 +41,7 @@ public class DateFormatter {
             }
 
         }
-        throw new RuntimeException("Unsupported date format " + dateTime);
+        throw new BackendException( "Unsupported date format " + dateTime);
     }
 
 }
