@@ -336,7 +336,21 @@ public class EngagementService {
 
         Response response = engagementApiClient.getEngagements(page, pageSize, listFilterOptions.getV2Regions());
         List<Engagement> engagements = response.readEntity(new GenericType<>(){});
-        //engagements.forEach(e ->LOGGER.debug(" {} --- {} ", e.getProjectName(), e.getName() ));
+        //TODO this loop is to allow frontend to change after v2 deployment.
+        // FE should use participant, artifact count field, and categories (string version)
+        for(Engagement e : engagements) {
+            for(int i=0; i<e.getParticipantCount(); i++) {
+                e.addParticipant(new EngagementUser());
+            }
+
+            for(int i=0; i<e.getArtifactCount(); i++) {
+                e.addArtifact(Artifact.builder().type("temp").build());
+            }
+
+            for(String cat : e.getCategoriesV2()) {
+                e.addCategory(cat);
+            }
+        }
         return Response.ok(engagements).header("x-total-engagements", response.getHeaderString("x-total-engagements")).build();
     }
 

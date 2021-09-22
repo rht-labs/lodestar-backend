@@ -1,6 +1,8 @@
 package com.redhat.labs.lodestar.model;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -92,6 +94,9 @@ public class Engagement {
     private String region;
     private String type;
 
+    @JsonbProperty("categories")
+    List<String> categoriesV2;
+
     @JsonbProperty("engagement_categories")
     @DiffIgnore
     private List<Category> categories;
@@ -116,6 +121,10 @@ public class Engagement {
     @DiffIgnore
     private int participantCount;
 
+    @JsonbProperty("artifact_count")
+    @DiffIgnore
+    private int artifactCount;
+
     //Legacy - front end should switch to region
     @JsonbProperty("engagement_region")
     private String engagementRegion;
@@ -128,24 +137,61 @@ public class Engagement {
     @JsonbProperty("engagement_type")
     private String engagementType;
 
+    //Legacy
     public void setEngagementRegion(String engagementRegion) {
         this.engagementRegion = engagementRegion;
         this.region = engagementRegion;
     }
 
+    //Legacy
+    public void setRegion(String region) {
+        this.region = region;
+        this.engagementRegion = region;
+    }
+
+    //Legacy
     public void setProjectName(String projectName) {
         this.projectName = projectName;
         this.name = projectName;
     }
 
+    //Legacy
     public void setName(String projectName) {
         this.projectName = projectName;
         this.name = projectName;
     }
 
+    //Legacy
     public void setEngagementType(String engagementType) {
         this.engagementType = engagementType;
         this.type = engagementType;
+    }
+
+    //Legacy
+    public void addArtifact(Artifact a) {
+        if(artifacts == null) {
+            artifacts = new ArrayList<>();
+        }
+
+        artifacts.add(a);
+    }
+
+    //Legacy
+    public void addParticipant(EngagementUser p) {
+        if(engagementUsers == null) {
+            engagementUsers = new HashSet<>();
+        }
+
+        engagementUsers.add(p);
+    }
+
+    //Legacy
+    public void addCategory(String cat) {
+        if(categories == null) {
+            categories = new ArrayList<>();
+        }
+
+        categories.add(Category.builder().name(cat).build());
     }
 
     /**
