@@ -115,11 +115,11 @@ public class EngagementResource {
     @Operation(summary = "Gets a map of engagement counts by status")
     @Counted(name = "engagement-total-by-status-count")
     @Timed(name = "engagement-total-by-status-timer", unit = MetricUnits.MILLISECONDS)
-    public Map<EngagementState, Integer> countByStatus(@QueryParam(value = "localTime") String localTime) {
+    public Map<EngagementState, Integer> countByStatus(@QueryParam(value = "localTime") String localTime, @QueryParam(value = "search") String search) {
         
         LocalDateTime currentTime = localTime == null ? LocalDateTime.now() : DateFormatter.getInstance().getDateTime(localTime);
 
-        return engagementService.getEngagementCountByStatus(currentTime);
+        return engagementService.getEngagementCountByStatus(currentTime, search);
     }
 
     @GET
@@ -157,7 +157,7 @@ public class EngagementResource {
             @APIResponse(responseCode = "200", description = "Engagement resource found and returned") })
     @Operation(summary = "Returns the engagement resource for the given customer and project names.")
     @Counted(name = "engagement-get-counted")
-    @Timed(name = "enagement-get-timer", unit = MetricUnits.MILLISECONDS)
+    @Timed(name = "engagement-get-timer", unit = MetricUnits.MILLISECONDS)
     public Response get(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName,
             @BeanParam FilterOptions filterOptions) {
 
