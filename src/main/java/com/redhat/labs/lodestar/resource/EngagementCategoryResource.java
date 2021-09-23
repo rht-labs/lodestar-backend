@@ -18,8 +18,6 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Set;
 
 @RequestScoped
@@ -42,22 +40,8 @@ public class EngagementCategoryResource {
     @Operation(summary = "Returns customers list")
     public Response getAllCategories(@Context UriInfo uriInfo, @BeanParam ListFilterOptions filterOptions) {
 
-        List<String> regions = new ArrayList<>();
-        if(filterOptions.getSearch().isPresent()) {
-            //TODO convert legacy -
-            String[] params = filterOptions.getSearch().get().split("&");
-
-            for (String param : params) {
-                String[] keyValues = param.split("=");
-
-                if (keyValues[0].equals("engagement_region")) {
-                    String[] regionsArray = keyValues[1].split(",");
-                    regions = Arrays.asList(regionsArray);
-                }
-            }
-        }
-
-        return engagementService.getCategories(regions, filterOptions);
+        Set<String> regions = filterOptions.getV2Regions();
+        return engagementService.getCategories(new ArrayList<>(regions), filterOptions);
     }
 
     //TODO page or limit?

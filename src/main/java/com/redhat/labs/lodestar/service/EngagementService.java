@@ -347,8 +347,10 @@ public class EngagementService {
                 e.addArtifact(Artifact.builder().type("temp").build());
             }
 
-            for(String cat : e.getCategoriesV2()) {
-                e.addCategory(cat);
+            if(e.getCategoriesV2() != null) {
+                for (String cat : e.getCategoriesV2()) {
+                    e.addCategory(cat);
+                }
             }
         }
         return Response.ok(engagements).header("x-total-engagements", response.getHeaderString("x-total-engagements")).build();
