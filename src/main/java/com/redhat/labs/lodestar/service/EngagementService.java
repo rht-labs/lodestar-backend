@@ -691,19 +691,23 @@ public class EngagementService {
                         HttpStatus.SC_NOT_FOUND));
     }
 
-    public Map<EngagementState, Integer> getEngagementCountByStatus(LocalDateTime currentTime) {
+    public Map<EngagementState, Integer> getEngagementCountByStatus(LocalDateTime currentTime, String search) {
 
-        List<Engagement> engagementList = repository.listAll();
+        ListFilterOptions options = ListFilterOptions.builder().search(search).page(1).perPage(100000).build();
+
+        PagedEngagementResults engagementList = getEngagementsPaged(options);
+
         Map<EngagementState, Integer> statusCounts = new EnumMap<>(EngagementState.class);
 
-        for (Engagement engagement : engagementList) {
+        for (Engagement engagement : engagementList.getResults()) {
+            LOGGER.trace("region {} {}", engagement.getRegion(), engagement.getUuid());
             EngagementState state = engagement.getEngagementCurrentState(currentTime);
 
             int count = statusCounts.containsKey(state) ? statusCounts.get(state) + 1 : 1;
             statusCounts.put(state, count);
         }
 
-        statusCounts.put(EngagementState.ANY, engagementList.size());
+        statusCounts.put(EngagementState.ANY, engagementList.getTotalCount());
 
         return statusCounts;
     }

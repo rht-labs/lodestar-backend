@@ -400,11 +400,14 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
                 .endDate("2021-05-30T00:00:00.000Z").archiveDate("2021-07-30T00:00:00.000Z").launch(new Launch())
                 .build());
 
-        Mockito.when(eRepository.listAll()).thenReturn(engagements);
+        PagedEngagementResults p = PagedEngagementResults.builder().results(engagements).totalCount(5).build();
+
+        Mockito.when(eRepository.findPagedEngagements(Mockito.any(ListFilterOptions.class))).thenReturn(p);
 
         given().auth().oauth2(token).contentType(ContentType.JSON).queryParam("localTime", "2021-06-30T00:00:00.000Z")
                 .get("/engagements/count").then().statusCode(200).body("ANY", equalTo(5)).body("ACTIVE", equalTo(1))
                 .body("TERMINATING", equalTo(1)).body("PAST", equalTo(1)).body("UPCOMING", equalTo(2));
+        
     }
 
     @Test
