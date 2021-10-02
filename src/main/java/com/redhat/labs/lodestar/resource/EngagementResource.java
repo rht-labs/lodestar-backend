@@ -46,6 +46,8 @@ import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
 import com.redhat.labs.lodestar.service.ConfigService;
 import com.redhat.labs.lodestar.service.EngagementService;
 import com.redhat.labs.lodestar.util.JWTUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RequestScoped
 @Path("/engagements")
@@ -54,6 +56,7 @@ import com.redhat.labs.lodestar.util.JWTUtils;
 @SecurityScheme(securitySchemeName = "jwt", type = SecuritySchemeType.HTTP, scheme = "bearer", bearerFormat = "JWT")
 @Tag(name = "Engagements", description = "Base engagement apis")
 public class EngagementResource {
+    private static final Logger LOGGER = LoggerFactory.getLogger(EngagementResource.class);
 
     private static final String ACCEPT_VERSION_1 = "v1";
 
@@ -92,7 +95,6 @@ public class EngagementResource {
         // create one page with many results for v1
         setDefaultPagingFilterOptions(filterOptions);
 
-        // TODO not implement yet - kinda important
         return engagementService.getEngagementsPaged(filterOptions);
     }
     
@@ -139,6 +141,7 @@ public class EngagementResource {
      */
 
     //TODO remove this access
+    @Deprecated
     @GET
     @SecurityRequirement(name = "jwt")
     @Path("/customers/{customerName}/projects/{projectName}")
@@ -149,13 +152,15 @@ public class EngagementResource {
     public Response get(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName,
             @BeanParam FilterOptions filterOptions) {
 
+        LOGGER.warn("Deprecated get method used /customers/{}/projects/{}", customerName, projectName);
+
         Engagement engagement = engagementService.getByCustomerAndProjectName(customerName, projectName);
         
         boolean writer = jwtUtils.isAllowedToWriteEngagement(jwt, configService.getPermission(engagement.getType()));
         engagement.setWriteable(writer);
         
         return Response.ok(engagement).header(LAST_UPDATE_HEADER, engagement.getLastUpdate())
-                .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER).build();
+                .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER).header("deprecated", "use get by uuid").build();
 
     }
 
@@ -187,6 +192,7 @@ public class EngagementResource {
      * GET - Queries
      */
 
+    // Not sure if this one is being used currently
     @GET
     @Path("/state/{state}")
     @SecurityRequirement(name = "jwt")
@@ -253,8 +259,6 @@ public class EngagementResource {
      * HEAD
      */
 
-
-    //TODO ensure last update is valid here
     @HEAD
     @SecurityRequirement(name = "jwt")
     @Path("/{id}")
@@ -263,7 +267,7 @@ public class EngagementResource {
             @APIResponse(responseCode = "200", description = "Engagement resource found and metadata returned in headers") })
     @Operation(summary = "Returns metadata regarding the engagement resource for the given customer and project names.")
     public Response head(@PathParam("id") String uuid) {
-        return activityService.getActivityHead(uuid);
+        return engagementService.getEngagementHead(uuid);
     }
 
     @HEAD
@@ -330,6 +334,8 @@ public class EngagementResource {
     @Operation(deprecated = true, summary = "Updates the engagement resource in the database.")
     public Response put(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName,
             @Valid Engagement engagement) {
+
+        LOGGER.warn("Deprecated put method used /customers/{}/projects/{}", customerName, projectName);
         
         boolean writer = jwtUtils.isAllowedToWriteEngagement(jwt, configService.getPermission(engagement.getType()));
         if(!writer) {
@@ -354,6 +360,7 @@ public class EngagementResource {
     @Operation(summary = "Updates the engagement resource in the database.")
     public Response put(@PathParam("id") String uuid, @Valid Engagement engagement) {
 
+
         boolean writer = jwtUtils.isAllowedToWriteEngagement(jwt, configService.getPermission(engagement.getType()));
         if(!writer) {
             return forbiddenResponse(engagement.getType());
@@ -367,7 +374,7 @@ public class EngagementResource {
 
     }
 
-    //TODO this method should be /launch/{uuid} with no body
+    //TODO this method should be /launch/{uuid} with no body. fix after v2 rollout
     @PUT
     @Path("/launch")
     @SecurityRequirement(name = "jwt")
@@ -429,17 +436,9 @@ public class EngagementResource {
 
         boolean isV1 = null == options.getApiVersion() || ACCEPT_VERSION_1.equals(options.getApiVersion());
 
-        options.setPage(getPage(options.getPage()));
-        options.setPerPage(getPerPage(options.getPerPage(), isV1));
+        options.setPage(options.getPage().orElse(1));
+        options.setPerPage(options.getPerPage().orElse(isV1 ? 500 : 20));
 
-    }
-
-    private Integer getPage(Optional<Integer> page) {
-        return page.orElse(1);
-    }
-
-    private Integer getPerPage(Optional<Integer> perPage, boolean isV1) {
-        return perPage.orElse(isV1 ? 500 : 20);
     }
 
 }

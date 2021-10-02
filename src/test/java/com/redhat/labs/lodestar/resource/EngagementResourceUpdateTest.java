@@ -101,13 +101,10 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
 
         Engagement existing = quarkusJsonb.fromJson(body, Engagement.class);
         existing.setDescription(null);
-        existing.setLastUpdate(null);
 
         Mockito.when(engagementApiClient.getEngagement("1234")).thenReturn(existing).thenReturn(toUpdate);
         Mockito.when(engagementApiClient.updateEngagement(Mockito.any(Engagement.class))).thenReturn(Response.ok(toUpdate).build());
         Mockito.when(artifactApiClient.getArtifacts(Mockito.any(ArtifactOptions.class))).thenReturn(Response.ok(Collections.emptyList()).build());
-        Mockito.when(activityApiClient.getLastActivity("1234"))
-                .thenReturn(Response.ok().header("last-update", lastUpdate).build());
 
         given()
             .when()
@@ -215,11 +212,11 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
         Engagement toUpdate = Engagement.builder().uuid("1234").customerName("Customer").projectName("Project")
                 .type("Residency").lastUpdate(lastUpdate).build();
 
-        Mockito.when(engagementApiClient.getEngagement("1234")).thenThrow(new WebApplicationException(404));
-        Mockito.when(activityApiClient.getLastActivity("1234"))
-                .thenReturn(Response.ok().header("last-update", Instant.now().toString()).build());
-
         String body = quarkusJsonb.toJson(toUpdate);
+
+        toUpdate.setLastUpdate(Instant.parse(lastUpdate).plusSeconds(1L).toString());
+
+        Mockito.when(engagementApiClient.getEngagement("1234")).thenReturn(toUpdate);
 
         given()
                 .when()
