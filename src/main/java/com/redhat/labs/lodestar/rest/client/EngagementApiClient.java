@@ -55,10 +55,16 @@ public interface EngagementApiClient {
     Response updateEngagement(Engagement engagement);
 
     @PUT
+    @Path("{uuid}/lastUpdate")
+    Response registerUpdate(@PathParam("uuid") String uuid);
+
+    @PUT
     @Path("{uuid}/launch")
     Response launch(@PathParam("uuid") String uuid, @QueryParam("author") String author, @QueryParam("authorEmail") String authorEmail);
 
-    @PUT Response refresh();
+    @PUT
+    @Path("refresh")
+    Response refresh(@QueryParam("uuids") Set<String> uuids);
 
     @GET
     @Path("suggest")

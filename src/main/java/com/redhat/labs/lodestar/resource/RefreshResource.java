@@ -17,6 +17,7 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.Set;
 
 @RequestScoped
 @Path("/engagements/refresh")
@@ -38,10 +39,10 @@ public class RefreshResource {
             @APIResponse(responseCode = "400", description = "No refresh data set selected. Options are engagements, artifacts, participants and activity. You can mix and match"),
             @APIResponse(responseCode = "404", description = "UUID provided, but no engagement found in database."),
             @APIResponse(responseCode = "202", description = "The request was accepted and will be processed.") })
-    @Operation(summary = "Refreshes database with data in git, purging first if the query paramater set to true.")
+    @Operation(summary = "Refreshes database with data in git. If uuids are set then only those will be refreshed (engagements only support for that). Engagement Service first")
     public Response refresh(
             @Parameter(description = "When set deletes engagements first.") @QueryParam("purgeFirst") Boolean purgeFirst,
-            @Parameter(description = "Refresh engagement with uuid") @QueryParam("uuid") String uuid,
+            @Parameter(description = "Refresh engagement with uuid") @QueryParam("uuid") Set<String> uuids,
             @Parameter(description = "Refresh engagement with project id") @QueryParam("projectId") String projectId,
             @Parameter(description = "Refresh artifacts") @QueryParam("artifacts") boolean refreshArtifacts,
             @Parameter(description = "Refresh participants") @QueryParam("participants") boolean refreshParticipants,
@@ -50,6 +51,12 @@ public class RefreshResource {
             @Parameter(description = "Refresh engagements") @QueryParam("engagements") boolean refreshEngagements) {
 
         boolean didPickSomething = false;
+
+        if (refreshEngagements) {  //Engagements done first since all others are predicated on this content.
+            //Engagements will be synchronous
+            engagementService.refresh(uuids);
+            didPickSomething = true;
+        }
 
         if (refreshActivity) {
             eventBus.publish(EventType.RELOAD_ACTIVITY_EVENT_ADDRESS, EventType.RELOAD_ACTIVITY_EVENT_ADDRESS);
@@ -69,12 +76,6 @@ public class RefreshResource {
 
         if (refreshStatus) {
             eventBus.publish(EventType.RELOAD_ENGAGEMENT_STATUS_EVENT_ADDRESS, EventType.RELOAD_ENGAGEMENT_STATUS_EVENT_ADDRESS);
-            didPickSomething = true;
-        }
-
-        if (refreshEngagements) {
-            //TODO
-            //engagementService.syncGitToDatabase(Boolean.TRUE.equals(purgeFirst), uuid, projectId);
             didPickSomething = true;
         }
 

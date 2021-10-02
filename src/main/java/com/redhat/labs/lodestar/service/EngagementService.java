@@ -97,15 +97,12 @@ public class EngagementService {
         engagement.setCategories(categories);
         engagement.setCommits(activity);
 
-        if(!engagement.getCommits().isEmpty()) {
-            engagement.setLastUpdate(activity.get(0).getCommitDate());
-        }
-
         EngagementState state = engagement.getEngagementCurrentState(Instant.now());
         if(state.equals(EngagementState.ACTIVE) || state.equals(EngagementState.TERMINATING)) {
             engagement.setStatus(getStatus(uuid));
         }
 
+        LOGGER.trace("got uuid {} with last update {}", uuid, engagement.getLastUpdate());
         return engagement;
     }
 
@@ -150,22 +147,24 @@ public class EngagementService {
      * @return
      */
     public Engagement update(Engagement engagement) {
+        boolean somethingChanged = false;
 
         String author = engagement.getLastUpdateByName();
         String authorEmail = engagement.getLastUpdateByEmail();
         String engagementUuid = engagement.getUuid();
 
-        // Validate activity is sync'd to prevent overwrites
-        // This is legacy behavior. We should support last update per service
-        validateLastUpdateIsLatest(engagementUuid, engagement.getLastUpdate());
-
         //Will return a 404 with a message saying the uuid is not valid
         Engagement current = engagementApiClient.getEngagement(engagement.getUuid());
+
+        // Validate activity is sync'd to prevent overwrites
+        // This is legacy behavior. We should support last update per service
+        validateLastUpdateIsLatest(engagement.getLastUpdate(), current.getLastUpdate(), engagementUuid);
 
         Diff diff = javers.compare(current, engagement);
         if(diff.hasChanges()) {
             LOGGER.debug("Engagement changes {}", diff);
             engagementApiClient.updateEngagement(engagement);
+            //somethingChanged not needed as it will occur during engagement update
         }
 
         nullToEmpty(engagement);
@@ -176,6 +175,7 @@ public class EngagementService {
             LOGGER.debug("Hosting Environment changes {}", diff);
             hostingEnvironmentService.updateAndReload(engagementUuid, engagement.getHostingEnvironments(),
                     Author.builder().email(authorEmail).name(author).build());
+            somethingChanged = true;
         }
 
         List<Artifact> artifacts = artifactService.getArtifacts(engagement.getUuid());
@@ -183,6 +183,7 @@ public class EngagementService {
         if(diff.hasChanges()) {
             LOGGER.debug("Artifacts has changes {}", diff);
             artifactService.update(engagement, author, authorEmail);
+            somethingChanged = true;
         }
 
         List<EngagementUser> participants = participantService.getParticipantsForEngagement(engagement.getUuid());
@@ -192,7 +193,7 @@ public class EngagementService {
             participants = participantService.updateParticipantsAndReload(engagementUuid, author, authorEmail,
                     engagement.getEngagementUsers());
             LOGGER.debug("Updated {}", participants);
-
+            somethingChanged = true;
         }
 
         List<Category> categories = categoryApiClient.getCategories(engagement.getUuid());
@@ -202,23 +203,26 @@ public class EngagementService {
             Set<String> catString = new TreeSet<>();
             engagement.getCategories().forEach(c -> catString.add(c.getName()));
             categoryApiClient.updateCategories(engagementUuid, author, authorEmail, catString);
+            somethingChanged = true;
         }
 
         //TODO update cache
+        if(somethingChanged) {
+            engagementApiClient.registerUpdate(engagementUuid);
+        }
         return getEngagement(engagementUuid);
     }
 
     /**
      * Will throw a 409 error if invalid
-     * @param engagementUuid the engagement
-     * @param requesterLastUpdate incoming last known update
      */
-    private void validateLastUpdateIsLatest(String engagementUuid, String requesterLastUpdate) {
-        Instant lastUpdateFromRequester = Instant.parse(requesterLastUpdate);
-        Instant lastUpdateFromSystem = activityService.getLatestActivity(engagementUuid);
+    private void validateLastUpdateIsLatest(String requestValue, String persistedValue, String engagementUuid) {
+        Instant lastUpdateFromRequester = Instant.parse(requestValue);
+        Instant lastUpdateFromSystem = Instant.parse(persistedValue);
 
-        if(lastUpdateFromSystem.compareTo(lastUpdateFromRequester) != 0) {
-            LOGGER.info("Last update is out of sync with the activity. Caller needs refresh for {}", engagementUuid);
+        if(!lastUpdateFromSystem.equals(lastUpdateFromRequester)) {
+            LOGGER.info("Last update is out of sync with the engagement db. Caller needs refresh for {} ui ({}) db ({})",
+                    engagementUuid, requestValue, persistedValue);
             throw new WebApplicationException(409);
         }
     }
@@ -412,7 +416,11 @@ public class EngagementService {
     public Engagement launch(String uuid, String author, String authorEmail) {
 
         engagementApiClient.launch(uuid, author, authorEmail);
-        return getEngagement(uuid); //TODO This method should happen via UUID not full engagement
+        return getEngagement(uuid);
+    }
+
+    public void refresh(Set<String> uuids) {
+        engagementApiClient.refresh(uuids);
     }
 
 }

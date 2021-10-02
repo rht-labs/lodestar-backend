@@ -1,10 +1,8 @@
 package com.redhat.labs.lodestar.resource;
 
-import com.redhat.labs.lodestar.rest.client.ActivityApiClient;
-import com.redhat.labs.lodestar.rest.client.ArtifactApiClient;
-import com.redhat.labs.lodestar.rest.client.EngagementStatusApiClient;
-import com.redhat.labs.lodestar.rest.client.ParticipantApiClient;
+import com.redhat.labs.lodestar.rest.client.*;
 import com.redhat.labs.lodestar.utils.TokenUtils;
+import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.QuarkusTest;
 import io.quarkus.test.junit.mockito.InjectMock;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
@@ -14,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
 import javax.ws.rs.core.Response;
+import java.util.Collections;
 import java.util.HashMap;
 
 import static io.restassured.RestAssured.given;
@@ -37,6 +36,10 @@ class RefreshResourceTest {
     @InjectMock
     @RestClient
     public EngagementStatusApiClient engagementStatusApiClient;
+
+    @InjectMock
+    @RestClient
+    public EngagementApiClient engagementApiClient;
     
     static String validToken;
 
@@ -46,13 +49,21 @@ class RefreshResourceTest {
     }
 
     @Test
+    void testEngagementReload() {
+        given().queryParam("engagements", true).when().auth().oauth2(validToken)
+                .put("/engagements/refresh").then().statusCode(202);
+
+        Mockito.verify(engagementApiClient, Mockito.timeout(1000)).refresh(Collections.emptySet());
+    }
+
+    @Test
     void testActivityReload() {
 
         given().when().auth().oauth2(validToken)
                 .put("/engagements/refresh").then().statusCode(400);
         
         given().queryParam("activity", true).when().auth().oauth2(validToken)
-        .put("/engagements/refresh").then().statusCode(202);
+                .put("/engagements/refresh").then().statusCode(202);
         
         Mockito.verify(activityClient, Mockito.timeout(1000)).refresh();
     }

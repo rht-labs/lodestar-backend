@@ -6,6 +6,7 @@ import static org.hamcrest.CoreMatchers.is;
 import javax.ws.rs.core.Response;
 
 import com.redhat.labs.lodestar.rest.client.ConfigApiClient;
+import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.mockito.InjectMock;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.Tag;
@@ -17,6 +18,7 @@ import com.redhat.labs.lodestar.utils.TokenUtils;
 import io.quarkus.test.junit.QuarkusTest;
 
 @QuarkusTest
+@TestHTTPEndpoint(ConfigResource.class)
 @Tag("nested")
 class ConfigResourceTest {
 
@@ -33,7 +35,7 @@ class ConfigResourceTest {
             .when()
                 .auth()
                     .oauth2(token)
-                .get("/config")
+                .get()
             .then()
                 .statusCode(403);
         
@@ -52,7 +54,7 @@ class ConfigResourceTest {
             .when()
                 .auth()
                     .oauth2(token)
-                .get("/config")
+                .get()
             .then()
                 .statusCode(200)
                 .body(is(body))
@@ -75,11 +77,18 @@ class ConfigResourceTest {
             .when()
                 .auth()
                     .oauth2(token)
-                .get("/config")
+                .get()
             .then()
                 .statusCode(200)
                 .body(is(body));
 
+    }
+
+    @Test
+    void testVoidCache() {
+        String token = TokenUtils.generateTokenString("/JwtClaimsReader.json");
+
+        given().when().auth().oauth2(token).put("/rbac/cache").then().statusCode(200);
     }
 
 }

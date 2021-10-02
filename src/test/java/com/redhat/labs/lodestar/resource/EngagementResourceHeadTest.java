@@ -27,10 +27,6 @@ class EngagementResourceHeadTest extends IntegrationTestHelper {
     @RestClient
     HostingEnvironmentApiClient hostingEnvironmentApiClient;
 
-    @InjectMock
-    @RestClient
-    ActivityApiClient activityApiClient;
-
     static String validToken = TokenUtils.generateTokenString("/JwtClaimsWriter.json");
 
     @Test
@@ -68,7 +64,7 @@ class EngagementResourceHeadTest extends IntegrationTestHelper {
 
         Response response = Response.ok().header(LAST_UPDATE_HEADER, "last-update")
                 .header(ACCESS_CONTROL_EXPOSE_HEADER, LAST_UPDATE_HEADER).build();
-        Mockito.when(activityApiClient.getLastActivity("1234")).thenReturn(response);
+        Mockito.when(engagementApiClient.getEngagementHead("1234")).thenReturn(response);
 
         // HEAD
         given()
@@ -88,7 +84,7 @@ class EngagementResourceHeadTest extends IntegrationTestHelper {
 
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json");
 
-        Mockito.when(activityApiClient.getLastActivity("1234")).thenReturn(Response.status(404).build());
+        Mockito.when(engagementApiClient.getEngagementHead("1234")).thenReturn(Response.status(404).build());
 
         // HEAD
         given()
