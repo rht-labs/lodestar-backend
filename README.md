@@ -284,4 +284,3 @@ mvn test
 # build for production
 mvn quarkus:build
 ```
-
