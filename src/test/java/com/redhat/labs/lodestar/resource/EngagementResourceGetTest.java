@@ -112,8 +112,10 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
     @Test
     void testGetEngagementsSuccess() {
 
-        Engagement engagement1 = Engagement.builder().uuid("1234").type("Residency").customerName("Customer").projectName("Project1").build();
-        Engagement engagement2 = Engagement.builder().uuid("1235").type("Residency").customerName("Customer").projectName("Project2").build();
+        Engagement engagement1 = Engagement.builder().uuid("1234").type("Residency").customerName("Customer").projectName("Project1")
+                .artifactCount(4).build();
+        Engagement engagement2 = Engagement.builder().uuid("1235").type("Residency").customerName("Customer").projectName("Project2")
+                .participantCount(10).build();
 
         Mockito.when(engagementApiClient.getEngagements(0, 500, Collections.emptySet())).thenReturn(Response.ok(List.of(engagement1, engagement2)).build());
 
@@ -126,7 +128,9 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
                 .get("/engagements")
             .then()
                 .statusCode(200)
-                .body("size()", equalTo(2));
+                .body("size()", equalTo(2))
+                .body("[1].engagement_users.size()", equalTo(10))
+                .body("[0].artifacts.size()", equalTo(4));
 
         Mockito.verify(engagementApiClient).getEngagements(0, 500, Collections.emptySet());
     }
