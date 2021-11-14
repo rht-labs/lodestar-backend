@@ -209,6 +209,8 @@ public class EngagementService {
         //TODO update cache
         if(somethingChanged) {
             engagementApiClient.registerUpdate(engagementUuid);
+        } else {
+            LOGGER.debug("Nothing changed for {}", engagementUuid);
         }
         return getEngagement(engagementUuid);
     }
@@ -343,8 +345,9 @@ public class EngagementService {
         //TODO this loop is to allow frontend to change after v2 deployment.
         // FE should use participant, artifact count field, and categories (string version)
         for(Engagement e : engagements) {
+
             for(int i=0; i<e.getParticipantCount(); i++) {
-                e.addParticipant(new EngagementUser());
+                e.addParticipant(EngagementUser.builder().email(String.valueOf(i)).build());
             }
 
             for(int i=0; i<e.getArtifactCount(); i++) {

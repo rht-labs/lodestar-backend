@@ -315,6 +315,7 @@ public class EngagementResource {
 
         // create the resource
         Engagement created = engagementService.create(engagement);
+        LOGGER.debug("New Engagement {}", created);
 
         // build location response
         UriBuilder builder = uriInfo.getAbsolutePathBuilder();
@@ -359,7 +360,6 @@ public class EngagementResource {
             @APIResponse(responseCode = "200", description = "Engagement updated in the database") })
     @Operation(summary = "Updates the engagement resource in the database.")
     public Response put(@PathParam("id") String uuid, @Valid Engagement engagement) {
-
 
         boolean writer = jwtUtils.isAllowedToWriteEngagement(jwt, configService.getPermission(engagement.getType()));
         if(!writer) {
