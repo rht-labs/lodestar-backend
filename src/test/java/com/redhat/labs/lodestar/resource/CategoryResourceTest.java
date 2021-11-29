@@ -66,4 +66,8 @@ public class CategoryResourceTest {
                 .body("size()", equalTo(3))
                 .body("[0]", equalTo("autosuggest"));
     }
+
+    public static String[] nullEmptyBlankSource() {
+        return new String[] { null, "", "   " };
+    }
 }

@@ -17,6 +17,7 @@ import java.util.List;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.containsString;
+import static org.hamcrest.CoreMatchers.equalTo;
 
 @QuarkusTest
 @Tag("nested")
@@ -46,6 +47,62 @@ public class HostingEnvironmentResourceTest {
                 .then()
                 .statusCode(200)
                 .body(containsString("env1"))
+                .body(containsString("env-one"));
+
+    }
+
+    @Test
+    void testGetHostingEnvironmentsForEngagement() {
+
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json");
+
+        HostingEnvironment he = HostingEnvironment.builder().environmentName("env1").ocpCloudProviderName("provider1")
+                .ocpClusterSize("small").ocpPersistentStorageSize("none").ocpSubDomain("env-one").ocpVersion("4.x.x")
+                .build();
+        Mockito.when(hostingEnvironmentApiClient.getHostingEnvironmentsByEngagementUuid("engagement-uuid"))
+                .thenReturn(List.of(he));
+
+        given()
+                .auth()
+                .oauth2(token)
+                .contentType(ContentType.JSON)
+                .when()
+                .pathParam("engagementUuid", "engagement-uuid")
+                .get("engagements/hosting/environments/engagement/{engagementUuid}")
+                .then()
+                .statusCode(200)
+                .body("size()", equalTo(1))
+                .body("[0].environment_name", equalTo("env1"))
+                .body(containsString("env-one"));
+
+    }
+
+    @Test
+    void testPutHostingEnvironmentsForEngagement() {
+
+        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json");
+
+        HostingEnvironment he = HostingEnvironment.builder().environmentName("env1").ocpCloudProviderName("provider1")
+                .ocpClusterSize("small").ocpPersistentStorageSize("none").ocpSubDomain("env-one").ocpVersion("4.x.x")
+                .build();
+        List hes = List.of(he);
+
+        Mockito.when(hostingEnvironmentApiClient.updateHostingEnvironments(Mockito.eq("engagement-uuid"), Mockito.anyList(),
+                        Mockito.anyString(), Mockito.anyString()))
+                .thenReturn(hes);
+
+        given()
+                .auth()
+                .oauth2(token)
+                .contentType(ContentType.JSON)
+                .when()
+                .pathParam("engagementUuid", "engagement-uuid")
+                .body(hes)
+                .put("engagements/hosting/environments/engagement/{engagementUuid}")
+                .then()
+                .statusCode(200)
+                .body("size()", equalTo(1))
+                .body("[0].environment_name", equalTo("env1"))
                 .body(containsString("env-one"));
 
     }

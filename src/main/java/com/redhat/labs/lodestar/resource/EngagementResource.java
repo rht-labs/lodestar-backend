@@ -315,7 +315,6 @@ public class EngagementResource {
 
         // create the resource
         Engagement created = engagementService.create(engagement);
-        LOGGER.debug("New Engagement {}", created);
 
         // build location response
         UriBuilder builder = uriInfo.getAbsolutePathBuilder();

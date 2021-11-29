@@ -59,7 +59,7 @@ public class HostingResource {
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "hosting environments have been returned.") })
     @Operation(summary = "Returns engagement hosting environments")
-    public Response getHostingEnvironment(@QueryParam("engagementUuid") String engagementUuid) {
+    public Response getHostingEnvironment(@PathParam("engagementUuid") String engagementUuid) {
         return Response.ok(hostingService.getHostingEnvironments(engagementUuid)).build();
     }
 
@@ -68,7 +68,7 @@ public class HostingResource {
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "hosting environments updated.") })
     @Operation(summary = "Returns updated engagement hosting environments")
-    public Response updateHostingEnvForEngagement(@QueryParam("engagementUuid") String engagementUuid, List<HostingEnvironment> hostingEnvironments) {
+    public Response updateHostingEnvForEngagement(@PathParam("engagementUuid") String engagementUuid, List<HostingEnvironment> hostingEnvironments) {
         return Response.ok(hostingService.updateAndReload(engagementUuid, hostingEnvironments, jwtUtils.getAuthorFromToken(jwt))).build();
     }
 
