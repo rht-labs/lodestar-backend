@@ -26,7 +26,6 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import com.redhat.labs.lodestar.model.EngagementUserSummary;
-import com.redhat.labs.lodestar.service.ActivityService;
 import com.redhat.labs.lodestar.service.ParticipantService;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -71,9 +70,6 @@ public class EngagementResource {
 
     @Inject
     EngagementService engagementService;
-
-    @Inject
-    ActivityService activityService;
     
     @Inject
     ConfigService configService;
