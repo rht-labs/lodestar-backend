@@ -129,11 +129,11 @@ public class Engagement {
     @JsonbProperty("engagement_region")
     private String engagementRegion;
 
-    //Legacy
+    //Legacy - front end should switch to name
     @JsonbProperty("project_name")
     private String projectName;
 
-    //Legacy
+    //Legacy - front end should switch to type
     @JsonbProperty("engagement_type")
     private String engagementType;
 
@@ -165,6 +165,12 @@ public class Engagement {
     public void setEngagementType(String engagementType) {
         this.engagementType = engagementType;
         this.type = engagementType;
+    }
+
+    //Legacy
+    public void setType(String type) {
+        this.engagementType = type;
+        this.type = type;
     }
 
     //Legacy
