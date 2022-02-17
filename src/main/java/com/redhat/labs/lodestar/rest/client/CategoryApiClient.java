@@ -21,6 +21,7 @@ public interface CategoryApiClient {
     List<Category> getCategories(@QueryParam("engagementUuid") String engagementUuidOption);//, @BeanParam PageFilter pageFilter
 
     @GET
+    @Path("suggest")
     Set<String> getCategorySuggestions(@QueryParam("partial") String partial);
 
     @GET
