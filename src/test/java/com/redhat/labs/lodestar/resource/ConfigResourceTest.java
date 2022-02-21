@@ -1,14 +1,19 @@
 package com.redhat.labs.lodestar.resource;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.CoreMatchers.is;
 
 import javax.ws.rs.core.Response;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.redhat.labs.lodestar.rest.client.ConfigApiClient;
+import com.redhat.labs.lodestar.utils.ResourceLoader;
 import io.quarkus.test.common.http.TestHTTPEndpoint;
 import io.quarkus.test.junit.mockito.InjectMock;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
+import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -17,14 +22,25 @@ import com.redhat.labs.lodestar.utils.TokenUtils;
 
 import io.quarkus.test.junit.QuarkusTest;
 
+import java.util.Map;
+
 @QuarkusTest
 @TestHTTPEndpoint(ConfigResource.class)
 @Tag("nested")
 class ConfigResourceTest {
 
+    static String VALID_TOKEN;
+
     @InjectMock
     @RestClient
     public ConfigApiClient configApiClient;
+
+    ObjectMapper om = new ObjectMapper();
+
+    @BeforeAll
+    static void generateToken() {
+        VALID_TOKEN = TokenUtils.generateTokenString("/JwtClaimsReader.json");
+    }
 
     @Test
     void testGetConfigTokenHasWrongRole()  {
@@ -89,6 +105,36 @@ class ConfigResourceTest {
         String token = TokenUtils.generateTokenString("/JwtClaimsReader.json");
 
         given().when().auth().oauth2(token).put("/rbac/cache").then().statusCode(200);
+    }
+
+    @Test
+    void testRegionOptions() throws Exception {
+        String regions = ResourceLoader.load("config-region-options.json");
+        Map<String, String> regionMap = om.readValue(regions, Map.class);
+        Mockito.when(configApiClient.getRegionOptions()).thenReturn(regionMap);
+        given().when().auth().oauth2(VALID_TOKEN).get("/region/options").then().statusCode(200)
+                .body("$", Matchers.hasKey("region1"))
+                .body("$", Matchers.hasKey("region2"));
+    }
+
+    @Test
+    void testArtifactOptions() throws Exception {
+        String artifacts = ResourceLoader.load("config-artifact-options.json");
+        Map<String, String> artifactsMap = om.readValue(artifacts, Map.class);
+        Mockito.when(configApiClient.getArtifactOptions()).thenReturn(artifactsMap);
+        given().when().auth().oauth2(VALID_TOKEN).get("/artifact/options").then().statusCode(200)
+                .body("$", Matchers.hasKey("doc"))
+                .body("$", Matchers.hasKey("paper"));
+    }
+
+    @Test
+    void testEngagementOptions() throws Exception {
+        String engagements = ResourceLoader.load("config-engagement-options.json");
+        Map<String, String> engagementsMap = om.readValue(engagements, Map.class);
+        Mockito.when(configApiClient.getEngagementOptions()).thenReturn(engagementsMap);
+        given().when().auth().oauth2(VALID_TOKEN).get("/engagement/options").then().statusCode(200)
+                .body("$", Matchers.hasKey("res"))
+                .body("$", Matchers.hasKey("training"));
     }
 
 }

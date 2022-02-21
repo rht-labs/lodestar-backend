@@ -19,15 +19,26 @@ import com.redhat.labs.lodestar.exception.mapper.ServiceResponseMapper;
 @RegisterRestClient(configKey = "lodestar.config.api")
 @RegisterProvider(value = ServiceResponseMapper.class, priority = 50)
 @Path("/api/v1/configs/runtime")
+@Produces("application/json")
 public interface ConfigApiClient {
 
     @GET
-    @Produces("application/json")
     Response getRuntimeConfig(@QueryParam("type") String type);
 
     @GET
     @Path("/rbac")
-    @Produces("application/json")
     Map<String, List<String>> getPermission();
+
+    @GET
+    @Path("artifact/options")
+    Map<String, String> getArtifactOptions();
+
+    @GET
+    @Path("engagement/options")
+    Map<String, String> getEngagementOptions();
+
+    @GET
+    @Path("region/options")
+    Map<String, String> getRegionOptions();
 
 }
