@@ -24,6 +24,7 @@ import org.eclipse.microprofile.openapi.annotations.security.SecurityScheme;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.model.pagination.PagedHostingEnvironmentResults;
 import com.redhat.labs.lodestar.service.EngagementService;
+import org.eclipse.microprofile.openapi.annotations.tags.Tag;
 
 import java.util.*;
 
@@ -32,6 +33,7 @@ import java.util.*;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 @SecurityScheme(securitySchemeName = "jwt", type = SecuritySchemeType.HTTP, scheme = "bearer", bearerFormat = "JWT")
+@Tag(name = "Hosting Environments", description = "Hosting Environment Info")
 public class HostingResource {
 
     @Inject
