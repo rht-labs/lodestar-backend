@@ -1,5 +1,6 @@
 package com.redhat.labs.lodestar.resource;
 
+import java.util.Map;
 import java.util.Optional;
 
 import javax.enterprise.context.RequestScoped;
@@ -54,5 +55,23 @@ public class ConfigResource {
     public Response invalidateRbacCache() {
         configService.invalidateCache();
         return Response.ok().build();
+    }
+
+    @GET
+    @Path("artifact/options")
+    public Map<String, String> getArtifactOptions() {
+        return configService.getArtifactOptions();
+    }
+
+    @GET
+    @Path("engagement/options")
+    public Map<String, String> getEngagementOptions() {
+        return configService.getEngagementOptions();
+    }
+
+    @GET
+    @Path("region/options")
+    public Map<String, String> getRegionOptions() {
+        return configService.getRegionOptions();
     }
 }

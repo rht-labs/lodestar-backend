@@ -48,6 +48,7 @@ public class RefreshResource {
             @Parameter(description = "Refresh participants") @QueryParam("participants") boolean refreshParticipants,
             @Parameter(description = "Refresh activity") @QueryParam("activity") boolean refreshActivity,
             @Parameter(description = "Refresh engagement status") @QueryParam("status") boolean refreshStatus,
+            @Parameter(description = "Refresh hosting environments") @QueryParam("hosting") boolean refreshHosting,
             @Parameter(description = "Refresh engagements") @QueryParam("engagements") boolean refreshEngagements) {
 
         boolean didPickSomething = false;
@@ -55,6 +56,11 @@ public class RefreshResource {
         if (refreshEngagements) {  //Engagements done first since all others are predicated on this content.
             //Engagements will be synchronous
             engagementService.refresh(uuids);
+            didPickSomething = true;
+        }
+
+        if(refreshHosting) {
+            eventBus.publish(EventType.RELOAD_HOSTING_EVENT_ADDRESS, EventType.RELOAD_HOSTING_EVENT_ADDRESS);
             didPickSomething = true;
         }
 
