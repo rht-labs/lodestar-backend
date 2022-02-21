@@ -13,7 +13,6 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
@@ -32,13 +31,10 @@ public class ConfigResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(ConfigResource.class);
 
     @Inject
-    JsonWebToken jwt;
-
-    @Inject
     ConfigService configService;
 
     @GET
-    @SecurityRequirement(name = "jwt", scopes = {})
+    @SecurityRequirement(name = "jwt")
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "Configuration file data has been returned.") })
     @Operation(summary = "Returns configuration file data.")
@@ -49,7 +45,7 @@ public class ConfigResource {
     
     @PUT
     @Path("/rbac/cache")
-    @SecurityRequirement(name = "jwt", scopes = {})
+    @SecurityRequirement(name = "jwt")
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "Cache invalidated.") })
     public Response invalidateRbacCache() {
@@ -59,18 +55,30 @@ public class ConfigResource {
 
     @GET
     @Path("artifact/options")
+    @SecurityRequirement(name = "jwt")
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "200", description = "Artifact ptions success.") })
+    @Operation(summary = "Returns a map of key value pairs or artifact option.")
     public Map<String, String> getArtifactOptions() {
         return configService.getArtifactOptions();
     }
 
     @GET
     @Path("engagement/options")
+    @SecurityRequirement(name = "jwt")
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "200", description = "Engagement options success.") })
+    @Operation(summary = "Returns a map of key value pairs or engagement option.")
     public Map<String, String> getEngagementOptions() {
         return configService.getEngagementOptions();
     }
 
     @GET
     @Path("region/options")
+    @SecurityRequirement(name = "jwt")
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "200", description = "Region options success.") })
+    @Operation(summary = "Returns a map of key value pairs or region option.")
     public Map<String, String> getRegionOptions() {
         return configService.getRegionOptions();
     }
