@@ -23,5 +23,6 @@ public class EngagementArtifact extends Artifact {
     
     private String projectName;
     private String customerName;
+    private String region;
 
 }
