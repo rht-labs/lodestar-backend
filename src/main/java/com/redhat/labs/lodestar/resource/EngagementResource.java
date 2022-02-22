@@ -100,11 +100,11 @@ public class EngagementResource {
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "Engagement counts computed.") })
     @Operation(summary = "Gets a map of engagement counts by status")
-    public Map<EngagementState, Integer> countByStatus(@QueryParam(value = "localTime") String localTime) {
+    public Map<EngagementState, Integer> countByStatus(@QueryParam(value = "localTime") String localTime, @QueryParam("region") Set<String> regions) {
         
         Instant currentTime = localTime == null ? Instant.now() : Instant.parse(localTime);
 
-        return engagementService.getEngagementCountByStatus(currentTime);
+        return engagementService.getEngagementCountByStatus(currentTime, regions);
     }
 
     //TODO metrics is saying this is not called

@@ -22,7 +22,7 @@ public interface EngagementApiClient {
     //TODO support time shifting
     @GET
     @Path("count")
-    Map<Engagement.EngagementState, Integer> getEngagementCounts();
+    Map<Engagement.EngagementState, Integer> getEngagementCounts(@QueryParam("region") Set<String> region);
 
     @GET
     @Path("category/{category}")

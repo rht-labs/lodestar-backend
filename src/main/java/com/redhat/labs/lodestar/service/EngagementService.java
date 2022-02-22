@@ -313,8 +313,8 @@ public class EngagementService {
         return  engagementApiClient.getEngagementByProject(projectId);
     }
 
-    public Map<EngagementState, Integer> getEngagementCountByStatus(Instant currentTime) {
-        return engagementApiClient.getEngagementCounts();
+    public Map<EngagementState, Integer> getEngagementCountByStatus(Instant currentTime, Set<String> regions) {
+        return engagementApiClient.getEngagementCounts(regions);
     }
 
     /**

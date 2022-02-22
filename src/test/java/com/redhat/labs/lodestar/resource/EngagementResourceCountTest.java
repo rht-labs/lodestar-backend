@@ -3,6 +3,7 @@ package com.redhat.labs.lodestar.resource;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.equalTo;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,7 +42,7 @@ class EngagementResourceCountTest {
         counts.put(Engagement.EngagementState.PAST, 2);
         counts.put(Engagement.EngagementState.ANY, 42);
 
-        Mockito.when(engagementApiClient.getEngagementCounts()).thenReturn(counts);
+        Mockito.when(engagementApiClient.getEngagementCounts(Collections.emptySet())).thenReturn(counts);
 
         given().when().auth().oauth2(token).get(url).then().statusCode(200).body("UPCOMING", equalTo(16))
                 .body("ACTIVE", equalTo(8))
