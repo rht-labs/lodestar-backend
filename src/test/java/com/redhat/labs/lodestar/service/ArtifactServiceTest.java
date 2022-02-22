@@ -72,4 +72,12 @@ class ArtifactServiceTest {
         
         Mockito.verify(artifactClient, Mockito.never()).updateArtifacts("uuid3", "na", artifacts, "Mitch", "mitch@mitch.com");
     }
+
+    @Test
+    void testArtifactTypeCount() {
+
+        artifactService.getTypesCount(Collections.emptyList());
+
+        Mockito.verify(artifactClient).getTypesCount(Collections.emptyList());
+    }
 }

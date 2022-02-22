@@ -18,6 +18,7 @@ public class Artifact extends EngagementAttribute {
     private String title;
     private String description;
     private String type;
+    private String prettyType;
     private String linkAddress;
 
 }

@@ -1,6 +1,7 @@
 package com.redhat.labs.lodestar.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -35,6 +36,9 @@ public class ArtifactService {
     @Inject
     EngagementService engagementService;
 
+    @Inject
+    ConfigService configService;
+
     public List<Artifact> getArtifacts(String engagementUuid) {
         ArtifactOptions options = ArtifactOptions.builder().page(0).pageSize(1000)
                 .engagementUuid(engagementUuid).build();
@@ -60,15 +64,18 @@ public class ArtifactService {
         int totalArtifacts = Integer.parseInt(response.getHeaderString("x-total-artifacts"));
         int totalPages = totalArtifacts / pageSize + 1;
         List<EngagementArtifact> artifacts = response.readEntity(new GenericType<>(){});
-        
-        //if(dashboardView) { //enrich data with customer and engagement name
-            for(EngagementArtifact artifact : artifacts) {
-                Engagement e = engagementService.getByUuid(artifact.getEngagementUuid());
-                artifact.setCustomerName(e.getCustomerName());
-                artifact.setProjectName(e.getProjectName());
-                
-            }
-       // }
+
+        Map<String, String> artifactOptions = configService.getArtifactOptions();
+
+        for(EngagementArtifact artifact : artifacts) {
+            Engagement e = engagementService.getByUuid(artifact.getEngagementUuid());
+            artifact.setCustomerName(e.getCustomerName());
+            artifact.setProjectName(e.getProjectName());
+            artifact.setRegion(e.getRegion());
+
+            artifact.setPrettyType(artifactOptions.get(artifact.getType()));
+
+        }
         
         return Response.ok(artifacts).header("x-current-page", currentPage).header("x-per-page", pageSize)
                 .header("x-total-artifacts", totalArtifacts).header("x-next-page", currentPage + 1)
