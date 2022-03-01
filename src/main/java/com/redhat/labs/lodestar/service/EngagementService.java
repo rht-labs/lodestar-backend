@@ -39,9 +39,6 @@ public class EngagementService {
 
     @ConfigProperty(name = "commit.msg.filter.list", defaultValue = "not.set")
     List<String> commitFilteredMessages;
-    
-    @ConfigProperty(name = "v2.enabled")
-    boolean v2Enabled;
 
     @Inject
     ParticipantService participantService;
@@ -51,6 +48,9 @@ public class EngagementService {
 
     @Inject
     ArtifactService artifactService;
+
+    @Inject
+    ConfigService configService;
 
     @Inject
     @RestClient
@@ -342,6 +342,9 @@ public class EngagementService {
 
         Response response = engagementApiClient.getEngagements(page, pageSize, listFilterOptions.getV2Regions());
         List<Engagement> engagements = response.readEntity(new GenericType<>(){});
+
+        Map<String, String> engagementOptions = configService.getEngagementOptions();
+
         //TODO this loop is to allow frontend to change after v2 deployment.
         // FE should use participant, artifact count field, and categories (string version)
         for(Engagement e : engagements) {
@@ -359,6 +362,8 @@ public class EngagementService {
                     e.addCategory(cat);
                 }
             }
+
+            e.setPrettyType(engagementOptions.containsKey(e.getType()) ? engagementOptions.get(e.getType()) : e.getType());
         }
         return Response.ok(engagements).header("x-total-engagements", response.getHeaderString("x-total-engagements")).build();
     }

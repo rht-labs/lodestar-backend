@@ -93,6 +93,8 @@ public class Engagement {
 
     private String region;
     private String type;
+    @JsonbProperty("pretty_type")
+    private String prettyType;
 
     @JsonbProperty("categories")
     List<String> categoriesV2;
