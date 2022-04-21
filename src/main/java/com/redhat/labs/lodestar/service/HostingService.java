@@ -13,6 +13,8 @@ import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.*;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -29,7 +31,15 @@ public class HostingService {
     }
 
     public List<HostingEnvironment> getHostingEnvironments(String engagementUuid) {
-        return hostingEnvironmentApiClient.getHostingEnvironmentsByEngagementUuid(engagementUuid);
+        try {
+            return hostingEnvironmentApiClient.getHostingEnvironmentsByEngagementUuid(engagementUuid);
+        } catch (WebApplicationException wex) {
+            if(wex.getResponse().getStatus() >= 500) {
+                LOGGER.error("Hosting Server error ({}) from hosting env for euuid {}", wex.getResponse().getStatus(), engagementUuid);
+                return Collections.EMPTY_LIST;
+            }
+            throw wex;
+        }
     }
 
     public List<HostingEnvironment> updateAndReload(String engagementUuid, List<HostingEnvironment> hostingEnvironments, Author author) {

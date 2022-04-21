@@ -17,6 +17,8 @@ import javax.inject.Inject;
 import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 @RequestScoped
@@ -51,45 +53,45 @@ public class RefreshResource {
             @Parameter(description = "Refresh hosting environments") @QueryParam("hosting") boolean refreshHosting,
             @Parameter(description = "Refresh engagements") @QueryParam("engagements") boolean refreshEngagements) {
 
-        boolean didPickSomething = false;
+        List<String> refreshed = new ArrayList<>();
 
         if (refreshEngagements) {  //Engagements done first since all others are predicated on this content.
             //Engagements will be synchronous
             engagementService.refresh(uuids);
-            didPickSomething = true;
+            refreshed.add("engagements");
         }
 
         if(refreshHosting) {
             eventBus.publish(EventType.RELOAD_HOSTING_EVENT_ADDRESS, EventType.RELOAD_HOSTING_EVENT_ADDRESS);
-            didPickSomething = true;
+            refreshed.add("hosting");
         }
 
         if (refreshActivity) {
             eventBus.publish(EventType.RELOAD_ACTIVITY_EVENT_ADDRESS, EventType.RELOAD_ACTIVITY_EVENT_ADDRESS);
-            didPickSomething = true;
+            refreshed.add("activity");
         }
 
         if (refreshParticipants) {
             eventBus.publish(EventType.RELOAD_PARTICIPANTS_EVENT_ADDRESS,
                     EventType.RELOAD_PARTICIPANTS_EVENT_ADDRESS);
-            didPickSomething = true;
+            refreshed.add("participants");
         }
 
         if (refreshArtifacts) {
             eventBus.publish(EventType.RELOAD_ARTIFACTS_EVENT_ADDRESS, EventType.RELOAD_ARTIFACTS_EVENT_ADDRESS);
-            didPickSomething = true;
+            refreshed.add("artifacts");
         }
 
         if (refreshStatus) {
             eventBus.publish(EventType.RELOAD_ENGAGEMENT_STATUS_EVENT_ADDRESS, EventType.RELOAD_ENGAGEMENT_STATUS_EVENT_ADDRESS);
-            didPickSomething = true;
+            refreshed.add("status");
         }
 
-        if (didPickSomething) {
-            return Response.accepted().build();
+        if (refreshed.isEmpty()) {
+            return Response.status(400).entity("{ \"message\" : \"No refresh source was selected\" }").build();
         }
 
-        return Response.status(400).entity("{ \"message\" : \"No refresh source was selected\" }").build();
+        return Response.accepted().entity(refreshed).build();
 
     }
 

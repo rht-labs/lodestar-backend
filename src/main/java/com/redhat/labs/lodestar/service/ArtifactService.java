@@ -1,9 +1,6 @@
 package com.redhat.labs.lodestar.service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -43,9 +40,15 @@ public class ArtifactService {
         ArtifactOptions options = ArtifactOptions.builder().page(0).pageSize(1000)
                 .engagementUuid(engagementUuid).build();
 
-        Response response = artifactRestClient.getArtifacts(options);
-
-        return response.readEntity(new GenericType<>(){});
+        try {
+            return artifactRestClient.getArtifacts(options).readEntity(new GenericType<>(){});
+        } catch (WebApplicationException wex) {
+            if(wex.getResponse().getStatus() >= 500) {
+                LOGGER.error("Artifact Server error ({}) from hosting env for euuid {}", wex.getResponse().getStatus(), engagementUuid);
+                return Collections.EMPTY_LIST;
+            }
+            throw wex;
+        }
     }
     
     public Response getArtifacts(ListFilterOptions filterOptions, String engagementUuid, String type, List<String> region, boolean dashboardView) {

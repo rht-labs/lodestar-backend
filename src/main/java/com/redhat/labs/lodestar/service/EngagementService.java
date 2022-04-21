@@ -2,6 +2,7 @@ package com.redhat.labs.lodestar.service;
 
 import com.redhat.labs.lodestar.model.*;
 import com.redhat.labs.lodestar.model.Engagement.EngagementState;
+import com.redhat.labs.lodestar.model.filter.EngagementFilterOptions;
 import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
 import com.redhat.labs.lodestar.model.pagination.PagedEngagementResults;
 import com.redhat.labs.lodestar.rest.client.CategoryApiClient;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.Response;
@@ -116,6 +118,8 @@ public class EngagementService {
             } else {
                 LOGGER.error("Exception occurred retrieving status for engagement {}", uuid);
             }
+        } catch (ProcessingException pe) {
+            LOGGER.error("Cannot connect to lodestar-engagement-status for engagement {}", uuid,  pe);
         }
 
         return null;
@@ -321,51 +325,43 @@ public class EngagementService {
      * Returns a {@link PagedEngagementResults} of {@link Engagement} that matches
      * the {@link ListFilterOptions}.
      * 
-     * @param listFilterOptions
+     * @param filter
      * @return ?
      */
-    public Response getEngagementsPaged(ListFilterOptions listFilterOptions) {
+    public Response getEngagementsPaged(EngagementFilterOptions filter) {
         //TODO hacking for v1
         //TODO should probably better align last activity field on engagement object so that
         // we can just filter on engagement instead of hitting the activity service
-        String sort = listFilterOptions.getSortFields().orElse("");
-        int pageSize = listFilterOptions.getPerPage().orElse(5);
+        String sort = filter.getSortFields();
+        int pageSize = filter.getPerPage();
 
         if(pageSize == 5 && sort.equals("last_update")) {
-            List<String> activity = activityService.getLatestActivity(0,5, listFilterOptions.getV2Regions());
+            List<String> activity = activityService.getLatestActivity(0,5, filter.getV2Regions());
             List<Engagement> engagements = activity.stream().map(this::getEngagement).collect(Collectors.toList());
             return Response.ok(engagements).build();
         }
 
-        int page = listFilterOptions.getPage().orElse(1) - 1;
-        pageSize = listFilterOptions.getPerPage().orElse(1000);
+        int page = filter.getPage() - 1;
+        pageSize = filter.getPerPage();
 
-        Response response = engagementApiClient.getEngagements(page, pageSize, listFilterOptions.getV2Regions());
-        List<Engagement> engagements = response.readEntity(new GenericType<>(){});
+        List<Engagement> engagements;
+        String total = "0";
+        if(filter.getCategory() == null) {
+            Response response = engagementApiClient.getEngagements(page, pageSize, filter.getRegions(), filter.getTypes(), filter.getStates(), filter.getCategory(), sort);
+            engagements = response.readEntity(new GenericType<>(){});
+            total = response.getHeaderString("x-total-engagements");
+        } else {
+            engagements = engagementApiClient.getEngagementsWithCategory(page, pageSize, filter.getRegions(), filter.getTypes(), filter.getStates(), filter.getCategory(), sort);
+        }
 
         Map<String, String> engagementOptions = configService.getEngagementOptions();
 
         //TODO this loop is to allow frontend to change after v2 deployment.
         // FE should use participant, artifact count field, and categories (string version)
         for(Engagement e : engagements) {
-
-            for(int i=0; i<e.getParticipantCount(); i++) {
-                e.addParticipant(EngagementUser.builder().email(String.valueOf(i)).build());
-            }
-
-            for(int i=0; i<e.getArtifactCount(); i++) {
-                e.addArtifact(Artifact.builder().type("temp").build());
-            }
-
-            if(e.getCategoriesV2() != null) {
-                for (String cat : e.getCategoriesV2()) {
-                    e.addCategory(cat);
-                }
-            }
-
             e.setPrettyType(engagementOptions.containsKey(e.getType()) ? engagementOptions.get(e.getType()) : e.getType());
         }
-        return Response.ok(engagements).header("x-total-engagements", response.getHeaderString("x-total-engagements")).build();
+        return Response.ok(engagements).header("x-total-engagements", total).build();
     }
 
     /**
