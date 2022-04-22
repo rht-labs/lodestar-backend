@@ -22,6 +22,10 @@ public class EngagementFilterOptions {
     @Deprecated
     private String search;
 
+    @Parameter(name = "q", description = "Free search string. Currently supports Engagement and Customer names.")
+    @QueryParam("q")
+    private String q;
+
     @Parameter(description = "sort value. Default Dir to ASC. Ex. field1|DESC,field2,field3|DESC. Always last sort by uuid")
     @QueryParam("sortFields")
     @DefaultValue("lastUpdate|desc")

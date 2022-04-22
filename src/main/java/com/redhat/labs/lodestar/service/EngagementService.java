@@ -346,13 +346,13 @@ public class EngagementService {
 
         List<Engagement> engagements;
         String total = "0";
-        if(filter.getCategory() == null) {
-            Response response = engagementApiClient.getEngagements(page, pageSize, filter.getRegions(), filter.getTypes(), filter.getStates(), filter.getCategory(), sort);
+//        if(filter.getCategory() == null) {
+            Response response = engagementApiClient.getEngagements(page, pageSize, filter.getRegions(), filter.getTypes(), filter.getStates(), filter.getQ(), filter.getCategory(), sort);
             engagements = response.readEntity(new GenericType<>(){});
             total = response.getHeaderString("x-total-engagements");
-        } else {
-            engagements = engagementApiClient.getEngagementsWithCategory(page, pageSize, filter.getRegions(), filter.getTypes(), filter.getStates(), filter.getCategory(), sort);
-        }
+//        } else {
+//            engagements = engagementApiClient.getEngagementsWithCategory(page, pageSize, filter.getRegions(), filter.getTypes(), filter.getStates(), filter.getCategory(), sort);
+//        }
 
         Map<String, String> engagementOptions = configService.getEngagementOptions();
 

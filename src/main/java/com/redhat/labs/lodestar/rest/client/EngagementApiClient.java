@@ -18,7 +18,8 @@ public interface EngagementApiClient {
 
     @GET
     Response getEngagements(@QueryParam("page") int page, @QueryParam("pageSize") int pageSize, @QueryParam("region") Set<String> region,
-                            @QueryParam("types") Set<String> types, @QueryParam("inStates") Set<String> states, @QueryParam("category") String category, @QueryParam("sort") String sort);
+                            @QueryParam("types") Set<String> types, @QueryParam("inStates") Set<String> states, @QueryParam("q") String search,
+                            @QueryParam("category") String category, @QueryParam("sort") String sort);
 
     //TODO support time shifting
     @GET

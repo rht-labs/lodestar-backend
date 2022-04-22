@@ -94,7 +94,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
     @Test
     void testGetEngagementsSuccessNoEngagements() {
 
-        Mockito.when(engagementApiClient.getEngagements(0, 1000, Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), null, defaultSort))
+        Mockito.when(engagementApiClient.getEngagements(0, 1000, Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), null,null, defaultSort))
                 .thenReturn(javax.ws.rs.core.Response.ok(Collections.emptyList()).build());
 
         // GET engagement
@@ -108,7 +108,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
                 .statusCode(200)
                 .body("size()", equalTo(0));
 
-        Mockito.verify(engagementApiClient).getEngagements(0, 1000, Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), null, defaultSort);
+        Mockito.verify(engagementApiClient).getEngagements(0, 1000, Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), null,null, defaultSort);
     }
 
     @Test
@@ -119,7 +119,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
         Engagement engagement2 = Engagement.builder().uuid("1235").type("Residency").customerName("Customer").projectName("Project2")
                 .participantCount(10).build();
 
-        Mockito.when(engagementApiClient.getEngagements(0, 1000, Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), null, defaultSort))
+        Mockito.when(engagementApiClient.getEngagements(0, 1000, Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), null, null, defaultSort))
                 .thenReturn(Response.ok(List.of(engagement1, engagement2)).build());
 
         // GET engagement
@@ -137,7 +137,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
                 .body("[0].artifact_count", equalTo(4))
                 .body("[1].artifact_count", equalTo(0));
 
-        Mockito.verify(engagementApiClient).getEngagements(0, 1000, Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), null, defaultSort);
+        Mockito.verify(engagementApiClient).getEngagements(0, 1000, Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), null,null, defaultSort);
     }
 
     // TODO Abandoning support for include / exclude in v2.
@@ -149,7 +149,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
     void testGetAllWithExcludeAndInclude() {
 
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json");
-        Mockito.when(engagementApiClient.getEngagements(0, 1000, Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), null, defaultSort))
+        Mockito.when(engagementApiClient.getEngagements(0, 1000, Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), null,null, defaultSort))
                 .thenReturn(Response.ok(Collections.emptyList()).build());
 
         // get all
@@ -169,7 +169,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
     void testGetAllWithInclude() {
 
         String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json");
-        Mockito.when(engagementApiClient.getEngagements(0, 1000, Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), null, defaultSort))
+        Mockito.when(engagementApiClient.getEngagements(0, 1000, Collections.emptySet(), Collections.emptySet(), Collections.emptySet(), null,null, defaultSort))
                 .thenReturn(Response.ok(Collections.emptyList()).build());
 
         // get all
