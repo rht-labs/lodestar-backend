@@ -348,17 +348,5 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
                 .statusCode(409);
 
     }
-
-    //TODO this method should be removed - only call via uuid
-    @Test
-    void testPutEngagementWithNameNoGroup() {
-
-        Engagement engagement = Engagement.builder().uuid("1234").customerName("Customer").projectName("Project").type("DO500").build();
-        Mockito.when(engagementApiClient.getEngagement("1234")).thenReturn(engagement);
-
-        String body = quarkusJsonb.toJson(engagement);
-        given().when().auth().oauth2(validToken).body(body).contentType(ContentType.JSON).put("/engagements/customers/c1/projects/e2").then()
-                .statusCode(403);
-    }
     
 }

@@ -26,6 +26,7 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
 import com.redhat.labs.lodestar.model.EngagementUserSummary;
+import com.redhat.labs.lodestar.model.filter.EngagementFilterOptions;
 import com.redhat.labs.lodestar.service.ParticipantService;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.eclipse.microprofile.openapi.annotations.Operation;
@@ -57,8 +58,6 @@ import org.slf4j.LoggerFactory;
 public class EngagementResource {
     private static final Logger LOGGER = LoggerFactory.getLogger(EngagementResource.class);
 
-    private static final String ACCEPT_VERSION_1 = "v1";
-
     public static final String ACCESS_CONTROL_EXPOSE_HEADER = "Access-Control-Expose-Headers";
     public static final String LAST_UPDATE_HEADER = "last-update";
 
@@ -86,11 +85,9 @@ public class EngagementResource {
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
             @APIResponse(responseCode = "200", description = "A list or empty list of engagement resources returned") })
     @Operation(summary = "Returns all engagement resources from the database.  Can be empty list if none found.")
-    public Response getAll(@Context UriInfo uriInfo, @BeanParam ListFilterOptions filterOptions) {
+    public Response getAll(@Context UriInfo uriInfo, @BeanParam EngagementFilterOptions filterOptions) {
 
-        // create one page with many results for v1
-        setDefaultPagingFilterOptions(filterOptions);
-
+        LOGGER.debug("sort fields {}", filterOptions.getSortFields());
         return engagementService.getEngagementsPaged(filterOptions);
     }
     
@@ -188,7 +185,7 @@ public class EngagementResource {
      * GET - Queries
      */
 
-    // Not sure if this one is being used currently
+    // Not sure if this one is being used currently - should be covered by regular get. no?
     @GET
     @Path("/state/{state}")
     @SecurityRequirement(name = "jwt")
@@ -198,19 +195,7 @@ public class EngagementResource {
     public Response getByState(@Context UriInfo uriInfo, @PathParam("state") String state,
             @Parameter(name = "start", required = true, description = "start date of range") @NotBlank @QueryParam("start") String start,
             @Parameter(name = "end", required = true, description = "end date of range") @NotBlank @QueryParam("end") String end,
-            @BeanParam ListFilterOptions filterOptions) {
-
-        // set defaults for paging if not already set
-        setDefaultPagingFilterOptions(filterOptions);
-
-        // set state parameter
-        filterOptions.addEqualsSearchCriteria("state", state);
-
-        // set start parameter
-        filterOptions.addEqualsSearchCriteria("start", start);
-
-        // set end parameter
-        filterOptions.addEqualsSearchCriteria("end", end);
+            @BeanParam EngagementFilterOptions filterOptions) {
 
         PagedEngagementResults page = new PagedEngagementResults(); //TODO engagementService.getEngagementsPaged(filterOptions);
         ResponseBuilder builder = Response.ok(page.getResults()).links(page.getLinks(uriInfo.getAbsolutePathBuilder()));
@@ -233,9 +218,6 @@ public class EngagementResource {
             for (String param : params) {
                 String[] keyValues = param.split("=");
 
-                if(keyValues.length == 0) {
-                    Response.status(Response.Status.BAD_REQUEST).build();
-                }
                 if (keyValues[0].equals("engagement_region")) {
                     String[] regionsArray = keyValues[1].split(",");
                     regions = Arrays.asList(regionsArray);
@@ -321,33 +303,6 @@ public class EngagementResource {
     }
 
     @PUT
-    @Deprecated
-    @SecurityRequirement(name = "jwt")
-    @Path("/customers/{customerName}/projects/{projectName}")
-    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
-            @APIResponse(responseCode = "403", description = "Not authorized for engagement type"),
-            @APIResponse(responseCode = "404", description = "Engagement resource not found to update"),
-            @APIResponse(responseCode = "200", description = "Engagement updated in the database") })
-    @Operation(deprecated = true, summary = "Updates the engagement resource in the database.")
-    public Response put(@PathParam("customerName") String customerName, @PathParam("projectName") String projectName,
-            @Valid Engagement engagement) {
-
-        LOGGER.warn("Deprecated put method used /customers/{}/projects/{}", customerName, projectName);
-        
-        boolean writer = jwtUtils.isAllowedToWriteEngagement(jwt, configService.getPermission(engagement.getType()));
-        if(!writer) {
-            return forbiddenResponse(engagement.getType());
-        }
-
-        // pull user info from token
-        engagement.setLastUpdateByName(jwtUtils.getUsernameFromToken(jwt));
-        engagement.setLastUpdateByEmail(jwtUtils.getUserEmailFromToken(jwt));
-
-        return Response.ok(engagementService.update(engagement)).build();
-
-    }
-
-    @PUT
     @SecurityRequirement(name = "jwt")
     @Path("/{id}")
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
@@ -420,21 +375,11 @@ public class EngagementResource {
         
         engagementService.deleteEngagement(uuid);
         return Response.accepted().build();
-
     }
     
     private Response forbiddenResponse(String type) {
         String message = String.format("{\"message\": \"You cannot modify %s engagements\"}", type);
         return Response.status(403).entity(message).build();
-    }
-
-    private void setDefaultPagingFilterOptions(ListFilterOptions options) {
-
-        boolean isV1 = null == options.getApiVersion() || ACCEPT_VERSION_1.equals(options.getApiVersion());
-
-        options.setPage(options.getPage().orElse(1));
-        options.setPerPage(options.getPerPage().orElse(isV1 ? 500 : 20));
-
     }
 
 }

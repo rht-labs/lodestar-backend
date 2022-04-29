@@ -17,7 +17,9 @@ import java.util.*;
 public interface EngagementApiClient {
 
     @GET
-    Response getEngagements(@QueryParam("page") int page, @QueryParam("pageSize") int pageSize, @QueryParam("region") Set<String> region);
+    Response getEngagements(@QueryParam("page") int page, @QueryParam("pageSize") int pageSize, @QueryParam("region") Set<String> region,
+                            @QueryParam("types") Set<String> types, @QueryParam("inStates") Set<String> states, @QueryParam("q") String search,
+                            @QueryParam("category") String category, @QueryParam("sort") String sort);
 
     //TODO support time shifting
     @GET
@@ -26,7 +28,8 @@ public interface EngagementApiClient {
 
     @GET
     @Path("category/{category}")
-    List<Engagement> getEngagementsWithCategory(@PathParam("category") String category);
+    List<Engagement> getEngagementsWithCategory(@QueryParam("page") int page, @QueryParam("pageSize") int pageSize, @QueryParam("region") Set<String> region,
+                            @QueryParam("types") Set<String> types, @QueryParam("inStates") Set<String> states, @PathParam("category") String category, @QueryParam("sort") String sort);
 
     @GET
     @Path("{uuid}")

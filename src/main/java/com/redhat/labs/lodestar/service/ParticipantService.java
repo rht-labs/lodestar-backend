@@ -1,5 +1,6 @@
 package com.redhat.labs.lodestar.service;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -33,7 +34,15 @@ public class ParticipantService {
     EngagementService engagementService;
     
     public List<EngagementUser> getParticipantsForEngagement(String engagementUuid) {
-        return participantRestClient.getParticipantsForEngagement(engagementUuid);
+        try {
+            return participantRestClient.getParticipantsForEngagement(engagementUuid);
+        } catch (WebApplicationException wex) {
+            if(wex.getResponse().getStatus() >= 500) {
+                LOGGER.error("Participant Server error ({}) from hosting env for euuid {}", wex.getResponse().getStatus(), engagementUuid);
+                return Collections.EMPTY_LIST;
+            }
+            throw wex;
+        }
     }
     
     public Response getParticipants(int page, int pageSize) {
