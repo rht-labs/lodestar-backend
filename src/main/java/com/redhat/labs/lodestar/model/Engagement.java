@@ -31,6 +31,7 @@ public class Engagement {
     @ValidName
     private String name;
     @JsonbProperty("project_id") //Should this be sent to the FE?
+    @DiffIgnore
     private Integer projectId;
     private String description;
     private String location;
