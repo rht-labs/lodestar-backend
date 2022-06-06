@@ -65,10 +65,10 @@ class EngagementResourceJwtTest {
 
         String token = TokenUtils.generateTokenString(claimFile);
 
-        Engagement engagement = Engagement.builder().uuid("uuid").customerName("c1").projectName("e1")
+        Engagement engagement = Engagement.builder().uuid("uuid").customerName("c11").projectName("e11")
                 .type("Residency").build();
 
-        Engagement created = Engagement.builder().uuid("uuid").customerName("c1").projectName("e1")
+        Engagement created = Engagement.builder().uuid("uuid").customerName("c11").projectName("e11")
                         .lastUpdateByName(lastUpdateName).lastUpdateByEmail(lastUpdateEmail).build();
 
         Mockito.when(engagementApiClient.createEngagement(Mockito.any(Engagement.class))).thenReturn(created);
