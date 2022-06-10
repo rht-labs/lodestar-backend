@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Set;
 
 import javax.json.bind.annotation.JsonbProperty;
+import javax.validation.constraints.Size;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.redhat.labs.lodestar.validation.ValidName;
 
@@ -26,9 +28,11 @@ public class Engagement {
 
     private String uuid;
     @ValidName
+    @Size(min = 3, max = 255)
     @JsonbProperty("customer_name")
     private String customerName;
     @ValidName
+    @Size(min = 3, max = 255)
     private String name;
     @JsonbProperty("project_id") //Should this be sent to the FE?
     @DiffIgnore
