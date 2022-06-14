@@ -31,6 +31,9 @@ public class HostingEnvironment extends EngagementAttribute {
     @JsonbProperty("ocp_cloud_provider_region")
     private String ocpCloudProviderRegion;
 
+    @JsonbProperty("ocp_cloud_provider_availability_zone")
+    private String ocpCloudProviderAvailabilityZone;
+
     @JsonbProperty("ocp_persistent_storage_size")
     private String ocpPersistentStorageSize;
 
