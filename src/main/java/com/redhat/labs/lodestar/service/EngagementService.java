@@ -201,7 +201,7 @@ public class EngagementService {
             Set<String> allowed = configService.getParticipantOptions(engagement.getType()).keySet();
             String errors = "";
             for(EngagementUser p : engagement.getEngagementUsers()) {
-                if(allowed.contains(p.getRole())) {
+                if(!allowed.contains(p.getRole())) {
                     errors += String.format("Participant %s has invalid role %s. ", p.getEmail(), p.getRole());
                     LOGGER.error("Participant {} has invalid role {} for engagement type {} - {}", p.getEmail(), p.getRole(), engagement.getType(), engagement.getUuid());
                 }
