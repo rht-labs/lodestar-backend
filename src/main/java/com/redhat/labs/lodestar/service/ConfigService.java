@@ -54,6 +54,17 @@ public class ConfigService {
 		return configApiClient.getRuntimeConfig(type.isPresent() ? type.get() : null);
 	}
 
+	@CacheResult(cacheName = "participant-options")
+	public Map<String, String> getParticipantOptions(String type) {
+		LOGGER.debug("cache miss for participant options ({})", type);
+		return configApiClient.getParticipantOptions(type);
+	}
+	@CacheResult(cacheName = "participant-options-base")
+	public Map<String, String> getParticipantOptions() {
+		LOGGER.debug("cache miss for participant options (base)");
+		return configApiClient.getParticipantOptions();
+	}
+
 	@CacheResult(cacheName = "artifact-options")
 	public Map<String, String> getArtifactOptions() {
 		LOGGER.debug("cache miss for artifact options");

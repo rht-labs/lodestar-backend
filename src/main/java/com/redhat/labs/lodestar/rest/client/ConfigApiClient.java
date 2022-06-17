@@ -34,6 +34,14 @@ public interface ConfigApiClient {
     Map<String, String> getArtifactOptions();
 
     @GET
+    @Path("participant/options")
+    Map<String, String> getParticipantOptions(@QueryParam("engagementType") String type);
+
+    @GET
+    @Path("participant/options")
+    Map<String, String> getParticipantOptions();
+
+    @GET
     @Path("engagement/options")
     Map<String, String> getEngagementOptions();
 
