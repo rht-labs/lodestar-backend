@@ -57,10 +57,25 @@ public class ConfigResource {
     @Path("artifact/options")
     @SecurityRequirement(name = "jwt")
     @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
-            @APIResponse(responseCode = "200", description = "Artifact ptions success.") })
-    @Operation(summary = "Returns a map of key value pairs or artifact option.")
+            @APIResponse(responseCode = "200", description = "Artifact options success.") })
+    @Operation(summary = "Returns a map of key value pairs of artifact options.")
     public Map<String, String> getArtifactOptions() {
         return configService.getArtifactOptions();
+    }
+
+    @GET
+    @Path("participant/options")
+    @SecurityRequirement(name = "jwt")
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "200", description = "Participant options success.") })
+    @Operation(summary = "Returns a map of key value pairs of participant options. " +
+            "If the engagement type is not found it will return the default values (Residency)")
+    public Map<String, String> getParticipantOptions(@QueryParam("engagementType") String type) {
+        if(type == null) {
+            return configService.getParticipantOptions();
+        }
+
+        return configService.getParticipantOptions(type);
     }
 
     @GET

@@ -137,4 +137,19 @@ class ConfigResourceTest {
                 .body("$", Matchers.hasKey("training"));
     }
 
+    @Test
+    void testParticipantOptions() throws Exception {
+        String participants = ResourceLoader.load("config-participant-options.json");
+        Map<String, String> pariticipantsMap = om.readValue(participants, Map.class);
+        Mockito.when(configApiClient.getParticipantOptions()).thenReturn(pariticipantsMap);
+        given().when().auth().oauth2(VALID_TOKEN).get("/participant/options").then().statusCode(200)
+                .body("$", Matchers.hasKey("arole"))
+                .body("$", Matchers.hasKey("brole"));
+
+        Mockito.when(configApiClient.getParticipantOptions("DO")).thenReturn(pariticipantsMap);
+        given().queryParam("engagementType", "DO").when().auth().oauth2(VALID_TOKEN).get("/participant/options").then().statusCode(200)
+                .body("$", Matchers.hasKey("arole"))
+                .body("$", Matchers.hasKey("brole"));
+    }
+
 }

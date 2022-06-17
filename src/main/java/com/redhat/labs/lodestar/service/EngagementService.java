@@ -146,6 +146,8 @@ public class EngagementService {
 
     /**
      * Updates the {@link Engagement} resource in the data store
+     * This supports the way v1 frontend saves the entire engagement. In the future the FE should use direct
+     * updates to each component
      * 
      * @param engagement
      * @return
@@ -194,6 +196,20 @@ public class EngagementService {
         diff = javers.compareCollections(new HashSet<>(participants), engagement.getEngagementUsers(), EngagementUser.class);
         if(diff.hasChanges()) {
             LOGGER.debug("Participants changed {}", diff);
+
+            //Validate participant options
+            Set<String> allowed = configService.getParticipantOptions(engagement.getType()).keySet();
+            String errors = "";
+            for(EngagementUser p : engagement.getEngagementUsers()) {
+                if(allowed.contains(p.getRole())) {
+                    errors += String.format("Participant %s has invalid role %s. ", p.getEmail(), p.getRole());
+                    LOGGER.error("Participant {} has invalid role {} for engagement type {} - {}", p.getEmail(), p.getRole(), engagement.getType(), engagement.getUuid());
+                }
+            }
+
+            if(!errors.isEmpty()) {
+                throw new WebApplicationException(Response.status(400).entity(Map.of("lodestarMessage", errors.trim())).build());
+            }
             participants = participantService.updateParticipantsAndReload(engagementUuid, author, authorEmail,
                     engagement.getEngagementUsers());
             LOGGER.debug("Updated {}", participants);
