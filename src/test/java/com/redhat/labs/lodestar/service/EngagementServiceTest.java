@@ -1,65 +1,85 @@
 package com.redhat.labs.lodestar.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Stream;
-
-import javax.json.bind.Jsonb;
-import javax.json.bind.JsonbBuilder;
-import javax.json.bind.JsonbConfig;
-import javax.json.bind.config.PropertyNamingStrategy;
-import javax.ws.rs.WebApplicationException;
-
-import org.apache.commons.lang3.StringUtils;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.NullAndEmptySource;
-import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.Mockito;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-import com.redhat.labs.lodestar.model.Artifact;
-import com.redhat.labs.lodestar.model.Category;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.EngagementUser;
-import com.redhat.labs.lodestar.model.Hook;
-import com.redhat.labs.lodestar.model.HostingEnvironment;
-import com.redhat.labs.lodestar.model.Launch;
-import com.redhat.labs.lodestar.model.Score;
-import com.redhat.labs.lodestar.model.UseCase;
-import com.redhat.labs.lodestar.model.event.EventType;
-import com.redhat.labs.lodestar.model.filter.FilterOptions;
-import com.redhat.labs.lodestar.model.filter.ListFilterOptions;
+import com.redhat.labs.lodestar.rest.client.CategoryApiClient;
+import com.redhat.labs.lodestar.rest.client.EngagementApiClient;
+import io.quarkus.test.junit.QuarkusTest;
+import io.quarkus.test.junit.mockito.InjectMock;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
-import io.vertx.mutiny.core.eventbus.EventBus;
+import javax.inject.Inject;
+import javax.ws.rs.WebApplicationException;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+@QuarkusTest
 class EngagementServiceTest {
 
-//    JsonbConfig config = new JsonbConfig().withFormatting(true)
-//            .withPropertyNamingStrategy(PropertyNamingStrategy.LOWER_CASE_WITH_UNDERSCORES);
-//    Jsonb jsonb = JsonbBuilder.create(config);
-//
-//    EngagementRepository repository;
-//    EventBus eventBus;
-//    LodeStarGitApiClient gitApi;
-//
-//    EngagementService service;
+    private final String lastUpdate = "2007-12-03T10:15:30.00Z";
+
+    @Inject
+    EngagementService engagementService;
+
+    @InjectMock
+    EngagementApiClient engagementApiClient;
+
+    @InjectMock
+    CategoryApiClient categoryApiClient;
+
+    @InjectMock
+    HostingService hostingService;
+
+    @InjectMock
+    ArtifactService artifactService;
+
+    @InjectMock
+    ParticipantService participantService;
+
+    @InjectMock
+    ConfigService configService;
+
+    @InjectMock
+    ActivityService activityService;
+
+    @BeforeEach
+    public void setUp() {
+        String uuid = "uuid";
+        Mockito.when(engagementApiClient.getEngagement(uuid)).thenReturn(Engagement.builder().uuid("uuid").lastUpdate(lastUpdate).build());
+        Mockito.when(hostingService.getHostingEnvironments(uuid)).thenReturn(Collections.emptyList());
+        Mockito.when(artifactService.getArtifacts(uuid)).thenReturn(Collections.emptyList());
+        Mockito.when(participantService.getParticipantsForEngagement(uuid)).thenReturn(Collections.emptyList());
+        Mockito.when(configService.getParticipantOptions("Res")).thenReturn(Map.of("monkey", "Monkey", "giraffe", "Giraffe"));
+        Mockito.when(categoryApiClient.getCategories(uuid)).thenReturn(Collections.emptyList());
+        Mockito.when(activityService.getActivityForUuid(uuid)).thenReturn(Collections.emptyList());
+    }
+
+    @Test
+    public void testParticipantValid() {
+        EngagementUser participant = EngagementUser.builder().email("kevin@rh.com").firstName("Kevin").lastName("RH").role("monkey").build();
+        Engagement engagement = Engagement.builder().uuid("uuid").type("Res").lastUpdate(lastUpdate).engagementUsers(Set.of(participant)).build();
+        engagementService.update(engagement);
+        Mockito.verify(participantService, Mockito.times(2)).getParticipantsForEngagement("uuid");
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    public void testParticipantInValid() {
+        EngagementUser participant = EngagementUser.builder().email("kevin@rh.com").firstName("Kevin").lastName("RH").role("Chef").build();
+        Engagement engagement = Engagement.builder().uuid("uuid").type("Res").lastUpdate(lastUpdate).engagementUsers(Set.of(participant)).build();
+
+        WebApplicationException ex = assertThrows(WebApplicationException.class, () -> engagementService.update(engagement));
+        Map<String, String> body = ex.getResponse().readEntity(Map.class);
+        assertEquals("Participant kevin@rh.com has invalid role Chef.", body.get("lodestarMessage"));
+        assertEquals(400, ex.getResponse().getStatus());
+    }
+
 //
 //    @BeforeEach
 //    void setup() {
@@ -813,7 +833,7 @@ class EngagementServiceTest {
 //    // launch
 //
 //    @Test
-//    void testLaunchAlreadyLaunced() {
+//    void testLaunchAlreadyLaunched() {
 //
 //        Engagement e = MockUtils.mockMinimumEngagement("c1", "p1", "1234");
 //        e.setLaunch(Launch.builder().build());
