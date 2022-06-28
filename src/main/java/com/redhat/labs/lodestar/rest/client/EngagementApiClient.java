@@ -69,6 +69,10 @@ public interface EngagementApiClient {
     @Path("refresh")
     Response refresh(@QueryParam("uuids") Set<String> uuids);
 
+    @PUT
+    @Path("refresh/state")
+    Response refreshStates();
+
     @GET
     @Path("suggest")
     Response suggest(@QueryParam("partial") String partial);
