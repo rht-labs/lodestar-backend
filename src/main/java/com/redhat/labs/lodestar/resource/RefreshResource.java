@@ -95,4 +95,14 @@ public class RefreshResource {
 
     }
 
+    @PUT
+    @Path("states")
+    @SecurityRequirement(name = "jwt")
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "200", description = "The request was accepted and will be processed.") })
+    @Operation(summary = "Refreshes the state of the engagement in gitlab")
+    public Response refreshStates() {
+        return engagementService.refreshState();
+    }
+
 }

@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.HashMap;
 
 import static io.restassured.RestAssured.given;
+import static org.hamcrest.Matchers.equalTo;
 
 @QuarkusTest
 @Tag("nested")
@@ -32,6 +33,10 @@ class RefreshResourceTest {
     @InjectMock
     @RestClient
     public ParticipantApiClient participantClient;
+
+    @InjectMock
+    @RestClient
+    public HostingEnvironmentApiClient hostingEnvironmentApiClient;
 
     @InjectMock
     @RestClient
@@ -66,6 +71,15 @@ class RefreshResourceTest {
                 .put("/engagements/refresh").then().statusCode(202);
         
         Mockito.verify(activityClient, Mockito.timeout(1000)).refresh();
+    }
+
+    @Test
+    void testHostingReload() {
+
+        given().queryParam("hosting", true).when().auth().oauth2(validToken)
+                .put("/engagements/refresh").then().statusCode(202).body("size()", equalTo(1)).body("[0]", equalTo("hosting"));
+
+        Mockito.verify(hostingEnvironmentApiClient, Mockito.timeout(1000)).refresh();
     }
     
     @Test
@@ -125,14 +139,11 @@ class RefreshResourceTest {
     }
 
     @Test
-    void testDbRefreshWithoutPurge() throws Exception {
-
-        HashMap<String, Long> timeClaims = new HashMap<>();
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json", timeClaims);
+    void testDbRefreshWithoutPurge() {
 
         given()
             .auth()
-            .oauth2(token)
+            .oauth2(validToken)
             .queryParam("purgeFirst", false)
             .queryParam("engagements", true)
         .when()
@@ -140,5 +151,17 @@ class RefreshResourceTest {
         .then()
             .statusCode(202);
 
+    }
+
+    @Test
+    void testRefreshState() {
+        Mockito.when(engagementApiClient.refreshStates()).thenReturn(Response.ok().build());
+        given()
+            .auth()
+            .oauth2(validToken)
+        .when()
+            .put("/engagements/refresh/states")
+        .then()
+            .statusCode(200);
     }
 }

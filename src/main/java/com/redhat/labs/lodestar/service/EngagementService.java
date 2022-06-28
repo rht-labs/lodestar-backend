@@ -437,4 +437,8 @@ public class EngagementService {
         engagementApiClient.refresh(uuids);
     }
 
+    public Response refreshState() {
+        return engagementApiClient.refreshStates();
+    }
+
 }
