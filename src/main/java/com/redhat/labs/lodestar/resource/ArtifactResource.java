@@ -69,7 +69,7 @@ public class ArtifactResource {
             }
         }
 
-        return artifactService.getArtifacts(filterOptions, engagementUuid, type, region, dashboardView);
+        return artifactService.getArtifacts(filterOptions, engagementUuid, type, region);
      }
 
     @GET

@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import com.redhat.labs.lodestar.model.Engagement;
 import com.redhat.labs.lodestar.model.EngagementUser;
 import com.redhat.labs.lodestar.model.event.EventType;
-import com.redhat.labs.lodestar.model.filter.FilterOptions;
 import com.redhat.labs.lodestar.rest.client.ParticipantApiClient;
 
 import io.quarkus.vertx.ConsumeEvent;
@@ -39,7 +38,7 @@ public class ParticipantService {
         } catch (WebApplicationException wex) {
             if(wex.getResponse().getStatus() >= 500) {
                 LOGGER.error("Participant Server error ({}) from hosting env for euuid {}", wex.getResponse().getStatus(), engagementUuid);
-                return Collections.EMPTY_LIST;
+                return Collections.emptyList();
             }
             throw wex;
         }

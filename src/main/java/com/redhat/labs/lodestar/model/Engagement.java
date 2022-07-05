@@ -76,11 +76,11 @@ public class Engagement {
     //also checked before PUT/POST actions
     @DiffIgnore
     private Boolean writeable;
-    
-    @Deprecated
+
     /*
       @deprecated - delivered in a separate api separately
      */
+    @Deprecated(since = "2.0.0")
     @DiffIgnore
     private List<Commit> commits;
     @JsonbProperty("creation_details")

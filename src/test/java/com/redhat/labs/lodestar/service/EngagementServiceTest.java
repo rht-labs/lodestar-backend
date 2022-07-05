@@ -49,7 +49,7 @@ class EngagementServiceTest {
     ActivityService activityService;
 
     @BeforeEach
-    public void setUp() {
+     void setUp() {
         String uuid = "uuid";
         Mockito.when(engagementApiClient.getEngagement(uuid)).thenReturn(Engagement.builder().uuid("uuid").lastUpdate(lastUpdate).build());
         Mockito.when(hostingService.getHostingEnvironments(uuid)).thenReturn(Collections.emptyList());
@@ -61,7 +61,7 @@ class EngagementServiceTest {
     }
 
     @Test
-    public void testParticipantValid() {
+     void testParticipantValid() {
         EngagementUser participant = EngagementUser.builder().email("kevin@rh.com").firstName("Kevin").lastName("RH").role("monkey").build();
         Engagement engagement = Engagement.builder().uuid("uuid").type("Res").lastUpdate(lastUpdate).engagementUsers(Set.of(participant)).build();
         engagementService.update(engagement);
@@ -70,7 +70,7 @@ class EngagementServiceTest {
 
     @Test
     @SuppressWarnings("unchecked")
-    public void testParticipantInValid() {
+     void testParticipantInValid() {
         EngagementUser participant = EngagementUser.builder().email("kevin@rh.com").firstName("Kevin").lastName("RH").role("Chef").build();
         Engagement engagement = Engagement.builder().uuid("uuid").type("Res").lastUpdate(lastUpdate).engagementUsers(Set.of(participant)).build();
 

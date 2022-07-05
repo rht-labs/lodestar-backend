@@ -1,7 +1,6 @@
 package com.redhat.labs.lodestar.model;
 
 import lombok.*;
-import lombok.experimental.SuperBuilder;
 
 @Data
 @NoArgsConstructor
