@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import org.javers.core.metamodel.annotation.DiffIgnore;
-import org.javers.core.metamodel.annotation.Id;
 
 @Data
 @ToString

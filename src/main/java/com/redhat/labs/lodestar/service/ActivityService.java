@@ -7,7 +7,6 @@ import org.eclipse.microprofile.rest.client.inject.*;
 
 import javax.enterprise.context.*;
 import javax.inject.*;
-import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import java.time.Instant;
 import java.util.*;

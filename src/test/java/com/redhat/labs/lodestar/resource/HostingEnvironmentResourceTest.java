@@ -21,7 +21,7 @@ import static org.hamcrest.CoreMatchers.equalTo;
 
 @QuarkusTest
 @Tag("nested")
-public class HostingEnvironmentResourceTest {
+class HostingEnvironmentResourceTest {
 
     @InjectMock
     @RestClient

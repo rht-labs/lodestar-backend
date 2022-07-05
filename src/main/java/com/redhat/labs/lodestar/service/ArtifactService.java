@@ -45,13 +45,13 @@ public class ArtifactService {
         } catch (WebApplicationException wex) {
             if(wex.getResponse().getStatus() >= 500) {
                 LOGGER.error("Artifact Server error ({}) from hosting env for euuid {}", wex.getResponse().getStatus(), engagementUuid);
-                return Collections.EMPTY_LIST;
+                return Collections.emptyList();
             }
             throw wex;
         }
     }
     
-    public Response getArtifacts(ListFilterOptions filterOptions, String engagementUuid, String type, List<String> region, boolean dashboardView) {
+    public Response getArtifacts(ListFilterOptions filterOptions, String engagementUuid, String type, List<String> region) {
         Optional<Integer> pageO = filterOptions.getPage();
         Optional<Integer> pageSizeO = filterOptions.getPerPage();
         int page = pageO.orElse(1);

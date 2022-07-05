@@ -199,16 +199,16 @@ public class EngagementService {
 
             //Validate participant options
             Set<String> allowed = configService.getParticipantOptions(engagement.getType()).keySet();
-            String errors = "";
+            StringBuilder errors = new StringBuilder();
             for(EngagementUser p : engagement.getEngagementUsers()) {
                 if(!allowed.contains(p.getRole())) {
-                    errors += String.format("Participant %s has invalid role %s. ", p.getEmail(), p.getRole());
+                    errors.append(String.format("Participant %s has invalid role %s. ", p.getEmail(), p.getRole()));
                     LOGGER.error("Participant {} has invalid role {} for engagement type {} - {}", p.getEmail(), p.getRole(), engagement.getType(), engagement.getUuid());
                 }
             }
 
-            if(!errors.isEmpty()) {
-                throw new WebApplicationException(Response.status(400).entity(Map.of("lodestarMessage", errors.trim())).build());
+            if(!errors.toString().isEmpty()) {
+                throw new WebApplicationException(Response.status(400).entity(Map.of("lodestarMessage", errors.toString().trim())).build());
             }
             participants = participantService.updateParticipantsAndReload(engagementUuid, author, authorEmail,
                     engagement.getEngagementUsers());
@@ -296,7 +296,7 @@ public class EngagementService {
         if (hook.didFileChange(statusFile)) {
             LOGGER.debug("Status update {}", hook.getProjectId());
             engagementStatusApiClient.updateEngagementStatus(engagement.getUuid());
-            Status status = engagementStatusApiClient.getEngagementStatus(engagement.getUuid());
+            //Status status = engagementStatusApiClient.getEngagementStatus(engagement.getUuid());
             //engagementService.setStatus(engagement.getUuid(), status);
             //TODO put this status in the magical cache
         }
@@ -439,6 +439,14 @@ public class EngagementService {
 
     public Response refreshState() {
         return engagementApiClient.refreshStates();
+    }
+
+    public Set<String> getGitlabSet() {
+        return engagementApiClient.getGitlabSet();
+    }
+
+    public Response rePushChangesToGitlab(String uuid, String message) {
+        return engagementApiClient.rePushChangesToGitlab(uuid, message);
     }
 
 }

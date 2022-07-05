@@ -25,7 +25,6 @@
 		<sonar.organization>rht-labs</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 		<sonar.coverage.jacoco.xmlReportPaths>./target/jacoco-report/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-		<jacoco.version>0.8.7</jacoco.version>
 	</properties>
 	<dependencyManagement>
 		<dependencies>

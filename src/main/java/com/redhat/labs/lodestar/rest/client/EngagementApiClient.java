@@ -74,6 +74,14 @@ public interface EngagementApiClient {
     Response refreshStates();
 
     @GET
+    @Path("gitlab")
+    Set<String> getGitlabSet();
+
+    @PUT
+    @Path("retry")
+    Response rePushChangesToGitlab(@QueryParam("uuid") String uuid, @QueryParam("message") String message);
+
+    @GET
     @Path("suggest")
     Response suggest(@QueryParam("partial") String partial);
 
