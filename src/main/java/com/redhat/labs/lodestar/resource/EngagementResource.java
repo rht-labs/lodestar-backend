@@ -376,6 +376,36 @@ public class EngagementResource {
         engagementService.deleteEngagement(uuid);
         return Response.accepted().build();
     }
+
+    @GET
+    @Path("/gitlab/check")
+    @SecurityRequirement(name = "jwt")
+    @APIResponses(value = { @APIResponse(responseCode = "200", description = "Gitlab / DB comparison fetched") })
+    @Operation(summary = "Checks all engagements in the database vs what is in gitlab")
+    public Set<String> getGitlabSet() {
+        LOGGER.debug("checking gitlab");
+        return engagementService.getGitlabSet();
+    }
+
+    @PUT
+    @SecurityRequirement(name = "jwt")
+    @Path("/gitlab/repush")
+    @APIResponses(value = { @APIResponse(responseCode = "401", description = "Missing or Invalid JWT"),
+            @APIResponse(responseCode = "403", description = "Not authorized for engagement type"),
+            @APIResponse(responseCode = "404", description = "Engagement resource not found to update"),
+            @APIResponse(responseCode = "200", description = "Engagement resent to gitlab") })
+    @Operation(summary = "Resends engagement data to gitlab.")
+    public Response rePushChangesToGitlab(@QueryParam("uuid") String uuid, @QueryParam(value = "message") String message) {
+        LOGGER.debug("re-pushing {} to gitlab", uuid);
+
+        Engagement engagement = engagementService.getByUuid(uuid);
+        boolean writer = jwtUtils.isAllowedToWriteEngagement(jwt, configService.getPermission(engagement.getType()));
+        if(!writer) {
+            return forbiddenResponse(engagement.getType());
+        }
+
+        return engagementService.rePushChangesToGitlab(uuid, message);
+    }
     
     private Response forbiddenResponse(String type) {
         String message = String.format("{\"message\": \"You cannot modify %s engagements\"}", type);

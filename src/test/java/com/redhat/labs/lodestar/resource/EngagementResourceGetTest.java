@@ -275,8 +275,6 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
     @Test
     void testGetEngagementUserSummaryRegion() {
 
-        String token = TokenUtils.generateTokenString("/JwtClaimsWriter.json");
-
         Map<String, Long> enabled = new HashMap<>();
         enabled.put("Red Hat", 1000000000L);
         enabled.put("Others", 6L);
@@ -290,7 +288,7 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
                 .queryParam("search", "engagement_region=na")
         .when()
                 .auth()
-                .oauth2(token)
+                .oauth2(validToken)
                 .get("/engagements/users/summary")
             .then()
                 .statusCode(200).body("all_users_count", equalTo(1000000006))
@@ -309,12 +307,20 @@ class EngagementResourceGetTest extends IntegrationTestHelper {
                 .queryParam("search", "not_engagement_region=na")
                 .when()
                 .auth()
-                .oauth2(token)
+                .oauth2(validToken)
                 .get("/engagements/users/summary")
                 .then()
                 .statusCode(200).body("all_users_count", equalTo(12))
                 .body("other_users_count", equalTo(5))
                 .body("rh_users_count", equalTo(7));
 
+    }
+
+    @Test
+    void testGitlabCheck() {
+        Mockito.when(engagementApiClient.getGitlabSet()).thenReturn(Set.of("yo"));
+
+        given().when().auth().oauth2(validToken).get("/engagements/gitlab/check").then()
+                .statusCode(200).body("size()", equalTo(1)).body("[0]", equalTo("yo"));
     }
 }

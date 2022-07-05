@@ -348,5 +348,21 @@ class EngagementResourceUpdateTest extends IntegrationTestHelper {
                 .statusCode(409);
 
     }
+
+    @Test
+    void retryGitlabEngagement() {
+        Engagement engagement = Engagement.builder().uuid("1234").customerName("Customer").projectName("Project").type("Residency").build();
+        Mockito.when(engagementApiClient.getEngagement("1234")).thenReturn(engagement);
+        Mockito.when(engagementApiClient.rePushChangesToGitlab("1234", "message")).thenReturn(Response.ok().build());
+
+        given().when().auth().oauth2(validToken).queryParam("uuid", "1234").queryParam("message", "message")
+                .put("/engagements/gitlab/repush").then().statusCode(200);
+
+        engagement = Engagement.builder().uuid("1235").customerName("Customer").projectName("Project").type("xxx").build();
+        Mockito.when(engagementApiClient.getEngagement("1235")).thenReturn(engagement);
+
+        given().when().auth().oauth2(validToken).queryParam("uuid", "1235").queryParam("message", "message")
+                .put("/engagements/gitlab/repush").then().statusCode(403);
+    }
     
 }
