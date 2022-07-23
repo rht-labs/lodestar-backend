@@ -21,7 +21,7 @@ public class ServiceResponseMapper implements ResponseExceptionMapper<RuntimeExc
 
         LOGGER.error("Rest client response error {} {}", status, msg);
 
-        return new WebApplicationException(msg, status);
+        return new WebApplicationException(response);
 
     }
 
