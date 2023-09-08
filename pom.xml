@@ -10,7 +10,7 @@
 	<properties>
 		<compiler-plugin.version>3.8.1</compiler-plugin.version>
 		<lombok.version>1.18.20</lombok.version>
-		<wiremock.version>2.31.0</wiremock.version>
+		<wiremock.version>2.35.1</wiremock.version>
 		<javers.core.version>6.2.4</javers.core.version>
 		<maven.compiler.parameters>true</maven.compiler.parameters>
 		<maven.compiler.source>11</maven.compiler.source>
